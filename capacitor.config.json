@@ -1,6 +1,6 @@
 {
-	"appId": "io.ionic.starter",
-	"appName": "esp8266",
-	"webDir": "build",
-	"bundledWebRuntime": false
+  "appId": "io.ionic.esp8266",
+  "appName": "esp8266",
+  "webDir": "build",
+  "bundledWebRuntime": false
 }
