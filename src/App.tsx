@@ -37,7 +37,7 @@ import './theme/variables.css';
 /* TailwindCSS */
 import './index.css';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { WifiWizard2 } from '@awesome-cordova-plugins/wifi-wizard-2';
 import { IconGoogle } from './icons';
 import Box from '@mui/material/Box';
@@ -47,10 +47,14 @@ import SignalCellular1BarIcon from '@mui/icons-material/SignalCellular1Bar';
 import SignalCellular2BarIcon from '@mui/icons-material/SignalCellular2Bar';
 import SignalCellular3BarIcon from '@mui/icons-material/SignalCellular3Bar';
 import Button from '@mui/material/Button';
+import Zoom from '@mui/material/Zoom';
+
 
 setupIonicReact();
 
 const App: React.FC = () =>{
+
+  const [scan, setScan] = useState(false);
 
   useEffect(() => {
     const run = async () => {
@@ -63,12 +67,22 @@ const App: React.FC = () =>{
     run();
   }, []);
 
+  function activeScan() {
+    setScan(!scan)
+  }
+
   return (
     <IonApp>
       <Box className='bg-[#edf1f5] w-full h-full flex flex-col'>
-        <Box component="div" className='w-64 h-64 my-10 m-auto rounded-full bg-indigo-50 flex justify-center items-center'>
-          <Box component="div" className='w-3/4 h-3/4 m-auto rounded-full bg-indigo-100 flex justify-center items-center'>
-            <Box component="div" className='w-3/4 h-3/4 m-auto rounded-full bg-indigo-200 flex justify-center items-center'>
+        <Box className='w-64 h-64 relative flex justify-center items-center my-6 mx-auto'>
+          <Zoom in={!scan}>
+            <Box component="div" className='w-full h-full absolute top-0 left-0 m-auto rounded-full bg-indigo-100 flex justify-center items-center'>
+              <Box component="div" className='w-3/4 h-3/4 m-auto rounded-full bg-indigo-200 flex justify-center items-center'>
+              </Box>
+            </Box>
+          </Zoom>
+          <Box onClick={activeScan} className='w-3/4 h-3/4 rounded-full'>
+            <Button component="div" sx={{ borderRadius: '50%' }} className='w-full h-full bg-indigo-200 flex justify-center items-center'>
               <Box className='flex flex-col items-center'>
                 <Box className='text-6xl'>
                   <WifiIcon className='text-white' fontSize='inherit' />
@@ -77,8 +91,10 @@ const App: React.FC = () =>{
                   quét
                 </Typography>
               </Box>
-            </Box>
+            </Button>
           </Box>
+          {/* <Zoom in={!scan} style={{ transitionDelay: '500ms', }}>
+          </Zoom> */}
         </Box>
         <Box className='bg-white w-full flex-1 rounded-t-3xl p-6 shadow-2xl'>
           <Typography variant="h5" className='text-slate-600'>
