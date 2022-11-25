@@ -67,28 +67,41 @@ const App: React.FC = () =>{
     run();
   }, []);
 
+  useEffect(() => {
+    if(scan) {
+      // const id = setInterval(() => {
+
+      // }, )
+    }
+  }, [scan])
+
   function activeScan() {
     setScan(!scan)
+    // setScan(true)
   }
 
   return (
     <IonApp>
       <Box className='bg-[#edf1f5] w-full h-full flex flex-col'>
         <Box className='w-64 h-64 relative flex justify-center items-center my-6 mx-auto'>
-          <Zoom in={!scan}>
-            <Box component="div" className='w-full h-full absolute top-0 left-0 m-auto rounded-full bg-indigo-100 flex justify-center items-center'>
-              <Box component="div" className='w-3/4 h-3/4 m-auto rounded-full bg-indigo-200 flex justify-center items-center'>
-              </Box>
-            </Box>
-          </Zoom>
+          <Box component="div" className={`w-full h-full absolute top-0 left-0 m-auto rounded-full bg-indigo-200 flex justify-center items-center transition-transform ${scan ? 'scale-90 opacity-60' : 'scale-100' }`}>
+            <Box component="div" className='w-3/4 h-3/4 m-auto rounded-full bg-indigo-300 flex justify-center items-center' />
+            <Box component="div" className={`w-3/4 h-3/4 absolute m-auto rounded-full bg-indigo-200 flex justify-center items-center ${ scan ? 'animate-ping' : 'animate-none bg-transparent' }`} />
+
+            <Box component="div" className={`w-3/4 h-3/4 ease-[cubic-bezier(0.8, -0.44, 0, 1.01)] absolute z-10 rounded-full before:absolute before:-left-[5px] before:-translate-x-full before:bg-indigo-400 before:w-4 before:h-4 before:rounded-full before:transition-opacity flex justify-center items-center ${ scan ? 'animate-[miruSpin_1.5s_ease-in-out_infinite] before:opacity-100' : 'animate-none before:opacity-0' }`} />
+            <Box component="div" className={`w-3/4 h-3/4 ease-[cubic-bezier(0.8, -0.44, 0, 1.01)] absolute z-10 rounded-full before:absolute before:-left-[5px] before:-translate-x-full before:bg-indigo-400 before:w-4 before:h-4 before:rounded-full before:transition-opacity flex justify-center items-center ${ scan ? 'animate-[miruSpin_1.5s_40ms_ease-in-out_infinite] before:opacity-100' : 'animate-none before:opacity-0' }`} />
+            <Box component="div" className={`w-3/4 h-3/4 ease-[cubic-bezier(0.8, -0.44, 0, 1.01)] absolute z-10 rounded-full before:absolute before:-left-[5px] before:-translate-x-full before:bg-indigo-400 before:w-4 before:h-4 before:rounded-full before:transition-opacity flex justify-center items-center ${ scan ? 'animate-[miruSpin_1.5s_80ms_ease-in-out_infinite] before:opacity-100' : 'animate-none before:opacity-0' }`} />
+            <Box component="div" className={`w-3/4 h-3/4 ease-[cubic-bezier(0.8, -0.44, 0, 1.01)] absolute z-10 rounded-full before:absolute before:-left-[5px] before:-translate-x-full before:bg-indigo-400 before:w-4 before:h-4 before:rounded-full before:transition-opacity flex justify-center items-center ${ scan ? 'animate-[miruSpin_1.5s_120ms_ease-in-out_infinite] before:opacity-100' : 'animate-none before:opacity-0' }`} />
+            <Box component="div" className={`w-3/4 h-3/4 ease-[cubic-bezier(0.8, -0.44, 0, 1.01)] absolute z-10 rounded-full before:absolute before:-left-[5px] before:-translate-x-full before:bg-indigo-400 before:w-4 before:h-4 before:rounded-full before:transition-opacity flex justify-center items-center ${ scan ? 'animate-[miruSpin_1.5s_160ms_ease-in-out_infinite] before:opacity-100' : 'animate-none before:opacity-0' }`} />
+          </Box>
           <Box onClick={activeScan} className='w-3/4 h-3/4 rounded-full'>
-            <Button component="div" sx={{ borderRadius: '50%' }} className='w-full h-full bg-indigo-200 flex justify-center items-center'>
-              <Box className='flex flex-col items-center'>
+            <Button component="div" sx={{ borderRadius: '50%' }} className='w-full h-full bg-indigo-300 flex justify-center items-center'>
+              <Box className={`flex flex-col items-center transition-colors ${scan ? 'text-white' : 'text-slate-50' }`}>
                 <Box className='text-6xl'>
-                  <WifiIcon className='text-white' fontSize='inherit' />
+                  <WifiIcon sx={{ color: 'currentcolor' }} fontSize='inherit' />
                 </Box>
-                <Typography variant="h6" className='text-white uppercase'>
-                  quét
+                <Typography variant="h6" sx={{ color: 'currentcolor' }} className='uppercase'>
+                  { scan ? 'đang quét' : 'quét ngay' }
                 </Typography>
               </Box>
             </Button>
@@ -96,7 +109,7 @@ const App: React.FC = () =>{
           {/* <Zoom in={!scan} style={{ transitionDelay: '500ms', }}>
           </Zoom> */}
         </Box>
-        <Box className='bg-white w-full flex-1 rounded-t-3xl p-6 shadow-2xl'>
+        <Box className='bg-white relative w-full flex-1 rounded-t-3xl p-6 shadow-2xl'>
           <Typography variant="h5" className='text-slate-600'>
             Danh sách node
           </Typography>
