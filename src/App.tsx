@@ -1,16 +1,7 @@
-import { Redirect, Route } from 'react-router-dom';
 import {
   IonApp,
-  IonIcon,
-  IonLabel,
-  IonRouterOutlet,
-  IonTabBar,
-  IonTabButton,
-  IonTabs,
   setupIonicReact
 } from '@ionic/react';
-import { IonReactRouter } from '@ionic/react-router';
-import { ellipse, square, triangle, chevronForwardCircleOutline } from 'ionicons/icons';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -41,7 +32,14 @@ import Grow from '@mui/material/Grow';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import Home from './pages/Home';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+} from "react-router-dom";
+import { publicRoutes } from './routes';
+
+import Header from './components/Header';
 
 setupIonicReact();
 
@@ -50,24 +48,32 @@ const App: React.FC = () =>{
 
   return (
     <IonApp>
-      {
-        isSign
-        ?
-          <Grow in={true}>
-            <Box className='w-full h-full'>
-              <Home />
-            </Box>
-          </Grow>
-        :
-        <Box className={`flex flex-1 flex-col justify-center items-center`}>
-          <Box className='text-indigo-600 mb-3'>
-            <CircularProgress sx={{ color: 'currentcolor' }} />
-          </Box>
-          <Typography className='text-slate-600' variant="subtitle1" gutterBottom>
-            Đang kiểm tra đăng nhập
-          </Typography>
+      <Grow in={true}>
+        <Box className='w-full h-full'>
+          <Router>
+            <Header />
+            <Routes>
+              {
+                publicRoutes.map((route, index) => (
+                  <Route
+                    key={index}
+                    path={route.path}
+                    element={<route.element />}
+                  />
+                ))
+              }
+            </Routes>
+          </Router>
         </Box>
-      }
+      </Grow>
+      {/* <Box className={`flex flex-1 flex-col justify-center items-center`}>
+        <Box className='text-indigo-600 mb-3'>
+          <CircularProgress sx={{ color: 'currentcolor' }} />
+        </Box>
+        <Typography className='text-slate-600' variant="subtitle1" gutterBottom>
+          Đang kiểm tra đăng nhập
+        </Typography>
+      </Box> */}
     </IonApp>
   );
 } 

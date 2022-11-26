@@ -1,4 +1,5 @@
 import { memo, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import AppBar from '@mui/material/AppBar';
 import { styled } from '@mui/material/styles';
@@ -16,6 +17,10 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import TuneIcon from '@mui/icons-material/Tune';
+import RouterIcon from '@mui/icons-material/Router';
+import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
 
 // Import Swiper React components
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -32,13 +37,33 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 const menu = [
   {
     id: 1,
-    field: 'điều khiển',
-  }
+    field: 'quản lí điều khiển',
+    icon: <TuneIcon />,
+    path: '/devices',
+  },
+  {
+    id: 2,
+    field: 'danh sách node',
+    icon: <RouterIcon />,
+    path: '/nodes'
+  },
+  {
+    id: 3,
+    field: 'kết nối node',
+    icon: <SettingsEthernetIcon />,
+    path: '/connect'
+  },
 ]
 
-function Home() {
+function Header() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [tab, setTab] = useState(0);
   const [drawer, setDrawer] = useState(false);
+  const [currentTitle, setCurrentTitle] = useState(() => {
+    const result = menu.find(item => item.path === location.pathname);
+    return result ? result.field : 'application iot'
+  });
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setTab(newValue);
@@ -47,6 +72,12 @@ function Home() {
   const handleChangeIndex = (index: number) => {
     setTab(index);
   };
+
+  const selectDrawerItem = (path: string, title: string) => {
+    setCurrentTitle(title);
+    navigate(path);
+    setDrawer(false);
+  }
 
   const toggleDrawer = (state: boolean) => {
     setDrawer(state);
@@ -60,19 +91,27 @@ function Home() {
         onClose={() => toggleDrawer(false)}
         onOpen={() => toggleDrawer(true)}
       >
+        <Typography
+          variant="h6"
+          noWrap
+          className='text-center pt-3'
+        >
+          Menu
+        </Typography>
         <List>
           {
             menu.map(item => (
               <ListItem key={item.id} disablePadding>
-                <ListItemButton>
-                  <ListItemText primary={item.field} />
+                <ListItemButton onClick={() => selectDrawerItem(item.path, item.field)}>
+                  <ListItemIcon>{ item.icon }</ListItemIcon>
+                  <ListItemText className="capitalize" primary={item.field} />
                 </ListItemButton>
               </ListItem>
             ))
           }
         </List>
       </SwipeableDrawer>
-      <Box className='w-full h-full relative'>
+      <Box className='w-full relative'>
         <AppBar position="static">
           <StyledToolbar>
             <IconButton
@@ -88,9 +127,9 @@ function Home() {
             <Typography
               variant="h5"
               noWrap
-              className='flex-1'
+              className='flex-1 capitalize'
             >
-              MUI
+              { currentTitle }
             </Typography>
             <IconButton
               size="large"
@@ -102,34 +141,9 @@ function Home() {
             </IconButton>
           </StyledToolbar>
         </AppBar>
-        {/* <Swiper className="w-full h-full">
-          <SwiperSlide>Slide 1</SwiperSlide>
-          <SwiperSlide>Slide 2</SwiperSlide>
-          <SwiperSlide>Slide 3</SwiperSlide>
-        </Swiper>
-        <Box className="w-full absolute bottom-0 px-3 mb-3 z-10">
-          <Tabs
-            value={tab}
-            className='w-full'
-            onChange={handleChange}
-            indicatorColor="secondary"
-            textColor="inherit"
-            variant="fullWidth"
-            aria-label="full width tabs example"
-            TabIndicatorProps={{
-              sx: {          
-                top: 0
-              }
-            }}
-          >
-            <Tab label="Item One" {...a11yProps(0)} />
-            <Tab label="Item Two" {...a11yProps(1)} />
-            <Tab label="Item Three" {...a11yProps(2)} />
-          </Tabs>
-        </Box> */}
       </Box>
     </>
   );
 }
 
-export default memo(Home);
+export default memo(Header);
