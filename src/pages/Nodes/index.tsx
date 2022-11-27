@@ -38,7 +38,7 @@ function Nodes() {
     <Box className="grid grid-cols-2 gap-3 p-3">
       {
         nodes.map(node => (
-          <Box key={node.id} className="flex flex-col p-3 items-center rounded-2xl border-indigo-600 border-2 shadow-md">
+          <Box key={node.id} className={`flex flex-col p-3 items-center rounded-2xl border-indigo-600 border-2 shadow-md`}>
             <Box className='flex flex-nowrap justify-between items-center w-full'>
               <Box className={`w-4 h-4 ml-3 rounded-full shadow-sm ${ node.state === 'online' ? 'shadow-green-400 bg-green-400' : 'bg-gray-400 shadow-gray-400' }`} />
               <IconButton aria-label="delete">

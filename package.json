@@ -30,6 +30,8 @@
     "history": "^4.9.0",
     "ionicons": "^6.0.3",
     "react": "^18.2.0",
+    "react-circular-progressbar": "^2.1.0",
+    "react-color": "^2.19.3",
     "react-dom": "^18.2.0",
     "react-router": "^6.4.3",
     "react-router-dom": "^6.4.3",

@@ -1,67 +1,120 @@
 import { memo, useState } from "react";
 
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import Grow from '@mui/material/Grow';
-import Switch from '@mui/material/Switch';
 
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import WidgetToggle from '../../components/Widget/Toggle';
+import WidgetProgress from '../../components/Widget/Progress';
+import WidgetSlider from '../../components/Widget/Slider';
 
-import { IconNode, IconLight, IconAir, IconFan } from '../../icons';
+const grids = {
+  'toggle': 'col-span-1',
+  'slider': 'col-span-2',
+  'progress': 'col-span-1 row-span-2',
+  'none': 'col-span-1',
+}
 
-import AntSwitch from '../../components/Switch';
+interface DeviceType {
+  name: string,
+  sub: string,
+  value: any,
+  icon: string,
+  type: string,
+}
 
-const icon = {
-  fan: <IconFan className='w-6 h-6 fill-slate-700' />,
-  light: <IconLight className='w-6 h-6 fill-slate-700' />,
-  air: <IconAir className='w-6 h-6 fill-slate-700' />,
-} 
-
-const label = { inputProps: { 'aria-label': 'Switch demo' } };
+const getTypeWidget = (device: DeviceType) => {
+  if(device.type === 'toggle') {
+    return <WidgetToggle device={device} />
+  }
+  else if(device.type === 'progress') {
+    return <WidgetProgress device={device} />
+  }
+  else if(device.type === 'slider') {
+    return <WidgetSlider device={device} />
+  }
+  else {
+    return null
+  }
+}
 
 function Devices() {
   const [devices, setDevices] = useState([
     {
       name: 'quạt trần',
       sub: 'PANASONIC F-60WWK',
-      state: true,
-      icon: 'fan'
+      value: true,
+      icon: 'fan',
+      type: 'toggle'
     },
     {
       name: 'bóng đèn',
       sub: '60W RẠNG ĐÔNG',
-      state: true,
-      icon: 'light'
+      value: true,
+      icon: 'light',
+      type: 'toggle'
     },
     {
       name: 'điều hoà',
       sub: 'PANASONIC CS-XPU9XKH-8',
-      state: false,
-      icon: 'air'
+      value: false,
+      icon: 'air',
+      type: 'toggle'
+    },
+    {
+      name: 'nhiệt độ phòng',
+      sub: 'cảm biến DHT21',
+      value: 25,
+      icon: 'sensor',
+      type: 'progress',
+      uint: '%'
+    },
+    {
+      name: 'đèn ngủ',
+      sub: 'light 3d',
+      value: 56,
+      icon: 'light',
+      type: 'slider',
+      uint: '%'
+    },
+    {
+      name: 'máy bơm',
+      sub: 'Panasonic GP-15HCN1 1.5HP',
+      value: true,
+      icon: 'fan',
+      type: 'toggle'
+    },
+    {
+      name: 'độ ẩm vườn rau',
+      sub: 'cảm biến DHT21',
+      value: 94,
+      icon: 'sensor',
+      type: 'progress',
+      uint: '%'
+    },
+    {
+      name: 'đèn sưởi gà con',
+      sub: 'Kangaroo KG254N',
+      value: 78,
+      icon: 'light',
+      type: 'slider',
+      uint: '%'
     },
   ]);
 
+  console.log();
+
   return (
   <Grow in={true}>
-    <Box className="grid grid-cols-2 gap-3 p-3">
-      {
-        devices.map((device, index) => (
-          <Box key={index} className="flex flex-nowrap p-3 rounded-2xl border-indigo-600 border-2 shadow-md">
-            <Box className='mr-3'>
-              { device.icon in icon ? icon[device.icon as keyof typeof icon] : icon['light'] }
+    <Box sx={{ maxHeight: window.innerHeight - 72 }} className={`overflow-y-scroll`}>
+      <Box className={`grid grid-cols-2 gap-3 p-3`}>
+        {
+          devices.map((device, index) => (
+            <Box key={index} className={`flex flex-nowrap ${device.type in grids ? grids[device.type as keyof typeof grids] : grids['none'] } p-3 rounded-2xl border-indigo-600 border-2 shadow-md`}>
+              { getTypeWidget(device) }
             </Box>
-            <Box className="flex flex-col flex-1">
-              <Typography className='text-slate-600 capitalize' variant="subtitle1">{ device.name }</Typography>
-              <Typography className='text-slate-600' variant="caption">{ device.sub }</Typography>
-              <Typography className='text-slate-600 flex-1 flex items-end' variant="subtitle1">
-                <span className={`capitalize ${ device.state ? 'text-green-400' : 'text-slate-500' }`}>{ device.state ? 'bật' : 'tắt' }</span>
-              </Typography>
-            </Box>
-            <AntSwitch defaultChecked={device.state} inputProps={{ 'aria-label': 'ant design' }} />
-          </Box>
-        ))
-      }
+          ))
+        }
+      </Box>
     </Box>
   </Grow>
   )
