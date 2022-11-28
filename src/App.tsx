@@ -44,7 +44,12 @@ import Header from './components/Header';
 setupIonicReact();
 
 const App: React.FC = () =>{
-  const [isSign, setIsSign] = useState(true);
+  const [isSign, setIsSign] = useState(false);
+
+
+  useEffect(() => {
+    console.log('Run check user');
+  }, [])
 
   return (
     <IonApp>

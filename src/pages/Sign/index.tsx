@@ -1,4 +1,11 @@
 import { memo } from "react";
+import {
+  getAuth,
+  getRedirectResult,
+  GoogleAuthProvider,
+  signInWithCredential,
+  signInWithPopup
+} from 'firebase/auth';
 
 import {
   IonIcon,
@@ -7,7 +14,22 @@ import {
 import { IconGoogle } from '../../icons';
 import { chevronForwardCircleOutline } from 'ionicons/icons';
 
+import app from '../../firebase';
+
+const provider = new GoogleAuthProvider();
+provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+
 function Sign() {
+
+  const signInWithGoogle = async () => {
+    try {
+      const auth = getAuth(app);
+      // console.log(auth);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
       <div className='w-full h-full bg-[#edf1f5] p-8'>
       <div className='m-auto rounded-full'>
@@ -34,7 +56,7 @@ function Sign() {
         <span className='text-slate-600 font-semibold mx-2'>kết nối với</span>
         <span className='flex-1 bg-slate-400 h-[1px]'></span>
       </div>
-      <button className='flex flex-nowrap px-4 py-3 rounded-md items-center justify-around w-full bg-white active:opacity-95 active:scale-[0.99]' style={{ boxShadow: '0 14px 30px rgba(103,132,187,.1),0 4px 4px rgba(103,132,187,.04)' }}>
+      <button onClick={signInWithGoogle} className='flex flex-nowrap px-4 py-3 rounded-md items-center justify-around w-full bg-white active:opacity-95 active:scale-[0.99]' style={{ boxShadow: '0 14px 30px rgba(103,132,187,.1),0 4px 4px rgba(103,132,187,.04)' }}>
         <IconGoogle className='text-2xl' />
         <span className='text-slate-500'>Đăng nhập với Google</span>
       </button>
