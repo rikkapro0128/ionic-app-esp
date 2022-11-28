@@ -6,10 +6,12 @@ import Grow from '@mui/material/Grow';
 import WidgetToggle from '../../components/Widget/Toggle';
 import WidgetProgress from '../../components/Widget/Progress';
 import WidgetSlider from '../../components/Widget/Slider';
+import WidgetColor from '../../components/Widget/Rgb';
 
 const grids = {
   'toggle': 'col-span-1',
   'slider': 'col-span-2',
+  'color': 'col-span-2',
   'progress': 'col-span-1 row-span-2',
   'none': 'col-span-1',
 }
@@ -31,6 +33,9 @@ const getTypeWidget = (device: DeviceType) => {
   }
   else if(device.type === 'slider') {
     return <WidgetSlider device={device} />
+  }
+  else if(device.type === 'color') {
+    return <WidgetColor device={device} />
   }
   else {
     return null
@@ -98,6 +103,13 @@ function Devices() {
       icon: 'light',
       type: 'slider',
       uint: '%'
+    },
+    {
+      name: 'decor phòng ngủ',
+      sub: 'rgb ws2812b',
+      value: 'rgb(38, 255, 121)',
+      icon: 'color',
+      type: 'color',
     },
   ]);
 
