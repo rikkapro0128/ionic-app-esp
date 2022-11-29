@@ -83,7 +83,12 @@ function Header() {
     setDrawer(state);
   };
 
+  console.log();
+  
+
   return (
+    location.pathname !== '/sign'
+    ?
     <>
       <SwipeableDrawer
         anchor={'right'}
@@ -143,6 +148,8 @@ function Header() {
         </AppBar>
       </Box>
     </>
+    :
+    null
   );
 }
 
