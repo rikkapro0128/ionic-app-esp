@@ -21,6 +21,8 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import TuneIcon from '@mui/icons-material/Tune';
 import RouterIcon from '@mui/icons-material/Router';
 import SettingsEthernetIcon from '@mui/icons-material/SettingsEthernet';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 // Import Swiper React components
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -33,6 +35,11 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   paddingTop: theme.spacing(1),
   paddingBottom: theme.spacing(2),
 }));
+
+const notShow = [
+  '/sign',
+  '/check-user',
+]
 
 const menu = [
   {
@@ -51,7 +58,19 @@ const menu = [
     id: 3,
     field: 'kết nối node',
     icon: <SettingsEthernetIcon />,
-    path: '/connect'
+    path: '/connect',
+  },
+  {
+    id: 4,
+    field: 'Thông tin người dùng',
+    icon: <AccountCircleIcon />,
+    path: '/profile',
+  },
+  {
+    id: 5,
+    field: 'Cài đặt',
+    icon: <SettingsIcon />,
+    path: '/setting',
   },
 ]
 
@@ -87,7 +106,7 @@ function Header() {
   
 
   return (
-    location.pathname !== '/sign'
+    !notShow.includes(location.pathname)
     ?
     <>
       <SwipeableDrawer

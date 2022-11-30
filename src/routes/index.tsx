@@ -4,15 +4,20 @@ import Connect from "../pages/Connect";
 import Nodes from "../pages/Nodes";
 import Devices from "../pages/Devices";
 import Sign from "../pages/Sign";
+import CheckUser from "../pages/Check";
+import Profile from "../pages/Profile";
+import Setting from "../pages/Setting";
 
-const privateRoutes: never[] = [];
+const publicRoutes: never[] = [];
 
-const publicRoutes = [
-  { path: "/", element: () => <Navigate to="/sign" replace /> },
+const routes = [
   { path: "/sign", element: Sign },
   { path: "/nodes", element: Nodes },
   { path: "/devices", element: Devices },
-  { path: "/connect", element: Connect }
+  { path: "/connect", element: Connect },
+  { path: "/check-user", element: CheckUser },
+  { path: "/profile", element: Profile },
+  { path: "/setting", element: Setting },
 ];
 
-export { privateRoutes, publicRoutes };
+export { routes };

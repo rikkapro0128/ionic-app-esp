@@ -2,5 +2,16 @@
   "appId": "io.ionic.esp8266",
   "appName": "esp8266",
   "webDir": "build",
-  "bundledWebRuntime": false
+  "bundledWebRuntime": false,
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": false,
+      "providers": ["google.com"]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_internet_of_things",
+      "iconColor": "#488AFF",
+      "sound": "notify.wav"
+    }
+  }
 }

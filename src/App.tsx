@@ -3,6 +3,8 @@ import {
   setupIonicReact
 } from '@ionic/react';
 
+import { Toaster } from 'react-hot-toast';
+
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
 
@@ -37,9 +39,10 @@ import {
   Routes,
   Route,
 } from "react-router-dom";
-import { publicRoutes } from './routes';
+import { routes } from './routes';
 
 import Header from './components/Header';
+import Auth from './components/Auth';
 
 setupIonicReact();
 
@@ -52,34 +55,39 @@ const App: React.FC = () =>{
   }, [])
 
   return (
-    <IonApp>
-      <Grow in={true}>
-        <Box className='w-full h-full'>
-          <Router>
-            <Header />
-            <Routes>
-              {
-                publicRoutes.map((route, index) => (
-                  <Route
-                    key={index}
-                    path={route.path}
-                    element={<route.element />}
-                  />
-                ))
-              }
-            </Routes>
-          </Router>
-        </Box>
-      </Grow>
-      {/* <Box className={`flex flex-1 flex-col justify-center items-center`}>
-        <Box className='text-indigo-600 mb-3'>
-          <CircularProgress sx={{ color: 'currentcolor' }} />
-        </Box>
-        <Typography className='text-slate-600' variant="subtitle1" gutterBottom>
-          Đang kiểm tra đăng nhập
-        </Typography>
-      </Box> */}
-    </IonApp>
+    <>
+      <Toaster />
+      <IonApp>
+        <Grow in={true}>
+          <Box className='w-full h-full'>
+            <Router>
+              <Header />
+              <Routes>
+                <Route path='/' element={<Auth />}>
+                  {
+                    routes.map((route, index) => (
+                      <Route
+                        key={index}
+                        path={route.path}
+                        element={<route.element />}
+                      />
+                    ))
+                  }
+                </Route>
+              </Routes>
+            </Router>
+          </Box>
+        </Grow>
+        {/* <Box className={`flex flex-1 flex-col justify-center items-center`}>
+          <Box className='text-indigo-600 mb-3'>
+            <CircularProgress sx={{ color: 'currentcolor' }} />
+          </Box>
+          <Typography className='text-slate-600' variant="subtitle1" gutterBottom>
+            Đang kiểm tra đăng nhập
+          </Typography>
+        </Box> */}
+      </IonApp>
+    </>
   );
 } 
 

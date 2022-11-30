@@ -2,19 +2,11 @@ import { ChangeEvent, memo, useState, useEffect } from "react";
 import { IonToast } from '@ionic/react';
 import { useNavigate } from "react-router";
 
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
-} from 'firebase/auth';
-
-import {
-  IonIcon,
-} from '@ionic/react';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 
 import { IconGoogle } from '../../icons';
-import { chevronForwardCircleOutline } from 'ionicons/icons';
 
+import Divider from '@mui/material/Divider';
 import Avatar from '@mui/material/Avatar';
 import Collapse from '@mui/material/Collapse';
 import Button from '@mui/material/Button';
@@ -33,10 +25,19 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Dialog from '@mui/material/Dialog';
 import CircularProgress from '@mui/material/CircularProgress';
+import LoginIcon from '@mui/icons-material/Login';
 
-import app from '../../firebase';
+import toast from 'react-hot-toast';
+
+import Notify from '../../components/Notify';
 
 const theme = createTheme();
+
+const notify = ({ title= 'Thông báo', body = 'Push notìy thành công!' }) => toast.custom((t) => (
+  <Notify title={title} body={body} state={t} />
+), {
+  duration: 5000,
+});
 
 function Copyright(props: any) {
   return (
@@ -94,9 +95,14 @@ function Sign() {
 
   const signInWithGoogle = async () => {
     try {
-
+      const result = await FirebaseAuthentication.signInWithGoogle();
+      if(result.user) {
+        notify({ body: 'Bạn đã đăng nhập thành công!' });
+        navigate('/nodes');
+      }
     } catch (error) {
       console.log(error);
+      setToast(`Đã xảy ra lỗi khi bạn đăng nhập với google`);
     }
   };
 
@@ -127,11 +133,11 @@ function Sign() {
       if(tab === 'sign-in') {
         if(validate.email === '' && validate.password === '') {
           setState(true);
-          const auth = getAuth(app);
-          const result = await signInWithEmailAndPassword(auth, sign.email, sign.password);
+          const result = await FirebaseAuthentication.signInWithEmailAndPassword({ email: sign.email, password: sign.password });
           if(result.user) {
-            setToast('Bạn đã đăng nhập thành công');
-            navigate('/nodes');
+            // setToast('Bạn đã đăng nhập thành công');
+            notify({ body: 'Bạn đã đăng nhập thành công!' });
+            navigate('/');
           }
           console.log(result);
           setState(false);
@@ -139,10 +145,11 @@ function Sign() {
       }else {
         if(validate.email === '' && validate.password === '' && validate.confirm === '') {
           setState(true);
-          const auth = getAuth(app);
-          const result = await createUserWithEmailAndPassword(auth, sign.email, sign.password);
+          const result = await FirebaseAuthentication.createUserWithEmailAndPassword({ email: sign.email, password: sign.password });
           if(result.user) {
-            setToast('Bạn đã đăng ký thành công');
+            // setToast('Bạn đã đăng ký thành công');
+            notify({ body: 'Bạn đã đăng ký thành công!' });
+            navigate('/');
           }
           console.log(result);
           setState(false);
@@ -253,7 +260,9 @@ function Sign() {
                 type="submit"
                 fullWidth
                 variant="contained"
+                size="large"
                 onClick={signNormalize}
+                endIcon={<LoginIcon />}
                 sx={{ mt: 3, mb: 2 }}
               >
                 { tab === 'sign-in' ? 'Đăng nhập' : 'Đăng ký' }
@@ -267,6 +276,8 @@ function Sign() {
               </Grid>
             </Box>
           </Box>
+          <Divider className='py-3'>hoặc kết nối</Divider>
+          <Button onClick={signInWithGoogle} fullWidth size="large" variant="outlined" endIcon={ <IconGoogle className='w-5 h-5' /> }>đăng nhập với google</Button>
           <Copyright sx={{ mt: 8, mb: 4 }} />
         </Container>
       </ThemeProvider>
