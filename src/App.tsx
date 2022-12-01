@@ -49,11 +49,6 @@ setupIonicReact();
 const App: React.FC = () =>{
   const [isSign, setIsSign] = useState(false);
 
-
-  useEffect(() => {
-    console.log('Run check user');
-  }, [])
-
   return (
     <>
       <Toaster />
@@ -61,20 +56,22 @@ const App: React.FC = () =>{
         <Grow in={true}>
           <Box className='w-full h-full'>
             <Router>
-              <Header />
-              <Routes>
-                <Route path='/' element={<Auth />}>
-                  {
-                    routes.map((route, index) => (
-                      <Route
-                        key={index}
-                        path={route.path}
-                        element={<route.element />}
-                      />
-                    ))
-                  }
-                </Route>
-              </Routes>
+              <Box className='flex flex-col h-full'>
+                <Header />
+                <Routes>
+                  <Route path='/' element={<Auth />}>
+                    {
+                      routes.map((route, index) => (
+                        <Route
+                          key={index}
+                          path={route.path}
+                          element={<route.element />}
+                        />
+                      ))
+                    }
+                  </Route>
+                </Routes>
+              </Box>
             </Router>
           </Box>
         </Grow>
