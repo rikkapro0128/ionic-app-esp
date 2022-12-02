@@ -12,6 +12,9 @@
       "smallIcon": "ic_stat_internet_of_things",
       "iconColor": "#488AFF",
       "sound": "notify.wav"
+    },
+    "CapacitorHttp": {
+      "enabled": true
     }
   }
 }

@@ -1,4 +1,5 @@
-import React, { memo, useState, useEffect, useCallback } from 'react';
+import React, { memo, useState, useEffect, useCallback, useMemo } from 'react';
+import { CapacitorHttp, HttpResponse, } from '@capacitor/core';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -31,8 +32,14 @@ import ListItemText from '@mui/material/ListItemText';
 import Popover from '@mui/material/Popover';
 import CircularProgress from '@mui/material/CircularProgress';
 import TextField from '@mui/material/TextField';
-
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import Input from '@mui/material/Input';
+import FormControl from '@mui/material/FormControl';
+import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
+
+import AutoFixNormalIcon from '@mui/icons-material/AutoFixNormal';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LabelIcon from '@mui/icons-material/Label';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
@@ -90,6 +97,33 @@ interface PresentNetworkType {
   RouterIP?: string,
 }
 
+interface InfoNodeType {
+  SSID: string,
+  password: string,
+  IPStation: string,
+  statusConnection: boolean,
+  QualityNetwork: number,
+  message?: string,
+}
+
+interface onClickType {
+  ssid?: string,
+  dns?: string,
+  nodeName?: string,
+  password?: string,
+  setLoading?: (state: boolean) => void, 
+  stateDialog?: (state: boolean) => void,
+}
+
+interface ResponseInfoNodeType {
+  ssid: string,
+  password: string,
+  'ip-station': string,
+  'status-station': boolean,
+  'quality-station': number,
+  message?: string,
+}
+
 const vnPresentNetworkType = {
   SSID: 'hidden',
   BSSID: 'Địa chỉ MAC',
@@ -103,14 +137,51 @@ const modeSelect = {
     {
       type: 'reset-wifi',
       icon: <RestartAltIcon />,
-      content: 'reset wifi',
+      content: 'Reset wifi',
       dialogMessage: 'Node này sẽ bị khôi phục cài đặt kết nối wifi, bạn chắc chứ?',
-      onclick: (): void => {},
+      onclick: async ({ ssid, dns }: onClickType): Promise<any> => {
+        console.log(ssid, dns);
+        if(ssid && dns) {
+          try {
+            const result = await CapacitorHttp.post({ url: `http://${dns}/reset-config-wifi`, method: 'POST' });
+            console.log(result);
+            notify({ body: `Reset cấu hình WIFI cho ${ssid} thành công.` });
+          } catch (error) {
+            console.log(error);
+            notify({ body: 'Có lỗi xảy ra khi cấu hình WIFI!', title: 'Lỗi rồi' });
+          }
+        }else {
+          notify({ body: 'Dữ liệu reset WIFI không đầy đủ!', title: 'Chú ý' });
+        }
+      },
+    },
+    {
+      type: 'config-wifi',
+      icon: <AutoFixNormalIcon />,
+      content: 'Cấu hình WIFI',
+      dialogMessage: undefined,
+      onclick: async ({ ssid, nodeName, password, dns, setLoading, stateDialog }: onClickType): Promise<any> => {
+        if(setLoading && stateDialog) {
+          if(ssid && password && dns && nodeName) {
+            setLoading(true);
+            try {
+              const result = await CapacitorHttp.post({ url: `http://${dns}/config-wifi`, data: JSON.stringify({ ssid, password }), method: 'POST', headers: { 'Content-Type': 'application/json' } });
+              setLoading(false);
+              notify({ body: `Cấu hình WIFI ${ssid} cho ${nodeName} thành công.` });
+            } catch (error) {
+              notify({ body: 'Có lỗi xảy ra khi cấu hình WIFI!', title: 'Lỗi rồi' });
+            }
+          }else {
+            notify({ body: 'Dữ liệu cấu hình WIFI không đầy đủ!', title: 'Chú ý' });
+          }
+          stateDialog(false);
+        }
+      },
     },
     {
       type: 'link-app',
       icon: <IosShareIcon />,
-      content: 'liên kết ứng dụng',
+      content: 'Liên kết ứng dụng',
       dialogMessage: 'Node này sẽ tiến hành liên kết với ứng dụng(tài khoản), bạn chắc chứ?',
       onclick: (): void => {},
     }
@@ -119,9 +190,9 @@ const modeSelect = {
     {
       type: 'disconect-wifi',
       icon: <WifiOffIcon />,
-      content: 'ngắt kết nối',
+      content: 'Ngắt kết nối',
       dialogMessage: 'Wifi này sẽ bị tắt kết nối, bạn chắc chứ?',
-      onclick: async (SSID: string): Promise<void> => {
+      onclick: async (SSID?: string): Promise<void> => {
         try {
           if(SSID) {
             await WifiWizard2.disable(SSID);
@@ -136,7 +207,7 @@ const modeSelect = {
     {
       type: 'default-network',
       icon: <SignalWifi2BarLockIcon />,
-      content: 'đặt mặc định',
+      content: 'Đặt mặc định',
       dialogMessage: 'Wifi này sẽ tự động kết nối lại mỗi khi cấu hình node xong?',
       onclick: (SSID: string): void => {
         notify({ body: `wifi ${SSID} đã được đặt thành mặt định.` });
@@ -347,10 +418,20 @@ function ListWifi({ networks, handleScan, scan, presentNetwork, onPresentNetwork
 function InfoWifi({ presentNetwork }: InfoWifiType) {
 
   const [info, setInfo] = useState<PresentNetworkType>();
+  const [infoNode, setInfoNode] = useState<InfoNodeType>();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [messageSelect, setMessageSelect] = useState<string>('');
-  const [functionDialog, setFunctionDialog] = useState<() => void>(() => () => {});
+  const [passwordDialog, setPasswordDialog] = useState<string>('');
+  const [wifiDefault, setWifiDefault] = useState<string>(() => localStorage.getItem('wifi-default') || '');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showDialogPassword, setShowDialogPassword] = useState<boolean>(false);
+  const [functionDialog, setFunctionDialog] = useState<(some: any) => void>();
+  const [functionDialogPassword, setFunctionDialogPassword] = useState<(some: any) => void>();
   const [typeWifi, setTypeWifi] = useState<string>(presentNetwork?.SSID?.includes('esp') ? 'node' : 'wifi');
+  const [loadingWifi, setLoadingWifi] = useState<boolean>(false);
+  const [sizeIconLoading, setSizeIconLoading] = useState<number>(20);
+  const [typeOption, setTypeOption] = useState<string>();
+  const passwordCached = useMemo(() => passwordDialog, [passwordDialog]);
   const open = Boolean(anchorEl);
 
   useEffect(() => {
@@ -361,13 +442,31 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
       setInfo({ SSID: presentNetwork?.SSID, BSSID: presentNetwork?.BSSID, ip, subnet, RouterIP });
     }
     infoWifi();
+    setWifiDefault(localStorage.getItem('wifi-default') || '');
   } ,[presentNetwork])
 
   useEffect(() => {
-    if(typeWifi === 'node') {
+    const checkNodeIsConfigWifi = async () => {
+      setInfoNode(undefined);
+      if(typeWifi === 'node' || !showDialogPassword) {
+
+        const response: HttpResponse = await CapacitorHttp.get({ url: `http://${info?.RouterIP}/is-config` });
+        console.log(response.data);
+        const message = response?.data?.message;
+        if(message === 'WIFI HAS BEEN CONFIG') {
+          const { ssid, password, 'ip-station': IPStation, 'status-station': statusConnection, 'quality-station': QualityNetwork }: ResponseInfoNodeType = response.data;
+          setInfoNode({ SSID: ssid, password, IPStation, QualityNetwork, statusConnection });
+        }else if(message === 'WIFI NOT YET CONFIG') {
+          if(infoNode) {
+            setInfoNode(undefined);
+          }
+        }
+        
+      }
 
     }
-  }, [typeWifi])
+    checkNodeIsConfigWifi();
+  }, [info, showDialogPassword, messageSelect])
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -381,10 +480,48 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
     setMessageSelect('');
   }
 
-  const askBeforeExecute = (type: string, dialogMessage: string, callback: () => void) => {
-    setMessageSelect(dialogMessage);
-    setFunctionDialog(() => () => { callback(); closeDialog(); })
+  const askBeforeExecute = (type: string, dialogMessage: string | undefined, callback: (some: any) => void) => {
+    setTypeOption(type);
+    if(type === 'disconect-wifi' || type === 'default-network') {
+      setFunctionDialog(() => () => { callback(info?.SSID || ''); closeDialog(); setFunctionDialog(undefined); })
+    }else if(type === 'config-wifi') {
+      if(wifiDefault) {
+        setFunctionDialogPassword(() => callback);
+        handleDialogPassword(true);
+      }else {
+        notify({ body: 'Bạn chưa chọn wifi mặc định cho ứng dụng', title: 'Chú ý' });
+      }
+    }else if(type === 'reset-wifi') {
+      setFunctionDialog(() => callback);
+    }
+    if(dialogMessage) {
+      setMessageSelect(dialogMessage);
+    }
     handleClose();
+  }
+
+  const handleDialogPassword = (state: boolean) => {
+    setShowDialogPassword(state);
+  }
+
+  const changePassword = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setPasswordDialog(event.currentTarget.value);
+  }
+
+  const handleResetWifi = () => {
+    if(functionDialog && typeOption === 'reset-wifi') {
+      console.log(info?.SSID, info?.RouterIP);
+      functionDialog({ ssid: info?.SSID, dns: info?.RouterIP });
+      setFunctionDialog(undefined);
+      closeDialog();
+    }
+  }
+
+  const handleConfigWifi = () => {
+    if(functionDialogPassword) {
+      functionDialogPassword({ ssid: wifiDefault, nodeName: info?.SSID, password: passwordCached, dns: info?.RouterIP, setLoading: (state: boolean) => { setLoadingWifi(state) }, stateDialog: (state: boolean) => { handleDialogPassword(state); } });
+      setFunctionDialogPassword(undefined);
+    }
   }
 
   return (
@@ -405,8 +542,26 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => closeDialog() }>Huỷ</Button>
-          <Button onClick={() => { functionDialog() }} autoFocus>
+          <Button onClick={handleResetWifi || functionDialog} autoFocus>
             Đồng ý
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Dialog set Wifi password for NODE */}
+      <Dialog
+        open={showDialogPassword}
+        onClose={() => handleDialogPassword(false)}
+        fullWidth
+        aria-describedby="alert-dialog-slide-description"
+      >
+        <DialogTitle>{`Thiết lập tới WIFI ${wifiDefault}?`}</DialogTitle>
+        <DialogContent sx={{ paddingTop: '10px !important' }}>
+          <TextField fullWidth value={passwordDialog} onChange={changePassword} id="outlined-basic" label="Mật khẩu WIFI" variant="outlined" />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleDialogPassword(false)}>Huỷ</Button>
+          <Button onClick={handleConfigWifi} startIcon={loadingWifi ? <CircularProgress size={sizeIconLoading} /> : null}>
+            Kết nối
           </Button>
         </DialogActions>
       </Dialog>
@@ -435,7 +590,7 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
                 <List>
                   {
                     modeSelect[typeWifi as keyof typeof modeSelect].map(({ icon, type, dialogMessage, content, onclick }, index) => (
-                      <ListItem key={content + index} onClick={() => { askBeforeExecute(type, dialogMessage, () => { onclick(info?.SSID || '') }) }} disablePadding>
+                      <ListItem key={content + index} onClick={() => { askBeforeExecute(type, dialogMessage, (some) => { onclick(some) }) }} disablePadding>
                         <ListItemButton>
                           <ListItemIcon>
                             { icon }
@@ -476,6 +631,89 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
               null
           }
         </Box>
+        {
+          typeWifi === 'node'
+          ?
+          <>
+            <Divider className='font-bold' sx={{ paddingBottom: '1rem' }} textAlign="center">
+              <Chip label={'Trạng thái cấu hình'} />
+            </Divider>
+            <Box>
+              {
+                infoNode
+                ?
+                <>
+                  <Box>
+                    <Divider textAlign="left">
+                      <Chip label={'WIFI của Node'} />
+                    </Divider>
+                    <Typography sx={{ fontSize: '1.4rem' }} variant="subtitle1" className='py-3 text-slate-800'>
+                      <LabelIcon className='mr-2 text-slate-700' />
+                      { infoNode.SSID }
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Divider textAlign="left">
+                      <Chip label={'IP Station'} />
+                    </Divider>
+                    <Typography sx={{ fontSize: '1.4rem' }} variant="subtitle1" className='py-3 text-slate-800'>
+                      <LabelIcon className='mr-2 text-slate-700' />
+                      { infoNode.IPStation }
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Divider textAlign="left">
+                      <Chip label={'Trạng thái kết nối'} />
+                    </Divider>
+                    <Typography sx={{ fontSize: '1.4rem' }} variant="subtitle1" className='py-3 text-slate-800'>
+                      <LabelIcon className='mr-2 text-slate-700' />
+                      { infoNode.statusConnection ? 'Đã kết nối' : 'Ngắt kết nối' }
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Divider textAlign="left">
+                      <Chip label={'Chất lượng tín hiệu'} />
+                    </Divider>
+                    <Typography sx={{ fontSize: '1.4rem' }} variant="subtitle1" className='py-3 text-slate-800'>
+                      <LabelIcon className='mr-2 text-slate-700' />
+                      { Math.min(Math.max(2 * (infoNode.QualityNetwork + 100), 0), 100) }%
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Divider textAlign="left">
+                      <Chip label={'Mật khẩu WIFI'} />
+                    </Divider>
+                    <FormControl sx={{ paddingY: '0.5rem' }} fullWidth variant="standard">
+                      <Input
+                        disabled
+                        id="outlined-adornment-password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={infoNode.password}
+                        endAdornment={
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label="toggle password visibility"
+                              onClick={() => setShowPassword((state) => !state)}
+                              edge="end"
+                            >
+                              {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        }
+                      />
+                    </FormControl>
+                  </Box>
+                </>
+                :
+                <Typography variant="subtitle1" className='py-3 pt-5 text-slate-800 text-center'>
+                  Cấu hình WIFI không được tìm thấy
+                </Typography>
+              }
+            </Box>
+          </>
+          :
+          null
+        }
       </Box>
     </>
   )
@@ -487,6 +725,7 @@ function Connect() {
   const [networks, setNetworks] = useState<[NetworkType]>();
   const [presentNetwork, setPresentNetwork] = useState<NetworkType>();
   const [tab, setTab] = useState(0);
+  const [pooling, setPooling] = useState(3000);
 
   const handleChange = (event: React.SyntheticEvent, tab: number) => {
     setTab(tab);
@@ -498,6 +737,7 @@ function Connect() {
 
   useEffect(() => {
     try {
+      console.log('change tab');
       const request = async () => {
         const ssid = await WifiWizard2.getConnectedSSID();
         const bssid = await WifiWizard2.getConnectedBSSID();
@@ -507,7 +747,20 @@ function Connect() {
     } catch (error) {
       console.log('Permision fail => ', error);
     }
-  } ,[])
+  } ,[tab])
+
+  useEffect(() => {
+    const id = setInterval(async () => {
+      const ssid = await WifiWizard2.getConnectedSSID();
+      if(ssid !== presentNetwork?.SSID) {
+        const bssid = await WifiWizard2.getConnectedBSSID();
+        setPresentNetwork({ SSID: ssid, BSSID: bssid });
+      }
+    }, pooling)
+    return () => {
+      clearInterval(id);
+    }
+  }, [presentNetwork])
 
   const handleScan = useCallback(async () => {
     try {
@@ -554,10 +807,10 @@ function Connect() {
         index={tab}
         onChangeIndex={handleChangeTabIndex}
       >
-        <Box className='w-full h-full flex flex-col'>
+        <Box  className='w-full h-full flex flex-col'>
           <ListWifi onPresentNetworkChange={handlePresentNetwork} networks={networks} scan={scan} presentNetwork={presentNetwork} handleScan={handleScan} />
         </Box>
-        <Box className='w-full h-full flex flex-col'>
+        <Box sx={{ maxHeight: `${window.innerHeight - 120}px`, overflowY: 'scroll', marginBottom: '-4.15rem', paddingBottom: '1rem' }} className='w-full h-full flex flex-col'>
           <InfoWifi presentNetwork={presentNetwork} />
         </Box>
       </SwipeableViews>
