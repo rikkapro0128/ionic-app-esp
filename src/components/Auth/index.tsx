@@ -18,26 +18,27 @@ function Dashboard() {
   useEffect(() => {
     const check = async () => {
       try {
-        const hasUser = await FirebaseAuthentication.getCurrentUser(); 
         setLoading(true);
+        const hasUser = await FirebaseAuthentication.getCurrentUser(); 
         if(hasUser.user) {
           navigate(location.pathname !== '/' ? location.pathname : '/nodes');
           console.log(hasUser);
+          // check info user 
+          const userPath = `user-${hasUser.user?.uid}/`;
+          const dbRef = ref(database);
+          const snapshot = await get(child(dbRef, userPath));
+          const val = snapshot.val();
+          if(!val || !val?.info) {
+            await set(ref(database, `${userPath}/info`), hasUser.user);
+          }
         }else {
           navigate('/sign');
           console.log('Not found user!');
         }
-        // check info user 
-        const userPath = `user-${hasUser.user?.uid}/`;
-        const dbRef = ref(database);
-        const snapshot = await get(child(dbRef, userPath));
-        const val = snapshot.val();
-        if(!val || !val?.info) {
-          await set(ref(database, `${userPath}/info`), hasUser.user);
-        }
       } catch (error) {
         console.log('Is error => ', error);
       }
+      setLoading(false);
     }
     check();
   }, []);
@@ -45,8 +46,6 @@ function Dashboard() {
   return (
     loading
     ?
-    <Outlet />
-    :
     <Dialog sx={{ '& .MuiPaper-root': {
       backgroundColor: 'transparent',
       boxShadow: 'none'
@@ -56,6 +55,8 @@ function Dashboard() {
         Đang kiểm tra đăng nhập!
       </Typography>
     </Dialog>
+    :
+    <Outlet />
   );
 }
 

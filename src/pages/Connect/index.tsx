@@ -210,8 +210,8 @@ const modeSelect = {
       content: 'Đặt mặc định',
       dialogMessage: 'Wifi này sẽ tự động kết nối lại mỗi khi cấu hình node xong?',
       onclick: (SSID: string): void => {
-        notify({ body: `wifi ${SSID} đã được đặt thành mặt định.` });
         localStorage.setItem('wifi-default', SSID);
+        notify({ body: `wifi ${SSID} đã được đặt thành mặt định.` });
       },
     }
   ]
@@ -481,7 +481,7 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
   }
 
   const askBeforeExecute = (type: string, dialogMessage: string | undefined, callback: (some: any) => void) => {
-    setTypeOption(type);
+    // setTypeOption(type);
     if(type === 'disconect-wifi' || type === 'default-network') {
       setFunctionDialog(() => () => { callback(info?.SSID || ''); closeDialog(); setFunctionDialog(undefined); })
     }else if(type === 'config-wifi') {
@@ -492,7 +492,7 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
         notify({ body: 'Bạn chưa chọn wifi mặc định cho ứng dụng', title: 'Chú ý' });
       }
     }else if(type === 'reset-wifi') {
-      setFunctionDialog(() => callback);
+      setFunctionDialog(() => () => { callback({ ssid: info?.SSID, dns: info?.RouterIP }); closeDialog(); setFunctionDialog(undefined); })
     }
     if(dialogMessage) {
       setMessageSelect(dialogMessage);
@@ -506,15 +506,6 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
 
   const changePassword = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setPasswordDialog(event.currentTarget.value);
-  }
-
-  const handleResetWifi = () => {
-    if(functionDialog && typeOption === 'reset-wifi') {
-      console.log(info?.SSID, info?.RouterIP);
-      functionDialog({ ssid: info?.SSID, dns: info?.RouterIP });
-      setFunctionDialog(undefined);
-      closeDialog();
-    }
   }
 
   const handleConfigWifi = () => {
@@ -542,7 +533,7 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => closeDialog() }>Huỷ</Button>
-          <Button onClick={handleResetWifi || functionDialog} autoFocus>
+          <Button onClick={functionDialog} autoFocus>
             Đồng ý
           </Button>
         </DialogActions>

@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "io.ionic.starter",
+  "applicationId": "io.ionic.esp8266",
   "variantName": "release",
   "elements": [
     {
