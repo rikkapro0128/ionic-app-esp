@@ -49,10 +49,13 @@ import { IconEmptyWifi } from '../../icons';
 
 import { WifiWizard2 } from '@awesome-cordova-plugins/wifi-wizard-2';
 import SwipeableViews from 'react-swipeable-views';
+import { v1 as genIDByTimeStamp } from 'uuid';
+import { FirebaseAuthentication, User } from '@capacitor-firebase/authentication';
 
 import toast from 'react-hot-toast';
 
 import Notify from '../../components/Notify';
+
 
 const notify = ({ title= 'Thông báo', body = 'Push notìy thành công!' }) => toast.custom((t) => (
   <Notify title={title} body={body} state={t} />
@@ -183,7 +186,29 @@ const modeSelect = {
       icon: <IosShareIcon />,
       content: 'Liên kết ứng dụng',
       dialogMessage: 'Node này sẽ tiến hành liên kết với ứng dụng(tài khoản), bạn chắc chứ?',
-      onclick: (): void => {},
+      onclick: async ({ ssid, dns }: onClickType): Promise<any> => {
+        if(ssid) {
+          try {
+            const genID = 'node-' + genIDByTimeStamp();
+            const result = await FirebaseAuthentication.getCurrentUser();
+            if(dns && genID && result) {
+              const response = await CapacitorHttp.post({ url: `http://${dns}/link-app`, data: JSON.stringify({ idUser: result.user?.uid, idNode: genID }), method: 'POST', headers: { 'Content-Type': 'application/json' } });
+              if(response.data?.message === 'LINK APP HAS BEEN SUCCESSFULLY') {
+                notify({ body: `Liên kết ${ssid} với ứng dụng thành công.` });
+              }else {
+                notify({ body: `Không thể liên kết ${ssid} với ứng dụng!`, title: 'Lỗi rồi' });
+              }
+            }else { 
+              notify({ body: 'Dữ liệu liên kết ứng dụng không đầy đủ!', title: 'Chú ý' });
+            }
+          } catch (error) {
+            console.log(error);
+            notify({ body: `Đã có lỗi xảy ra khi liên kết!`, title: 'Lỗi rồi' });
+          }
+        }else {
+          notify({ body: 'Dữ liệu SSID bị thiếu!', title: 'Chú ý' });
+        }
+      },
     }
   ],
   'wifi': [
@@ -466,7 +491,7 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
 
     }
     checkNodeIsConfigWifi();
-  }, [info, showDialogPassword, messageSelect])
+  }, [info])
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -483,6 +508,7 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
   const askBeforeExecute = (type: string, dialogMessage: string | undefined, callback: (some: any) => void) => {
     // setTypeOption(type);
     if(type === 'disconect-wifi' || type === 'default-network') {
+      setMessageSelect(dialogMessage || '');
       setFunctionDialog(() => () => { callback(info?.SSID || ''); closeDialog(); setFunctionDialog(undefined); })
     }else if(type === 'config-wifi') {
       if(wifiDefault) {
@@ -491,11 +517,13 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
       }else {
         notify({ body: 'Bạn chưa chọn wifi mặc định cho ứng dụng', title: 'Chú ý' });
       }
-    }else if(type === 'reset-wifi') {
-      setFunctionDialog(() => () => { callback({ ssid: info?.SSID, dns: info?.RouterIP }); closeDialog(); setFunctionDialog(undefined); })
-    }
-    if(dialogMessage) {
-      setMessageSelect(dialogMessage);
+    }else if(type === 'reset-wifi' || type === 'link-app') {
+      if(wifiDefault) {
+        setMessageSelect(dialogMessage || '');
+        setFunctionDialog(() => () => { callback({ ssid: info?.SSID, dns: info?.RouterIP }); closeDialog(); setFunctionDialog(undefined); })
+      }else {
+        notify({ body: 'Bạn chưa chọn wifi mặc định cho ứng dụng', title: 'Chú ý' });
+      }
     }
     handleClose();
   }
