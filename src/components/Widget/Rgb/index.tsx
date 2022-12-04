@@ -11,6 +11,7 @@ import icon from '../index';
 
 interface PayloadType {
   device: {
+    id: string,
     name: string,
     sub: string,
     value: string,

@@ -22,7 +22,6 @@ function Dashboard() {
         const hasUser = await FirebaseAuthentication.getCurrentUser(); 
         if(hasUser.user) {
           navigate(location.pathname !== '/' ? location.pathname : '/nodes');
-          console.log(hasUser);
           // check info user 
           const userPath = `user-${hasUser.user?.uid}/`;
           const dbRef = ref(database);
@@ -33,9 +32,9 @@ function Dashboard() {
           }
         }else {
           navigate('/sign');
-          console.log('Not found user!');
         }
       } catch (error) {
+        navigate('/sign');
         console.log('Is error => ', error);
       }
       setLoading(false);
