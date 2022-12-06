@@ -2,7 +2,6 @@ import { memo, useState, useEffect } from "react";
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import Grow from '@mui/material/Grow';
 import Dialog from '@mui/material/Dialog';
 import Chip from '@mui/material/Chip';
@@ -20,6 +19,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import Skeleton from '@mui/material/Skeleton';
+import IconButton from '@mui/material/IconButton';
 import { styled } from '@mui/material/styles';
 import { grey } from '@mui/material/colors';
 
@@ -27,6 +27,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import UpgradeIcon from '@mui/icons-material/Upgrade';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CancelIcon from '@mui/icons-material/Cancel';
+import ClearIcon from '@mui/icons-material/Clear';
 
 import { IconNode, IconNotFound } from '../../icons';
 
@@ -37,6 +38,8 @@ import { database } from "../../firebase/db";
 import toast from 'react-hot-toast';
 
 import Notify from '../../components/Notify';
+
+import Drawer from '@mui/material/Drawer';
 
 const notify = ({ title= 'Thông báo', body = 'Push notìy thành công!' }) => toast.custom((t) => (
   <Notify title={title} body={body} state={t} />
@@ -198,30 +201,20 @@ function Nodes() {
 
   return (
     <>
-      <SwipeableDrawer
-        sx={{
-          '.MuiPaper-root': {
-            borderTopLeftRadius: 12,
-            borderTopRightRadius: 12, 
-          }
-        }}
-        container={window.document.body}
-        anchor="bottom"
+      <Drawer
+        sx={{ '.MuiPaper-root': { width: '100%' } }}
+        anchor={'left'}
         open={openDrawer}
-        onClose={toggleDrawer(false)}
-        onOpen={toggleDrawer(true)}
-        swipeAreaWidth={0}
-        disableSwipeToOpen={false}
-        ModalProps={{
-          keepMounted: true,
-        }}
+        onClose={() => { setOpenDrawer(false); }}
       >
+        <Box className='flex justify-end mr-4 mt-4'>
+          <IconButton onClick={() => { setOpenDrawer(false); }} size='large' aria-label="delete">
+            <ClearIcon fontSize="inherit" />
+          </IconButton>
+        </Box>
         <Box className="px-3" sx={{ 
           p: 2,
         }}>
-          <Box className="py-3">
-            <Puller className="mt-3" />
-          </Box>
           <Typography sx={{ fontWeight: 600, fontSize: '1.2rem' }} className='text-slate-700'>Chi thiết Node</Typography>
         </Box>
         <Box className='px-6'>
@@ -262,7 +255,7 @@ function Nodes() {
             <Button fullWidth onClick={updateInfoNode} startIcon={ loadingPushInfo ? <CircularProgress size={20} /> : <UpgradeIcon />} variant="outlined">Cập nhật</Button>
           </Stack>
         </Box>
-      </SwipeableDrawer>
+      </Drawer>
       <Popover
         open={open}
         anchorEl={anchorEl}
@@ -286,41 +279,45 @@ function Nodes() {
         </ListItem>
       </Popover>
       <Grow in={true}>
-        <Box className="grid grid-cols-2 gap-3 p-3">
+        <Box className="w-full h-full">
           {
             loading
             ?
-            <Dialog sx={{ '& .MuiPaper-root': {
-              backgroundColor: 'transparent',
-              boxShadow: 'none'
-            } }} open={true}>
-              <CircularProgress sx={{ color: 'white', margin: '0 auto' }} />
-              <Typography className="text-white pt-5" variant="subtitle1" gutterBottom>
-                Đang tải thiết bị!
-              </Typography>
-            </Dialog>
+              <Dialog sx={{ '& .MuiPaper-root': {
+                backgroundColor: 'transparent',
+                boxShadow: 'none'
+              } }} open={true}>
+                <CircularProgress sx={{ color: 'white', margin: '0 auto' }} />
+                <Typography className="text-white pt-5" variant="subtitle1" gutterBottom>
+                  Đang tải thiết bị!
+                </Typography>
+              </Dialog>
             :
             nodes.length > 0 
             ?
-            nodes.map((node ,index) => (
-              <Box key={node.id} className={`flex flex-col p-3 items-center rounded-2xl border-indigo-600 border-2 shadow-md`}>
-                <Box className='flex flex-nowrap justify-between items-center w-full'>
-                  <Box className={`w-4 h-4 ml-3 rounded-full shadow-sm ${ true ? 'shadow-green-400 bg-green-400' : 'bg-gray-400 shadow-gray-400' }`} />
-                  <IconButton onClick={(event: React.MouseEvent<HTMLButtonElement>) => handleClick(event, index)} aria-label="delete">
-                    <MoreVertIcon />
-                  </IconButton>
-                </Box>
-                <Box>
-                  <IconNode className='w-12 h-12 my-3 fill-slate-600' />
-                </Box>
-                <Typography className='text-slate-600 truncate max-w-full' variant="subtitle1">{ node.name || node.id }</Typography>
-              </Box>
-            ))
+            <Box className="grid grid-cols-2 gap-3 p-3">
+              {
+                nodes.map((node ,index) => (
+                  <Box key={node.id} className={`flex flex-col p-3 items-center rounded-2xl border-indigo-600 border-2 shadow-md`}>
+                    <Box className='flex flex-nowrap justify-between items-center w-full'>
+                      <Box className={`w-4 h-4 ml-3 rounded-full shadow-sm ${ true ? 'shadow-green-400 bg-green-400' : 'bg-gray-400 shadow-gray-400' }`} />
+                      <IconButton onClick={(event: React.MouseEvent<HTMLButtonElement>) => handleClick(event, index)} aria-label="delete">
+                        <MoreVertIcon />
+                      </IconButton>
+                    </Box>
+                    <Box>
+                      <IconNode className='w-12 h-12 my-3 fill-slate-600' />
+                    </Box>
+                    <Typography className='text-slate-600 truncate max-w-full' variant="subtitle1">{ node.name || node.id }</Typography>
+                  </Box>
+                ))
+              }
+            </Box>
             :
             <Box className="h-full w-full flex justify-between items-center">
-              <Box className='m-auto'>
+              <Box className='mx-auto'>
                 <IconNotFound className='w-48 h-48 m-auto' />
-                <Typography sx={{ fontSize: '1.2rem' }} className='pt-3 text-slate-700'>Không tìm thấy thiết bị nào.</Typography>
+                <Typography sx={{ fontSize: '1.2rem', fontWeight: 600 }} className='pt-3 text-slate-700'>Không tìm thấy node nào.</Typography>
               </Box>
             </Box>
           }

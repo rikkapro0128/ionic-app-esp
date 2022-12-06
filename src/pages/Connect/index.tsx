@@ -755,6 +755,20 @@ function Connect() {
   };
 
   useEffect(() => {
+    return () => {
+      const runCheckWifiOnUnMount = async () => {
+        const getDefaultNetwork = localStorage.getItem('wifi-default');
+        if(presentNetwork?.SSID !== getDefaultNetwork) {
+          if(getDefaultNetwork) {
+             await WifiWizard2.connect(getDefaultNetwork, true, undefined, 'WPA');
+          }
+        }
+      }
+      runCheckWifiOnUnMount();
+    }
+  }, [])
+
+  useEffect(() => {
     try {
       console.log('change tab');
       const request = async () => {
@@ -778,15 +792,6 @@ function Connect() {
     }, pooling)
     return () => {
       clearInterval(id);
-      const runCheckWifiOnUnMount = async () => {
-        const getDefaultNetwork = localStorage.getItem('wifi-default');
-        if(presentNetwork?.SSID !== getDefaultNetwork) {
-          if(getDefaultNetwork) {
-             await WifiWizard2.connect(getDefaultNetwork, true, undefined, 'WPA');
-          }
-        }
-      }
-      runCheckWifiOnUnMount();
     }
   }, [presentNetwork])
 

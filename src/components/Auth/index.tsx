@@ -21,8 +21,7 @@ function Dashboard() {
         setLoading(true);
         const hasUser = await FirebaseAuthentication.getCurrentUser(); 
         if(hasUser.user) {
-          navigate(location.pathname !== '/' ? location.pathname : '/nodes');
-          // check info user 
+          // check info user
           const userPath = `user-${hasUser.user?.uid}/`;
           const dbRef = ref(database);
           const snapshot = await get(child(dbRef, userPath));
@@ -30,6 +29,7 @@ function Dashboard() {
           if(!val || !val?.info) {
             await set(ref(database, `${userPath}/info`), hasUser.user);
           }
+          navigate(location.pathname !== '/' ? location.pathname : '/nodes');
         }else {
           navigate('/sign');
         }

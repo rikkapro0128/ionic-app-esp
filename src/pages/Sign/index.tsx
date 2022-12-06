@@ -32,6 +32,7 @@ import toast from 'react-hot-toast';
 import Notify from '../../components/Notify';
 
 const theme = createTheme();
+const defaultRouteEnter = 'devices';
 
 const notify = ({ title= 'Thông báo', body = 'Push notìy thành công!' }) => toast.custom((t) => (
   <Notify title={title} body={body} state={t} />
@@ -98,7 +99,7 @@ function Sign() {
       const result = await FirebaseAuthentication.signInWithGoogle();
       if(result.user) {
         notify({ body: 'Bạn đã đăng nhập thành công!' });
-        navigate('/nodes');
+        navigate(`/${defaultRouteEnter}`);
       }
     } catch (error) {
       console.log(error);
@@ -137,7 +138,7 @@ function Sign() {
           if(result.user) {
             // setToast('Bạn đã đăng nhập thành công');
             notify({ body: 'Bạn đã đăng nhập thành công!' });
-            navigate('/');
+            navigate(`/${defaultRouteEnter}`);
           }
           console.log(result);
           setState(false);
@@ -149,7 +150,7 @@ function Sign() {
           if(result.user) {
             // setToast('Bạn đã đăng ký thành công');
             notify({ body: 'Bạn đã đăng ký thành công!' });
-            navigate('/');
+            navigate(`/${defaultRouteEnter}`);
           }
           console.log(result);
           setState(false);

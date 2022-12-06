@@ -173,7 +173,7 @@ function Devices() {
       <Box className="h-full w-full flex justify-between items-center">
         <Box className='m-auto'>
           <IconNotFound className='w-48 h-48 m-auto' />
-          <Typography sx={{ fontSize: '1.2rem' }} className='pt-3 text-slate-700'>Không tìm thấy thiết bị nào.</Typography>
+          <Typography sx={{ fontSize: '1.2rem', fontWeight: 600 }} className='pt-3 text-slate-700'>Không tìm thấy thiết bị nào.</Typography>
         </Box>
       </Box>
   );
