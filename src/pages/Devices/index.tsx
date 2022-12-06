@@ -101,19 +101,21 @@ function Devices() {
   const [loading, setLoading] = useState<boolean>(true);
 
   const transferNodes = (nodes: TransferNodeType) => {
-    const transfers = Object.entries(nodes).map(([key, field]): DeviceType => ({
-      id: key.split("node-")[1],
-      name: field?.name || "tên không xác định",
-      sub: field?.sub || "không có mô tả",
-      value: field.value,
-      type: field.type in transferTypeModel ? transferTypeModel[field.type as keyof typeof transferTypeModel] : transferTypeModel['none'],
-      icon: 'light',
-      uint: field?.uint || "",
-    }));
-
-    if(transfers.length > 0) {
-      setDevices(transfers);
+    if(nodes) {
+      const transfers = Object.entries(nodes).map(([key, field]): DeviceType => ({
+        id: key.split("node-")[1],
+        name: field?.info?.name || "tên không xác định",
+        sub: field?.info?.sub || "không có mô tả",
+        value: field.value,
+        type: field.type in transferTypeModel ? transferTypeModel[field.type as keyof typeof transferTypeModel] : transferTypeModel['none'],
+        icon: 'light',
+        uint: field?.info?.uint || "",
+      }));
+      if(transfers.length > 0) {
+        setDevices(transfers);
+      }
     }
+
   };
 
   useEffect(() => {
