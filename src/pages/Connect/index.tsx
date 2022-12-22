@@ -585,7 +585,7 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
         </DialogActions>
       </Dialog>
       <Box className='p-5'>
-        <Box className='flex flex-nowrap items-center justify-between'>
+        <Box className='flex flex-nowrap items-center justify-between text-slate-700'>
           <Typography variant="h6" sx={{ color: 'currentcolor' }} className='uppercase flex items-center'>
             { typeWifi === 'node' ? <RouterIcon className='mr-3' /> : <WifiIcon className='mr-3' /> }
             { info?.SSID || '' }
@@ -823,14 +823,14 @@ function Connect() {
     <Box className='flex-1'>
       <Tabs
         value={tab}
-        className='bg-white'
+        className='bg-white text-slate-700'
         onChange={handleChange}
         textColor="inherit"
         variant="fullWidth"
         aria-label="full width tabs example"
       >
-        <Tab label="scan wifi" {...a11yProps(0)} />
-        <Tab label="info wifi" {...a11yProps(1)} />
+        <Tab style={{ color: 'currentcolor' }} label="scan wifi" {...a11yProps(0)} />
+        <Tab style={{ color: 'currentcolor' }} label="info wifi" {...a11yProps(1)} />
       </Tabs>
       <SwipeableViews
         className='bg-[#edf1f5]'

@@ -19,16 +19,17 @@ import icon from '../index';
 interface PayloadType {
   device: {
     id: string,
-    name: string,
-    sub: string,
-    value: boolean,
-    icon: string,
-    type: string,
+    name?: string;
+    num?: number;
+    pin: number;
+    sub?: string;
+    state?: boolean;
+    icon: string;
   }
 }
 
 function Toggle({ device }: PayloadType) {
-  const [toggle, setToggle] = useState(device.value);
+  const [toggle, setToggle] = useState(device.state ? true : false);
   const [userID, setUser] = useState<string>('');
   const [block, setBlock] = useState<boolean>(false);
 

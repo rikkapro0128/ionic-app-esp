@@ -18,19 +18,19 @@ import { ref, get, set, child } from "firebase/database";
 import { database } from "../../firebase/db";
 
 const grids = {
-  toggle: "col-span-1",
-  slider: "col-span-2",
-  color: "col-span-2",
-  progress: "col-span-1 row-span-2",
+  LOGIC: "col-span-1",
+  TRANSFORM: "col-span-2",
+  COLOR: "col-span-2",
+  PROGRESS: "col-span-1 row-span-2",
   none: "col-span-1",
 };
 
 const transferTypeModel = {
   LOGIC: "toggle",
   TRANSFORM: "slider",
-  RGB: "color",
-  PRGRESS: "progress",
-  none: "toggle",
+  COLOR: "color",
+  PROGRESS: "progress",
+  none: "none",
 };
 
 interface DeviceType {
@@ -42,6 +42,19 @@ interface DeviceType {
   type: string;
   uint: string;
 }
+interface DevicesFixType {
+  id: string,
+  name?: string;
+  num?: number;
+  pin: number;
+  sub?: string;
+  value?: any;
+  state?: any;
+  icon: string;
+  type: string;
+  uint?: string;
+}
+
 interface TransferNodeType {
   nodes: {
     [node: string]: {
@@ -51,14 +64,17 @@ interface TransferNodeType {
   };
 }
 
-const getTypeWidget = (device: DeviceType) => {
-  if (device.type === "toggle") {
+const getTypeWidget = (device: DevicesFixType) => {
+  if (device.type === "LOGIC") {
     return <WidgetToggle device={device} />;
-  } else if (device.type === "progress") {
-    return <WidgetProgress device={device} />;
-  } else if (device.type === "slider") {
-    return <WidgetSlider device={device} />;
-  } else if (device.type === "color") {
+  }
+  // else if (device.type === "progress") {
+  //   return <WidgetProgress device={device} />;
+  // }
+  // else if (device.type === "slider") {
+  //   return <WidgetSlider device={device} />;
+  // }
+  else if (device.type === "COLOR") {
     return <WidgetColor device={device} />;
   } else {
     return null;
@@ -66,7 +82,7 @@ const getTypeWidget = (device: DeviceType) => {
 };
 
 function Devices() {
-  const [devices, setDevices] = useState<DeviceType[] | []>([
+  const [devices, setDevices] = useState<DevicesFixType[] | []>([
     // {
     //   name: 'quạt trần',
     //   sub: 'PANASONIC F-60WWK',
@@ -101,21 +117,16 @@ function Devices() {
   const [loading, setLoading] = useState<boolean>(true);
 
   const transferNodes = (nodes: TransferNodeType) => {
-    if(nodes) {
-      const transfers = Object.entries(nodes).map(([key, field]): DeviceType => ({
-        id: key.split("node-")[1],
-        name: field?.info?.name || "tên không xác định",
-        sub: field?.info?.sub || "không có mô tả",
-        value: field.value,
-        type: field.type in transferTypeModel ? transferTypeModel[field.type as keyof typeof transferTypeModel] : transferTypeModel['none'],
-        icon: 'light',
-        uint: field?.info?.uint || "",
-      }));
-      if(transfers.length > 0) {
-        setDevices(transfers);
+    // console.log(nodes);
+    let device: DevicesFixType[] = [];
+    Object.entries(nodes).forEach(([key, field]) => {
+      if(field.devices) {
+        device = [...Object.entries(field.devices).map(([key, field]): DevicesFixType => ({ ...field as DevicesFixType, id: key.slice(7), icon: 'light' }))];
+      }else {
+        return false;
       }
-    }
-
+    })
+    setDevices(device);
   };
 
   useEffect(() => {
@@ -151,8 +162,8 @@ function Devices() {
       devices.length > 0 
       ?
       <Box
-        sx={{ maxHeight: window.innerHeight - 72 }}
-        className={`overflow-y-scroll`}
+        sx={{ maxHeight: window.innerHeight - 72, height: window.innerHeight - 72 }}
+        className={`overflow-y-scroll bg-[#edf1f5]`}
       >
         <Box className={`grid grid-cols-2 gap-3 p-3`}>
           {devices.map((device, index) => (
