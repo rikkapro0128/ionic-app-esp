@@ -5,7 +5,10 @@ import Typography from '@mui/material/Typography';
 
 // import Hue from '@uiw/react-color-hue';
 import { Alpha, Hue } from '@uiw/react-color';
-import { hsvaToRgba, hsvaToHexa } from '@uiw/color-convert';
+import { hsvaToRgba, hsvaToHexa, rgbaToHsva } from '@uiw/color-convert';
+
+import { ref, get, set, child } from "firebase/database";
+import { database } from "../../../firebase/db";
 
 import icon from '../index';
 
@@ -17,22 +20,62 @@ interface PayloadType {
     pin: number;
     sub?: string;
     value?: {
-      r: string,
-      g: string,
-      b: string,
-      constrast: string,
+      r: number,
+      g: number,
+      b: number,
+      contrast: number,
     };
     icon: string;
-  }
+    node_id: string;
+  },
+  idUser: string | undefined;
 }
 
-function Rgb({ device }: PayloadType) {
-  const [hsva, setHsva] = useState({ h: 0, s: 100, v: 100, a: 1 });
+interface ColorType {
+  r: number;
+  g: number;
+  b: number;
+  [key: string]: number;
+}
+
+function Rgb({ device, idUser }: PayloadType) {
+  const [hsva, setHsva] = useState(() => device.value ? rgbaToHsva({ r: device.value.r, g: device.value.g, b: device.value.b, a: Number((device.value.contrast / 100).toFixed(1)) }) : { h: 0, s: 100, v: 100, a: 1 });
   const [rgba, setRgba] = useState({ r: 0, g: 0, b: 0, a: 0 });
+  const [userID, setUser] = useState<string | undefined>(idUser);
+  const [timeBounce, setTimeBounce] = useState<number>(200);
+  const [startBounce, setStartBounce] = useState<boolean>(false);
+  const [idBounce, setIdBounce] = useState<undefined | NodeJS.Timeout>(undefined);
 
   useEffect(() => {
-    setRgba(hsvaToRgba(hsva));
+    if(startBounce) {
+      setRgba(hsvaToRgba(hsva));
+    }
+    return () => {
+      if(!startBounce) { setStartBounce(true) }
+    }
   }, [hsva]);
+
+  useEffect(() => {
+    if(startBounce) {
+      clearTimeout(idBounce);
+      setIdBounce(setTimeout(handleValueRgb, timeBounce));
+    }
+  }, [rgba])
+
+  async function handleValueRgb() {
+    if(userID) {
+      try {
+        const color = { r: rgba.r, g: rgba.g, b: rgba.b, contrast: Math.round(rgba.a * 100) };
+        await set(ref(database, `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/value`), color);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }
+
+  function changeColor() {
+
+  }
 
   return (
     <Box className='flex flex-nowrap w-full'>
@@ -46,10 +89,10 @@ function Rgb({ device }: PayloadType) {
           <Alpha radius={16} hsva={hsva} onChange={(newAlpha) => { setHsva({ ...hsva, ...newAlpha }); }} />
         </Box>
         <Typography variant="subtitle1" className='text-slate-600 capitalize' gutterBottom>
-          { device.name }
+          { device.name || device.id }
         </Typography>
         <Typography variant="subtitle1" className='text-slate-600' gutterBottom>
-          { device.sub }
+          { device.sub || 'chưa có mô tả' }
         </Typography>
       </Box>
     </Box>

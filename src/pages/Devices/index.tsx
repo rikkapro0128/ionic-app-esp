@@ -6,24 +6,13 @@ import Grow from "@mui/material/Grow";
 import Dialog from '@mui/material/Dialog';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import WidgetToggle from "../../components/Widget/Toggle";
-import WidgetProgress from "../../components/Widget/Progress";
-import WidgetSlider from "../../components/Widget/Slider";
-import WidgetColor from "../../components/Widget/Rgb";
+import Node from "../../components/Node";
 
 import { IconNotFound } from '../../icons';
 
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { ref, get, set, child } from "firebase/database";
 import { database } from "../../firebase/db";
-
-const grids = {
-  LOGIC: "col-span-1",
-  TRANSFORM: "col-span-2",
-  COLOR: "col-span-2",
-  PROGRESS: "col-span-1 row-span-2",
-  none: "col-span-1",
-};
 
 const transferTypeModel = {
   LOGIC: "toggle",
@@ -32,16 +21,6 @@ const transferTypeModel = {
   PROGRESS: "progress",
   none: "none",
 };
-
-interface DeviceType {
-  id: string,
-  name: string;
-  sub: string;
-  value: any;
-  icon: string;
-  type: string;
-  uint: string;
-}
 interface DevicesFixType {
   id: string,
   name?: string;
@@ -53,6 +32,10 @@ interface DevicesFixType {
   icon: string;
   type: string;
   uint?: string;
+  node_id: string,
+}
+interface Map {
+  [key: string]: any
 }
 
 interface TransferNodeType {
@@ -64,69 +47,26 @@ interface TransferNodeType {
   };
 }
 
-const getTypeWidget = (device: DevicesFixType) => {
-  if (device.type === "LOGIC") {
-    return <WidgetToggle device={device} />;
-  }
-  // else if (device.type === "progress") {
-  //   return <WidgetProgress device={device} />;
-  // }
-  // else if (device.type === "slider") {
-  //   return <WidgetSlider device={device} />;
-  // }
-  else if (device.type === "COLOR") {
-    return <WidgetColor device={device} />;
-  } else {
-    return null;
-  }
-};
-
 function Devices() {
-  const [devices, setDevices] = useState<DevicesFixType[] | []>([
-    // {
-    //   name: 'quạt trần',
-    //   sub: 'PANASONIC F-60WWK',
-    //   value: true,
-    //   icon: 'fan',
-    //   type: 'toggle'
-    // },
-    // {
-    //   name: 'nhiệt độ phòng',
-    //   sub: 'cảm biến DHT21',
-    //   value: 25,
-    //   icon: 'sensor',
-    //   type: 'progress',
-    //   uint: '%'
-    // },
-    // {
-    //   name: 'đèn ngủ',
-    //   sub: 'light 3d',
-    //   value: 56,
-    //   icon: 'light',
-    //   type: 'slider',
-    //   uint: '%'
-    // },
-    // {
-    //   name: 'decor phòng ngủ',
-    //   sub: 'rgb ws2812b',
-    //   value: 'rgb(38, 255, 121)',
-    //   icon: 'color',
-    //   type: 'color',
-    // },
-  ]);
+  const [nodes, setNodes] = useState<Map>({});
   const [loading, setLoading] = useState<boolean>(true);
+  const [idUser, setIDUser] = useState<string | undefined>();
 
   const transferNodes = (nodes: TransferNodeType) => {
-    // console.log(nodes);
-    let device: DevicesFixType[] = [];
+    let deviceTemp: Map = {};
     Object.entries(nodes).forEach(([key, field]) => {
+      // console.log(field);
       if(field.devices) {
-        device = [...Object.entries(field.devices).map(([key, field]): DevicesFixType => ({ ...field as DevicesFixType, id: key.slice(7), icon: 'light' }))];
+        const keyNode = key.split('node-')[1] || '';      
+        deviceTemp[keyNode as keyof Map] = {};
+        deviceTemp[keyNode].name = field?.name;
+        deviceTemp[keyNode].sub = field?.sub;
+        deviceTemp[keyNode].devices = [...Object.entries(field.devices).map(([key, field]): DevicesFixType => ({ ...field as DevicesFixType, id: key.slice(7), icon: 'light', node_id: keyNode }))];
       }else {
         return false;
       }
     })
-    setDevices(device);
+    setNodes(deviceTemp);
   };
 
   useEffect(() => {
@@ -139,6 +79,7 @@ function Devices() {
         const dbRef = ref(database);
         const snapshot = await get(child(dbRef, pathListNode));
         const nodes = snapshot.val();
+        setIDUser(idUser);
         transferNodes(nodes);
       }
       setLoading(false);
@@ -159,26 +100,21 @@ function Devices() {
       </Typography>
     </Dialog>
     :
-      devices.length > 0 
+      Object.entries(nodes).length > 0
       ?
       <Box
         sx={{ maxHeight: window.innerHeight - 72, height: window.innerHeight - 72 }}
         className={`overflow-y-scroll bg-[#edf1f5]`}
       >
-        <Box className={`grid grid-cols-2 gap-3 p-3`}>
-          {devices.map((device, index) => (
-            <Box
-              key={index}
-              className={`flex flex-nowrap ${
-                device.type in grids
-                  ? grids[device.type as keyof typeof grids]
-                  : grids["none"]
-              } p-3 rounded-2xl border-indigo-600 border-2 shadow-md`}
-            >
-              {getTypeWidget(device)}
-            </Box>
-          ))}
-        </Box>
+        {
+          Object.entries(nodes).map(([key, node]) => {
+            return (
+              <div key={key} className="grid grid-cols-2 gap-3 p-3">
+                <Node devices={node.devices} node={{ id: key, name: node.name, sub: node.sub }} idUser={idUser} />
+              </div>
+            )
+          })
+        }
       </Box>
       : 
       <Box className="h-full w-full flex justify-between items-center">

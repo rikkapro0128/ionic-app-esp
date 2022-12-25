@@ -52,6 +52,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "850158074973-1kmqrn6lu1lv0u8vgpsngtcqblp0hnra.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.ionic.esp8266",
+            "certificate_hash": "37889b04cc277de6010e6a79e382ab589037de58"
+          }
+        },
+        {
           "client_id": "850158074973-a10863tghrikp2ebgmooakeka2ielehm.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
