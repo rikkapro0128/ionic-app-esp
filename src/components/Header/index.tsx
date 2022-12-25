@@ -48,12 +48,12 @@ const menu = [
     icon: <TuneIcon />,
     path: '/devices',
   },
-  {
-    id: 2,
-    field: 'danh sách node',
-    icon: <RouterIcon />,
-    path: '/nodes'
-  },
+  // {
+  //   id: 2,
+  //   field: 'danh sách node',
+  //   icon: <RouterIcon />,
+  //   path: '/nodes'
+  // },
   {
     id: 3,
     field: 'kết nối node',

@@ -10,6 +10,8 @@ import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { ref, get, set, child } from "firebase/database";
 import { database } from '../../firebase/db';
 
+import { routes as configRouter } from '../../ConfigGlobal';
+
 function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,12 +31,12 @@ function Dashboard() {
           if(!val || !val?.info) {
             await set(ref(database, `${userPath}/info`), hasUser.user);
           }
-          navigate(location.pathname !== '/' ? location.pathname : '/nodes');
+          navigate(location.pathname !== '/' ? location.pathname : configRouter.afterAuthSuccess);
         }else {
-          navigate('/sign');
+          navigate(configRouter.afterAuthFailure);
         }
       } catch (error) {
-        navigate('/sign');
+        navigate(configRouter.afterAuthFailure);
         console.log('Is error => ', error);
       }
       setLoading(false);

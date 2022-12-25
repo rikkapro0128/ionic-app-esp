@@ -1,10 +1,20 @@
-import { memo, useState, useEffect } from "react";
+import { memo, useState, useEffect, forwardRef } from "react";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import IconButton from '@mui/material/IconButton';
 import Grow from '@mui/material/Grow';
-
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import Chip from '@mui/material/Chip';
+import TextField from '@mui/material/TextField';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Divider from '@mui/material/Divider';
+import Slide from '@mui/material/Slide';
+import { TransitionProps } from '@mui/material/transitions';
 
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
@@ -42,6 +52,19 @@ interface NodeType {
   sub: string;
 }
 
+enum EditType {
+  NODE = "node",
+  DEVICE = "device"
+}
+interface BoardType {
+  name: string;
+  sub: string;
+}
+interface InfoEditType {
+  type: EditType;
+  payload: DevicesFixType;
+}
+
 const grids = {
   LOGIC: "col-span-1",
   TRANSFORM: "col-span-2",
@@ -67,11 +90,73 @@ const getTypeWidget = (device: DevicesFixType, idUser: string | undefined) => {
   }
 };
 
+const Transition = forwardRef(function Transition(
+  props: TransitionProps & {
+    children: React.ReactElement<any, any>;
+  },
+  ref: React.Ref<unknown>,
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
 function Node({ devices, node, idUser }: PropsType) {
   const [expand, setExpand] = useState<boolean>(false);
+  const [openEdit, setOpenEdit] = useState<boolean>(false);
+  const [infoEdit, setInfoEdit] = useState<InfoEditType>();
+  const [board, setBoard] = useState<BoardType>();
+
+  const handleClickOpen = () => {
+    setOpenEdit(true);
+  };
+
+  const handleClose = () => {
+    setOpenEdit(false);
+    setInfoEdit(undefined);
+  };
+
+  const activeEditDevice = (device: DevicesFixType) => {
+    setInfoEdit({ type: EditType.DEVICE, payload: device });
+    setBoard({ name: device.name || 'tên thiết bị chưa được đặt', sub: device.sub || 'chưa có môt tả về thiết bị' });
+    handleClickOpen();
+  }
+
+  const changeBoard = (field: string, value: string) => {
+    if(board) {
+      setBoard({ ...board, [field as keyof BoardType]: value });
+    }
+  }
   
   return (
     <>
+      <Dialog
+        open={openEdit}
+        TransitionComponent={Transition}
+        keepMounted
+        onClose={handleClose}
+        aria-describedby="alert-dialog-slide-description"
+        fullWidth
+      >
+        <DialogTitle>Chỉnh sửa { infoEdit?.type === EditType.DEVICE ? 'thiết bị' : 'node' }</DialogTitle>
+        <DialogContent>
+          <Typography className="pb-2 text-slate-700 whitespace-nowrap overflow-x-scroll" variant="subtitle2" gutterBottom>ID: { infoEdit?.payload.id }</Typography>
+          <Box>
+            <Divider textAlign="left">
+              <Chip label={'Tên'} />
+            </Divider>
+            <TextField sx={{ paddingY: '0.5rem' }} onChange={(event: React.ChangeEvent<HTMLInputElement>) => changeBoard('name', event.target.value)} disabled={true} value={ board?.name } fullWidth id="standard-name" variant="standard" />
+          </Box>
+          <Box>
+            <Divider textAlign="left">
+              <Chip label={'Mô tả'} />
+            </Divider>
+            <TextField sx={{ paddingY: '0.5rem' }} onChange={(event: React.ChangeEvent<HTMLInputElement>) => changeBoard('sub', event.target.value)} disabled={true} value={ board?.sub } fullWidth id="standard-sub" variant="standard" />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>huỷ</Button>
+          <Button onClick={handleClose}>cập nhật</Button>
+        </DialogActions>
+      </Dialog>
       <Box className="grid grid-cols-2 col-span-full flex flex-nowrap">
         <Typography className="col-span-1 text-slate-700 pt-5 whitespace-nowrap overflow-x-scroll" variant="h6" gutterBottom>{ node.name || node.id }</Typography>
         <Box className="flex flex-nowrap justify-end">
@@ -101,7 +186,7 @@ function Node({ devices, node, idUser }: PropsType) {
                   <IconButton size={'small'} aria-label="setting">
                     Cài đặt <SettingsIcon className="ml-1" />
                   </IconButton>
-                  <IconButton size={'small'} aria-label="edit">
+                  <IconButton onClick={() => activeEditDevice(device)} size={'small'} aria-label="edit">
                     Chỉnh sửa <EditIcon className="ml-1" />
                   </IconButton>
                 </Box>

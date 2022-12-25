@@ -12,7 +12,7 @@ const publicRoutes: never[] = [];
 
 const routes = [
   { path: "/sign", element: Sign },
-  { path: "/nodes", element: Nodes },
+  // { path: "/nodes", element: Nodes },
   { path: "/devices", element: Devices },
   { path: "/connect", element: Connect },
   { path: "/check-user", element: CheckUser },
