@@ -1,7 +1,6 @@
 import { Navigate } from 'react-router-dom';
 
 import Connect from "../pages/Connect";
-import Nodes from "../pages/Nodes";
 import Devices from "../pages/Devices";
 import Sign from "../pages/Sign";
 import CheckUser from "../pages/Check";
@@ -12,7 +11,6 @@ const publicRoutes: never[] = [];
 
 const routes = [
   { path: "/sign", element: Sign },
-  // { path: "/nodes", element: Nodes },
   { path: "/devices", element: Devices },
   { path: "/connect", element: Connect },
   { path: "/check-user", element: CheckUser },

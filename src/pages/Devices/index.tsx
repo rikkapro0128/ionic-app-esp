@@ -14,6 +14,9 @@ import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { ref, get, set, child } from "firebase/database";
 import { database } from "../../firebase/db";
 
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { setNodes } from '../../store/slices/nodesSlice';
+
 const transferTypeModel = {
   LOGIC: "toggle",
   TRANSFORM: "slider",
@@ -48,10 +51,12 @@ interface TransferNodeType {
 }
 
 function Devices() {
-  const [nodes, setNodes] = useState<Map>({});
+  const dispatch = useAppDispatch();
+  // const [nodes, setNodes] = useState<Map>({});
+  const nodes = useAppSelector(state => state.nodes.value);
   const [loading, setLoading] = useState<boolean>(true);
   const [idUser, setIDUser] = useState<string | undefined>();
-
+  
   const transferNodes = (nodes: TransferNodeType) => {
     let deviceTemp: Map = {};
     Object.entries(nodes).forEach(([key, field]) => {
@@ -66,7 +71,8 @@ function Devices() {
         return false;
       }
     })
-    setNodes(deviceTemp);
+    // setNodes(deviceTemp);
+    dispatch(setNodes(deviceTemp));
   };
 
   useEffect(() => {
