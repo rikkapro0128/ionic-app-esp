@@ -1,5 +1,6 @@
 import React, { memo, useState, useEffect, useCallback, useMemo } from 'react';
 import { CapacitorHttp, HttpResponse, } from '@capacitor/core';
+import { useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -740,6 +741,7 @@ function InfoWifi({ presentNetwork }: InfoWifiType) {
 
 function Connect() {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [scan, setScan] = useState(false);
   const [networks, setNetworks] = useState<[NetworkType]>();
   const [presentNetwork, setPresentNetwork] = useState<NetworkType>();
@@ -760,7 +762,9 @@ function Connect() {
         const getDefaultNetwork = localStorage.getItem('wifi-default');
         if(presentNetwork?.SSID !== getDefaultNetwork) {
           if(getDefaultNetwork) {
-             await WifiWizard2.connect(getDefaultNetwork, true, undefined, 'WPA');
+            await WifiWizard2.connect(getDefaultNetwork, true, undefined, 'WPA');
+            // console.log(getDefaultNetwork);
+            // navigate('/re-connect');
           }
         }
       }

@@ -26,6 +26,7 @@ import WidgetToggle from "../Widget/Toggle";
 import WidgetProgress from "../Widget/Progress";
 import WidgetSlider from "../Widget/Slider";
 import WidgetColor from "../Widget/Rgb";
+import WidgetNotFound from "../Widget/NotFound";
 
 import { ref, get, set, child, push, update } from "firebase/database";
 import { database } from "../../firebase/db";
@@ -80,6 +81,12 @@ interface UpdateField {
   value: any,
 }
 
+enum WidgetType {
+  LOGIC = 'LOGIC',
+  COLOR = 'COLOR',
+  TRANSFORM = 'TRANSFORM',
+}
+
 const grids = {
   LOGIC: "col-span-1",
   TRANSFORM: "col-span-2",
@@ -89,19 +96,19 @@ const grids = {
 };
 
 const getTypeWidget = (device: DevicesFixType, idUser: string | undefined) => {
-  if (device.type === "LOGIC") {
+  if (device.type === WidgetType.LOGIC) {
     return <WidgetToggle device={device} idUser={idUser} />;
   }
   // else if (device.type === "progress") {
   //   return <WidgetProgress device={device} idUser={idUser} />;
   // }
-  // else if (device.type === "slider") {
-  //   return <WidgetSlider device={device} idUser={idUser} />;
-  // }
-  else if (device.type === "COLOR") {
+  else if (device.type === WidgetType.TRANSFORM) {
+    return <WidgetSlider device={device} idUser={idUser} />;
+  }
+  else if (device.type === WidgetType.COLOR) {
     return <WidgetColor device={device} idUser={idUser} />;
   } else {
-    return null;
+    return <WidgetNotFound />;
   }
 };
 
@@ -263,7 +270,9 @@ function Node({ devices, node, idUser }: PropsType) {
                   : grids["none"]
               } p-3 rounded-2xl border-indigo-600 border-2 shadow-md relative z-20 bg-[#edf1f5]`}
             >
-              {getTypeWidget(device, idUser)}
+              {
+                getTypeWidget(device, idUser)
+              }
             </Box>
           </Box>
         ))
