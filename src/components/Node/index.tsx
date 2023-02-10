@@ -11,6 +11,9 @@ import TextField from '@mui/material/TextField';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
+import { styled, alpha } from '@mui/material/styles';
+import Menu, { MenuProps } from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -19,8 +22,20 @@ import { TransitionProps } from '@mui/material/transitions';
 
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
+import AvTimerIcon from '@mui/icons-material/AvTimer';
 import SettingsIcon from '@mui/icons-material/Settings';
 import EditIcon from '@mui/icons-material/Edit';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import AcUnitIcon from '@mui/icons-material/AcUnit';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+
+import dayjs, { Dayjs } from 'dayjs';
+import 'dayjs/locale/vi' // import locale
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import WidgetToggle from "../Widget/Toggle";
 import WidgetProgress from "../Widget/Progress";
@@ -95,6 +110,47 @@ const grids = {
   none: "col-span-1",
 };
 
+const StyledMenu = styled((props: MenuProps) => (
+  <Menu
+    elevation={0}
+    anchorOrigin={{
+      vertical: 'bottom',
+      horizontal: 'right',
+    }}
+    transformOrigin={{
+      vertical: 'top',
+      horizontal: 'right',
+    }}
+    {...props}
+  />
+))(({ theme }) => ({
+  '& .MuiPaper-root': {
+    borderRadius: 6,
+    marginTop: theme.spacing(1),
+    minWidth: 180,
+    color:
+      theme.palette.mode === 'light' ? 'rgb(55, 65, 81)' : theme.palette.grey[300],
+    boxShadow:
+      'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',
+    '& .MuiMenu-list': {
+      padding: '4px 0',
+    },
+    '& .MuiMenuItem-root': {
+      '& .MuiSvgIcon-root': {
+        fontSize: 18,
+        color: theme.palette.text.secondary,
+        marginRight: theme.spacing(1.5),
+      },
+      '&:active': {
+        backgroundColor: alpha(
+          theme.palette.primary.main,
+          theme.palette.action.selectedOpacity,
+        ),
+      },
+    },
+  },
+}));
+
 const getTypeWidget = (device: DevicesFixType, idUser: string | undefined) => {
   if (device.type === WidgetType.LOGIC) {
     return <WidgetToggle device={device} idUser={idUser} />;
@@ -124,13 +180,36 @@ const Transition = forwardRef(function Transition(
 function Node({ devices, node, idUser }: PropsType) {
   const dispatch = useAppDispatch();
   const [expand, setExpand] = useState<boolean>(false);
+  const [openSettingTimer, setOpenSettingTimer] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [loadingUpdate, setLoadingUpdate] = useState<boolean>(false);
   const [infoEdit, setInfoEdit] = useState<InfoEditType>();
+  const [infoSetting, setInfoSetting] = useState<DevicesFixType>();
   const [board, setBoard] = useState<BoardType>();
+  const [anchorElMenuSetting, setAnchorElMenuSetting] = useState<null | HTMLElement>(null);
+  const [timer, setTimer] = useState<Dayjs | null>(dayjs(Date.now()));
+  const openMenu = Boolean(anchorElMenuSetting);
 
-  const handleClickOpen = () => {
+  const handleClickSetting = (event: React.MouseEvent<HTMLElement>, device: DevicesFixType) => {
+    setAnchorElMenuSetting(event.currentTarget);
+    setInfoSetting(device);
+  };
+  const handleCloseMenu = () => {
+    setAnchorElMenuSetting(null);
+  };
+
+  const handleClickOpenEdit = () => {
     setOpenEdit(true);
+  };
+
+  const handleClickOpenSettingTimer = () => {
+    handleCloseMenu();
+    setOpenSettingTimer(true);
+  };
+
+  const handleClickCloseSettingTimer = () => {
+    setOpenSettingTimer(false);
+    setInfoSetting(undefined);
   };
 
   const handleClose = () => {
@@ -142,7 +221,7 @@ function Node({ devices, node, idUser }: PropsType) {
   const activeEditDevice = (device: DevicesFixType) => {
     setInfoEdit({ type: EditType.DEVICE, payload: device });
     setBoard({ name: device.name || '', sub: device.sub || '' });
-    handleClickOpen();
+    handleClickOpenEdit();
   }
 
   const changeBoard = (field: string, value: string) => {
@@ -187,9 +266,15 @@ function Node({ devices, node, idUser }: PropsType) {
     setLoadingUpdate(false)
     handleClose();
   }
+
+  const createTimer = () => {
+    console.log(timer);
+    
+  }
   
   return (
     <>
+      {/* dialog for edit infomation */}
       <Dialog
         open={openEdit}
         TransitionComponent={Transition}
@@ -219,6 +304,80 @@ function Node({ devices, node, idUser }: PropsType) {
           <Button endIcon={ loadingUpdate ? <CircularProgress size={20} /> : null } onClick={updateEdit}>Cập nhật</Button>
         </DialogActions>
       </Dialog>
+      {/* dialog for edit infomation */}
+      <Dialog
+        open={openSettingTimer}
+        TransitionComponent={Transition}
+        keepMounted
+        onClose={handleClickCloseSettingTimer}
+        aria-describedby="alert-dialog-slide-description"
+        fullWidth
+        fullScreen
+      >
+        <DialogTitle className="flex justify-between">
+          <span>Hẹn giờ { infoSetting?.name ? `"${infoSetting?.name}"` : infoSetting?.id }</span>
+          <IconButton onClick={handleClickCloseSettingTimer} aria-label="close">
+            <CloseRoundedIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Box className="mx-5">
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={'vi'}>
+              <Box>
+                <Typography variant="overline" display="block">ngày</Typography>
+                <DatePicker
+                  views={['day']}
+                  value={timer}
+                  toolbarTitle="Chọn ngày"
+                  disablePast
+                  onChange={(newValue) => {
+                    setTimer(newValue);
+                  }}
+                  renderInput={(params) => <TextField fullWidth {...params} />}
+                />
+              </Box>
+              <Box>
+                <Typography variant="overline" display="block">giờ</Typography>
+                <TimePicker
+                  toolbarTitle="Thời gian"
+                  ampm={true}
+                  // displayStaticWrapperAs="mobile"
+                  value={timer}
+                  onChange={(newValue) => {
+                    setTimer(newValue);
+                  }}
+                  renderInput={(params) => <TextField fullWidth {...params} />}
+                />
+              </Box>
+            </LocalizationProvider>
+            <Divider sx={{ my: '1rem' }} />
+            <Box className="flex justify-end">
+              <Button startIcon={<AddRoundedIcon />} onClick={createTimer} variant="contained">tạo mới</Button>
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      <StyledMenu
+        id="demo-customized-menu"
+        MenuListProps={{
+          'aria-labelledby': 'demo-customized-button',
+        }}
+        anchorEl={anchorElMenuSetting}
+        open={openMenu}
+        onClose={handleCloseMenu}
+      >
+        <MenuItem onClick={handleClickOpenSettingTimer} disableRipple>
+          <AvTimerIcon />
+          Hẹn giờ
+        </MenuItem>
+        <Divider sx={{ my: 0.5 }} />
+        <MenuItem disableRipple>
+          <AvTimerIcon />
+          Ràng buộc
+        </MenuItem>
+      </StyledMenu>
+
       <Box className="grid grid-cols-2 col-span-full flex flex-nowrap">
         <Typography className="col-span-1 text-slate-700 pt-5 whitespace-nowrap overflow-x-scroll" variant="h6" gutterBottom>{ node.name || node.id }</Typography>
         <Box className="flex flex-nowrap justify-end">
@@ -249,7 +408,7 @@ function Node({ devices, node, idUser }: PropsType) {
               <Box className="flex">
                 <Box className="flex-1 border-indigo-700 border-t-2 border-l-2 rounded-tl-lg mr-4 ml-10 translate-y-1/2"></Box>
                 <Box className="flex flex-nowrap">
-                  <IconButton size={'small'} aria-label="setting">
+                  <IconButton onClick={(event: React.MouseEvent<HTMLElement>) => handleClickSetting(event, device)} size={'small'} aria-label="setting">
                     Cài đặt <SettingsIcon className="ml-1" />
                   </IconButton>
                   <IconButton onClick={() => activeEditDevice(device)} size={'small'} aria-label="edit">
