@@ -21,12 +21,23 @@ import BtnScan from "../../components/Btn/Scan";
 import StatusWifi from "../../components/Status/Wifi";
 
 import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
+import Drawer from "@mui/material/Drawer";
+import Divider from "@mui/material/Divider";
+import Chip from "@mui/material/Chip";
+import Typography from "@mui/material/Typography";
+import CircularProgress from "@mui/material/CircularProgress";
+
+import LabelIcon from "@mui/material/Typography";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+
+const ipESPDefault = "192.168.4.1";
 
 export interface WifiInfo {
   BSSID: string;
@@ -44,7 +55,26 @@ export interface WifiPresent {
   SSID: string;
 }
 
-interface WifiNode extends WifiPresent {}
+interface ConfigESP {
+  ssid: string;
+  password: string;
+  "ip-station": string;
+  "status-station": string;
+  "quality-station": string;
+  message: string;
+}
+
+const StatusConnectWifiESP = {
+  0: "Wifi chưa thiết lập kết nối", // WL_IDLE_STATUS
+  1: "Không tìm thấy WIFI cấu hình", // WL_NO_SSID_AVAIL
+  2: "Quét mạng thành công", // WL_SCAN_COMPLETED
+  3: "Đã kết nối tới WIFI cấu hình", // WL_CONNECTED
+  4: "Kết nối WIFI cấu hình không thành công", // WL_CONNECT_FAILED
+  5: "Mất kết nối WIFI", // WL_CONNECTION_LOST
+  6: "WIFI cấu hình bị sai mật khẩu", // WL_WRONG_PASSWORD
+  7: "WIFI bị ngắt kết nối", // WL_DISCONNECTED
+};
+
 interface WifiStation extends WifiPresent {}
 
 const notify = ({ title = "Thông báo", body = "Push notìy thành công!" }) =>
@@ -59,13 +89,17 @@ function Connect() {
   );
   const [wifis, setWifis] = useState<Array<WifiInfo>>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [openDiaNode, setOpenDiaNode] = useState<boolean>(false);
+  const [loadingViewConfigESP, setLoadingViewConfigESP] =
+    useState<boolean>(false);
+  const [drawer, setDrawer] = useState<boolean>(false);
+  const [openDia, setOpenDia] = useState<boolean>(false);
   const [openDiaNodeTarget, setOpenDiaNodeTarget] = useState<boolean>(false);
-  const [passwordNode, setPasswordNode] = useState<string>("");
-  const [pickNode, setPickNode] = useState<WifiNode>();
-  const [pickStation, setPickStation] = useState<WifiStation>();
-  const [passwordStation, setPasswordStation] = useState<string>("");
-  const [passwordTarget, setPasswordTarget] = useState<string>("");
+  const [pickWifi, setPickWifi] = useState<WifiStation>();
+  const [wifiViewConfig, setWifiViewConfig] = useState<ConfigESP>();
+  const [pickWifiViewConfig, setPickWifiViewConfig] = useState<WifiInfo>();
+  const [pickWifiConfigNode, setPickWifiConfigNode] = useState<WifiInfo>();
+  const [passwordWifi, setPasswordWifi] = useState<string>("");
+  const [passwordWifiConfig, setPasswordWifiConfig] = useState<string>("");
 
   useEffect(() => {
     let idTimeOut: NodeJS.Timeout;
@@ -89,8 +123,26 @@ function Connect() {
   }, [wifiPresent]);
 
   useEffect(() => {
-    handleConnectToStation(pickStation);
-  }, [pickStation]);
+    if (pickWifi) {
+      const initConnect = async () => {
+        const stateValidate = await validateWifi(pickWifi);
+        console.log("state validate = ", stateValidate);
+
+        if (stateValidate) {
+          await handleConnectToWifi();
+        } else {
+          onOpenDia();
+        }
+      };
+      initConnect();
+    }
+  }, [pickWifi]);
+
+  useEffect(() => {
+    if (pickWifiViewConfig) {
+      getViewConfig();
+    }
+  }, [pickWifiViewConfig]);
 
   const clickScan = useCallback(async () => {
     // excute scan wifi
@@ -111,93 +163,62 @@ function Connect() {
     setLoading(false);
   }, []);
 
-  const wifiPickHander = useCallback(async (wifi: WifiInfo) => {
-    // excute scan wifi
-    console.log(wifi.SSID, wifi.BSSID);
-    if (wifi.SSID.includes("esp")) {
-      setPickNode({ SSID: wifi.SSID, BSSID: wifi.BSSID });
-      onOpenDiaNode();
-    } else {
-      setPickStation({ SSID: wifi.SSID, BSSID: wifi.BSSID });
-    }
+  const setDefaultConnect = useCallback(async (wifi: WifiInfo) => {
+    setHandleWifiTarget(wifi.SSID);
   }, []);
 
-  const configWifiToNode = useCallback(async (wifi: WifiInfo) => {
-    console.log(wifi);
-    onOpenDiaNodeTarget();
+  const handleConnectWifiForEsp = useCallback(async (wifi: WifiInfo) => {
+    setPickWifiConfigNode(wifi);
+    onOpenDiaConfigNode();
   }, []);
 
-  const onOpenDiaNode = () => {
-    setOpenDiaNode(true);
-  };
-  const onOpenDiaNodeTarget = () => {
-    setOpenDiaNodeTarget(true);
-  };
-  const onCloseDiaNode = () => {
-    setOpenDiaNode(false);
-    setPasswordNode("");
-  };
-  const onCloseDiaNodeTarget = () => {
-    setOpenDiaNodeTarget(false);
-    setPasswordTarget("");
-  };
+  const hanldeViewInfoWifi = useCallback((wifi: WifiInfo) => {
+    setPickWifiViewConfig(wifi);
+  }, []);
 
-  const handleConnectToStation = async (wifi: WifiStation | undefined) => {
-    console.log(pickStation);
+  const handleConnectToWifi = async () => {
+    console.log("Wifi pick", pickWifi);
 
-    if (wifi?.SSID && wifi?.BSSID) {
+    if (pickWifi?.SSID && pickWifi?.BSSID) {
       try {
-        let networksSaved: string[] = await WifiWizard2.listNetworks();
-        networksSaved = networksSaved.map((network) =>
-          network.replaceAll('"', "")
-        );
-        console.log(networksSaved);
-
         const state = await WifiWizard2.connect(
-          wifi?.SSID,
+          pickWifi?.SSID,
           true,
-          passwordStation ? passwordStation : undefined,
+          passwordWifi ? passwordWifi : undefined,
           "WPA"
         );
         console.log(state);
       } catch (error) {
         console.log(error);
       }
-    }
-  };
-
-  const handleConnectToNode = async () => {
-    if (pickNode?.SSID && pickNode?.BSSID) {
-      try {
-        const state = await WifiWizard2.connect(
-          pickNode?.SSID,
-          true,
-          passwordNode,
-          "WPA"
-        );
-        console.log(state); // NETWORK_CONNECTION_COMPLETED -
-      } catch (error) {
-        console.log(error);
-      }
-      onCloseDiaNode();
+      onCloseDia();
     }
   };
 
   const hanldeConnectFromNodeToTarget = async () => {
     try {
-      if(wifiPresent) {
+      if (wifiPresent) {
         const result = await CapacitorHttp.post({
-          url: `http://192.168.4.1/config-wifi`,
-          data: JSON.stringify({ ssid: wifiPresent.SSID, password: passwordTarget }),
+          url: `http://${ipESPDefault}/config-wifi`,
+          data: JSON.stringify({
+            ssid: wifiTarget,
+            password: passwordWifiConfig,
+          }),
           method: "POST",
           headers: { "Content-Type": "application/json" },
         });
-        notify({ body: `Cấu hình WIFI ${wifiTarget} cho ${wifiPresent.SSID} thành công.` });
+        console.log(result);
+
+        notify({
+          body: `Cấu hình WIFI ${wifiTarget} cho ${wifiPresent.SSID} thành công.`,
+        });
       }
     } catch (error) {
-      console.log(error);notify({ body: 'Có lỗi xảy ra khi cấu hình WIFI!', title: 'Lỗi rồi' });
+      console.log(error);
+      notify({ body: "Có lỗi xảy ra khi cấu hình WIFI!", title: "Lỗi rồi" });
     }
-    onCloseDiaNodeTarget();
+    setPickWifi(undefined);
+    onCloseDiaConfigNode();
   };
 
   const setHandleWifiTarget = (ssid: string) => {
@@ -205,60 +226,232 @@ function Connect() {
     localStorage.setItem("wifi-target", ssid);
   };
 
+  const validateWifi = async (wifi: WifiStation | undefined) => {
+    let networksSaved: string[] = await WifiWizard2.listNetworks();
+    networksSaved = networksSaved.map((network) => network.replaceAll('"', ""));
+    console.log(wifi);
+    console.log(networksSaved);
+    return networksSaved.includes(wifi?.SSID || "") ? true : false;
+  };
+
+  const getViewConfig = async () => {
+    openDrawer();
+    setLoadingViewConfigESP(true);
+    try {
+      const response: HttpResponse = await CapacitorHttp.get({
+        url: `http://${ipESPDefault}/is-config`,
+      });
+      console.log(response);
+      setWifiViewConfig(response.data);
+    } catch (error) {
+      console.log(error);
+      notify({
+        body: "Không thể đọc được thông tin cấu hình ESP8266!",
+        title: "Lỗi rồi",
+      });
+    }
+    setLoadingViewConfigESP(false);
+  };
+
+  const onCloseDia = () => {
+    setOpenDia(false);
+    setPasswordWifi("");
+  };
+
+  const onCloseDiaConfigNode = () => {
+    setOpenDiaNodeTarget(false);
+    setPasswordWifiConfig("");
+  };
+
+  const onOpenDiaConfigNode = () => {
+    setOpenDiaNodeTarget(true);
+  };
+
+  const onOpenDia = () => {
+    setOpenDia(true);
+  };
+
+  const pickWifiConnect = (wifi: WifiInfo) => {
+    setPickWifi(wifi);
+  };
+
+  const openDrawer = () => {
+    setDrawer(true);
+  };
+
+  const closeDrawer = () => {
+    setDrawer(false);
+    setPickWifiViewConfig(undefined);
+  };
+
   return (
     <>
+      {/* FOR NODE ESP */}
+      <Drawer
+        PaperProps={{
+          style: { width: "100%" },
+        }}
+        anchor={"bottom"}
+        open={drawer}
+        onClose={closeDrawer}
+      >
+        <div className="px-5">
+          <div className="flex justify-between items-center pt-5">
+            <span className="text-lg">Cấu hình ${wifiPresent?.SSID || "ESP8266"}</span>
+            <IconButton
+              size="large"
+              color="primary"
+              aria-label="upload picture"
+              component="button"
+              onClick={() => {
+                closeDrawer();
+              }}
+            >
+              <CloseRoundedIcon />
+            </IconButton>
+          </div>
+          <div>
+            {loadingViewConfigESP ? (
+              <Box
+                className="py-5"
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyItems: "center",
+                  alignItems: 'center',
+                }}
+              >
+                <CircularProgress />
+                đang tìm kiếm dữ liệu.
+              </Box>
+            ) : (
+              <>
+                {/* SSID */}
+                <Box>
+                  <Divider textAlign="left">
+                    <Chip label={"Wifi đang kết nối"} />
+                  </Divider>
+                  <Typography
+                    sx={{ fontSize: "1.2rem" }}
+                    variant="subtitle1"
+                    className="py-3 text-slate-800"
+                  >
+                    <LabelIcon className="mr-2 text-slate-700" />
+                    {wifiViewConfig?.ssid || "không tìm thấy."}
+                  </Typography>
+                </Box>
+                {/* PASSWORD */}
+                <Box>
+                  <Divider textAlign="left">
+                    <Chip label={"Mật khẩu kết nối"} />
+                  </Divider>
+                  <Typography
+                    sx={{ fontSize: "1.2rem" }}
+                    variant="subtitle1"
+                    className="py-3 text-slate-800"
+                  >
+                    <LabelIcon className="mr-2 text-slate-700" />
+                    {wifiViewConfig?.password || "không tìm thấy."}
+                  </Typography>
+                </Box>
+                {/* IP */}
+                <Box>
+                  <Divider textAlign="left">
+                    <Chip label={"IP cấp phát"} />
+                  </Divider>
+                  <Typography
+                    sx={{ fontSize: "1.2rem" }}
+                    variant="subtitle1"
+                    className="py-3 text-slate-800"
+                  >
+                    <LabelIcon className="mr-2 text-slate-700" />
+                    {wifiViewConfig?.["ip-station"] || "không được cấp phát."}
+                  </Typography>
+                </Box>
+                {/* STATUS */}
+                <Box className="mb-5">
+                  <Divider textAlign="left">
+                    <Chip label={"Trạng thái kết nối"} />
+                  </Divider>
+                  <Typography
+                    sx={{ fontSize: "1.2rem" }}
+                    variant="subtitle1"
+                    className="py-3 text-slate-800"
+                  >
+                    <LabelIcon className="mr-2 text-slate-700" />
+                    {wifiViewConfig &&
+                    wifiViewConfig?.["status-station"] in StatusConnectWifiESP
+                      ? StatusConnectWifiESP[
+                          wifiViewConfig?.[
+                            "status-station"
+                          ] as unknown as number as keyof typeof StatusConnectWifiESP
+                        ]
+                      : "Trạng thái không xác định."}
+                  </Typography>
+                </Box>
+              </>
+            )}
+          </div>
+        </div>
+      </Drawer>
       <Dialog
-        open={openDiaNode}
-        onClose={onCloseDiaNode}
-        aria-labelledby="alert-dialog-node-title"
-        aria-describedby="alert-dialog-node-description"
+        open={openDia}
+        onClose={onCloseDia}
+        aria-labelledby="alert-dialog-wifi-title"
+        aria-describedby="alert-dialog-wifi-description"
       >
         <DialogTitle id="alert-dialog--title">
-          {`Thiết lập kết nối đến ${pickNode?.SSID}?`}
+          {`Thiết lập kết nối đến ${pickWifi?.SSID}?`}
         </DialogTitle>
         <DialogContent style={{ paddingTop: "1rem" }}>
           <TextField
             fullWidth
-            value={passwordNode}
+            value={passwordWifi}
             onChange={(event) => {
-              setPasswordNode(event.target.value);
+              setPasswordWifi(event.target.value);
             }}
-            id="outlined-node-basic"
+            id="outlined-wifi-basic"
             label="Mật khẩu"
             variant="outlined"
             focused={true}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={onCloseDiaNode}>huỷ</Button>
-          <Button onClick={handleConnectToNode}>kết nối</Button>
+          <Button onClick={onCloseDia}>huỷ</Button>
+          <Button onClick={handleConnectToWifi}>kết nối</Button>
         </DialogActions>
       </Dialog>
       <Dialog
         open={openDiaNodeTarget}
-        onClose={onCloseDiaNodeTarget}
-        aria-labelledby="alert-dialog-node-wifi-setup-title"
-        aria-describedby="alert-dialog-node-wifi-setup-description"
+        onClose={onCloseDiaConfigNode}
+        aria-labelledby="alert-dialog-node-wifi-title"
+        aria-describedby="alert-dialog-node-wifi-description"
       >
-        <DialogTitle id="alert-dialog--title">
-          {`Cấu hình kết nối ${pickNode?.SSID} tới wifi ${wifiTarget}?`}
+        <DialogTitle id="alert-dialog-node-title">
+          <p>
+            {`Cấu hình kết nối '${wifiTarget}' tới ${pickWifiConfigNode?.SSID}?`}
+          </p>
+          <span className="text-sm italic">
+            lưu ý: sau khi cấu hình esp sẽ reset nên hãy kết nối lại nó nếu bạn
+            muốn xem cấu hình!
+          </span>
         </DialogTitle>
         <DialogContent style={{ paddingTop: "1rem" }}>
           <TextField
             fullWidth
-            value={passwordTarget}
+            value={passwordWifiConfig}
             onChange={(event) => {
-              setPasswordTarget(event.target.value);
+              setPasswordWifiConfig(event.target.value);
             }}
-            id="outlined-node-wifi-setup-basic"
+            id="outlined-wifi-node-basic"
             label="Mật khẩu"
             variant="outlined"
             focused={true}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={onCloseDiaNodeTarget}>huỷ</Button>
-          <Button onClick={hanldeConnectFromNodeToTarget}>kết nối</Button>
+          <Button onClick={onCloseDiaConfigNode}>huỷ</Button>
+          <Button onClick={hanldeConnectFromNodeToTarget}>lưu kết nối</Button>
         </DialogActions>
       </Dialog>
       <div style={{ height: "100vh" }} className="bg-slate-100 flex flex-col">
@@ -291,12 +484,12 @@ function Connect() {
                 wifis.map((wifi, index) => (
                   <StatusWifi
                     present={wifiPresent}
-                    onConfig={
-                      wifi.SSID.includes("esp") ? configWifiToNode : undefined
-                    }
                     end={index === 0 ? true : false}
-                    onClick={wifiPickHander}
+                    connectWifi={pickWifiConnect}
+                    setAreaConnect={setDefaultConnect}
+                    configWifiForEsp={handleConnectWifiForEsp}
                     payload={wifi}
+                    viewConfig={hanldeViewInfoWifi}
                     key={wifi.SSID + wifi.BSSID}
                   />
                 ))
