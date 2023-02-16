@@ -11,7 +11,7 @@ import Node from "../../components/Node";
 import { IconNotFound } from '../../icons';
 
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { ref, get, set, child } from "firebase/database";
+import { ref, get, set, child, onValue } from "firebase/database";
 import { database } from "../../firebase/db";
 
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
@@ -53,6 +53,7 @@ interface TransferNodeType {
 function Devices() {
   const dispatch = useAppDispatch();
   // const [nodes, setNodes] = useState<Map>({});
+  const statusFB = useAppSelector(state => state.commons.fbConnection);
   const nodes = useAppSelector(state => state.nodes.value);
   const [loading, setLoading] = useState<boolean>(true);
   const [idUser, setIDUser] = useState<string | undefined>();
@@ -71,6 +72,8 @@ function Devices() {
         return false;
       }
     })
+    // console.log(deviceTemp);
+    
     // setNodes(deviceTemp);
     dispatch(setNodes(deviceTemp));
   };
@@ -82,16 +85,20 @@ function Devices() {
       const idUser = user.user?.uid;
       if (idUser) {
         const pathListNode = `user-${idUser}/nodes`;
-        const dbRef = ref(database);
-        const snapshot = await get(child(dbRef, pathListNode));
-        const nodes = snapshot.val();
-        setIDUser(idUser);
-        transferNodes(nodes);
+        const dbRef = ref(database, pathListNode);
+        onValue(dbRef, (snapshot) => {
+          const nodes = snapshot.val();
+          transferNodes(nodes);
+        })
+        // const snapshot = await get(child(dbRef, pathListNode));
       }
+      setIDUser(idUser);
       setLoading(false);
     };
-    getNode();
-  }, []);
+    if(statusFB) {
+      getNode();
+    }
+  }, [statusFB]);
 
   return (
     loading
@@ -123,7 +130,7 @@ function Devices() {
         }
       </Box>
       : 
-      <Box className="h-full w-full flex justify-between items-center">
+      <Box className="h-full w-full flex justify-between items-center bg-slate-100">
         <Box className='m-auto'>
           <IconNotFound className='w-48 h-48 m-auto' />
           <Typography sx={{ fontSize: '1.2rem', fontWeight: 600 }} className='pt-3 text-slate-700'>Không tìm thấy thiết bị nào.</Typography>

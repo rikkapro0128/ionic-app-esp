@@ -14,7 +14,7 @@ const routes = [
   { path: "/sign", element: Sign },
   { path: "/devices", element: Devices },
   { path: "/connect", element: Connect },
-  { path: "/re-connect", element: ReconnectWifi },
+  { path: "/re-connect", element: ReconnectWifi, state: {name: 'some'} },
   { path: "/check-user", element: CheckUser },
   { path: "/profile", element: Profile },
   { path: "/setting", element: Setting },

@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import nodesSlice from './slices/nodesSlice';
+import commonSlice from './slices/commonSlice';
 
 const store = configureStore({
   reducer: {
     nodes: nodesSlice,
+    commons: commonSlice,
   }
 })
 

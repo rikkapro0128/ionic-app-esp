@@ -15,6 +15,7 @@ import CastConnectedIcon from "@mui/icons-material/CastConnected";
 import ManageHistoryIcon from "@mui/icons-material/ManageHistory";
 import SignalWifi2BarLockOutlinedIcon from "@mui/icons-material/SignalWifi2BarLockOutlined";
 import SettingsInputAntennaOutlinedIcon from "@mui/icons-material/SettingsInputAntennaOutlined";
+import AddLinkIcon from '@mui/icons-material/AddLink';
 interface PropsType {
   end: boolean;
   payload: WifiInfo;
@@ -24,6 +25,7 @@ interface PropsType {
   setAreaConnect?: (wifi: WifiInfo) => void;
   configWifiForEsp?: (wifi: WifiInfo) => void;
   viewConfig?: (wifi: WifiInfo) => void;
+  linkApplication: () => Promise<void>;
 }
 
 const StatusWifi = ({
@@ -33,6 +35,7 @@ const StatusWifi = ({
   present,
   onConfig,
   viewConfig,
+  linkApplication,
   setAreaConnect,
   configWifiForEsp,
 }: PropsType) => {
@@ -72,6 +75,13 @@ const StatusWifi = ({
       handleClose();
     }
   };
+
+  const handleLinkApp = () => {
+    if (payload && typeof viewConfig === "function") {
+      linkApplication();
+      handleClose();
+    }
+  }
 
   return (
     <>
@@ -119,6 +129,17 @@ const StatusWifi = ({
                     <ManageHistoryIcon />
                   </ListItemIcon>
                   <ListItemText primary="Xem cấu hình" />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  onClick={handleLinkApp}
+                  disabled={present?.BSSID !== payload.BSSID ? true : false}
+                >
+                  <ListItemIcon>
+                    <AddLinkIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Liên kết ứng dụng" />
                 </ListItemButton>
               </ListItem>
             </>

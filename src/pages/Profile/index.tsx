@@ -110,7 +110,7 @@ function Profile() {
           </Button>
         </DialogActions>
       </Dialog>
-      <Box className='p-4 relative'> 
+      <Box className='p-4 relative bg-slate-100 h-full'> 
         <Box className='flex flex-col m-auto w-full my-3'>
           <Box className='absolute top-0 right-0 mr-10 mt-5'>
             <IconButton onClick={() => setDialog(true)} aria-label="logout" size="large">

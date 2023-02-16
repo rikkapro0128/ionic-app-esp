@@ -37,6 +37,9 @@ import CircularProgress from "@mui/material/CircularProgress";
 import LabelIcon from "@mui/material/Typography";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 
+import { ref, get, set, child, remove } from "firebase/database";
+import { database } from "../../firebase/db";
+
 const ipESPDefault = "192.168.4.1";
 
 export interface WifiInfo {
@@ -221,6 +224,39 @@ function Connect() {
     onCloseDiaConfigNode();
   };
 
+  const checkLinkFirebaseThenAction = async () => {
+    try {
+      if (wifiPresent?.SSID.includes('esp')) {
+        const userID =
+          (await FirebaseAuthentication.getCurrentUser()).user?.uid || "";
+        const genIDNode = genIDByTimeStamp();
+        if (userID && genIDNode) {
+          const stateLinkApp = await CapacitorHttp.post({
+            url: `http://${ipESPDefault}/link-app`,
+            data: JSON.stringify({
+              idNode: genIDNode,
+              idUser: userID,
+            }),
+            headers: { "Content-Type": "application/json" },
+          });
+          console.log(userID, genIDNode, stateLinkApp);
+          if (stateLinkApp.data.message === "LINK APP HAS BEEN SUCCESSFULLY") {
+            notify({
+              body: "Phần cứng liên kết ứng dụng thành công!",
+              title: "Lỗi rồi",
+            });
+          }
+        }
+      }
+    } catch (error) {
+      notify({
+        body: "Có lỗi xảy ra khi cấu hình liên kết ứng dụng vui lòng thử lại!",
+        title: "Lỗi rồi",
+      });
+      console.log(error);
+    }
+  };
+
   const setHandleWifiTarget = (ssid: string) => {
     setWifiTarget(ssid);
     localStorage.setItem("wifi-target", ssid);
@@ -297,7 +333,9 @@ function Connect() {
       >
         <div className="px-5">
           <div className="flex justify-between items-center pt-5">
-            <span className="text-lg">Cấu hình ${wifiPresent?.SSID || "ESP8266"}</span>
+            <span className="text-lg">
+              Cấu hình ${wifiPresent?.SSID || "ESP8266"}
+            </span>
             <IconButton
               size="large"
               color="primary"
@@ -318,7 +356,7 @@ function Connect() {
                   display: "flex",
                   flexDirection: "column",
                   justifyItems: "center",
-                  alignItems: 'center',
+                  alignItems: "center",
                 }}
               >
                 <CircularProgress />
@@ -458,7 +496,7 @@ function Connect() {
         <Box>
           <BtnScan onCLick={clickScan} />
         </Box>
-        <Box className="bg-white w-full flex-1 rounded-t-3xl shadow-lg px-8 pt-8">
+        <Box className="bg-white w-full flex-1 rounded-t-3xl shadow-lg px-8 pt-8 shadow-slate-900">
           <div className="mb-3 flex justify-between">
             <h2 className="text-slate-700 text-lg uppercase font-bold">
               wifi có sẵn
@@ -478,7 +516,8 @@ function Connect() {
             {wifis.length > 0 ? (
               loading ? (
                 <div className="h-full flex flex-col justify-center items-center">
-                  <h2>đang quét wifi...</h2>
+                  <CircularProgress />
+                  <h2 className="pt-2">Đang quét wifi...</h2>
                 </div>
               ) : (
                 wifis.map((wifi, index) => (
@@ -489,6 +528,7 @@ function Connect() {
                     setAreaConnect={setDefaultConnect}
                     configWifiForEsp={handleConnectWifiForEsp}
                     payload={wifi}
+                    linkApplication={checkLinkFirebaseThenAction}
                     viewConfig={hanldeViewInfoWifi}
                     key={wifi.SSID + wifi.BSSID}
                   />

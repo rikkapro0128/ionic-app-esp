@@ -46,12 +46,26 @@ export const counterSlice = createSlice({
           return false;
         });
       }
+    },
+    updateValueDevice: (state, { payload }) => {
+      const { nodeId, deviceId, value } = payload;
+      console.log(value);
+      
+      if(nodeId && deviceId) {
+        state.value[nodeId].devices.find((dv, index) => {
+          if(dv.id === deviceId) {
+            if(state.value[nodeId].devices[index].type === 'LOGIC') {
+              state.value[nodeId].devices[index].state = value;
+            }
+          }
+        })
+      }
     }
   }
 })
 
 // Action creators are generated for each case reducer function
-export const { setNodes, updateDevice } = counterSlice.actions
+export const { setNodes, updateDevice, updateValueDevice } = counterSlice.actions
 
 export const selectCount = (state: RootState) => state.nodes.value
 
