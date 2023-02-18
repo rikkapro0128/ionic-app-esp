@@ -273,9 +273,9 @@ function Node({ devices, node, idUser }: PropsType) {
 
   const onChangeControllTimer = useCallback((value: any) => {
     if (infoSetting?.type === WidgetType.LOGIC) {
-      setValueControlTimerLogic(() => value);
+      setValueControlTimerLogic(value);
     }
-  }, []);
+  }, [infoSetting]);
 
   const handleCloseMenu = () => {
     setAnchorElMenuSetting(null);
@@ -360,40 +360,43 @@ function Node({ devices, node, idUser }: PropsType) {
     handleClose();
   };
 
-  const createTimer = async () => {
+  const createTimer = useCallback(async () => {
     const dateNow = new Date().getTime() / 1000;
     const datePick = timer?.unix();
 
-    if (dateNow && datePick && datePick > dateNow + 60) {
-      // validate timepicker must be than one minutes
-
-      if (stackTime.length > 0) {
-        if (
-          typeof stackTime.find((stack) => stack.unix === datePick) !==
-          "undefined"
-        ) {
-          notify({ title: 'Chú ý', body: 'Bộ hẹn giờ đã tồn tại bạn vui lòng chọn một thời gian khác!' });
-          return;
+    if (dateNow && datePick) {
+      if(datePick > dateNow + 60) { // validate timepicker must be than one minutes
+        
+        if (stackTime.length > 0) {
+          if (
+            typeof stackTime.find((stack) => stack.unix === datePick) !==
+            "undefined"
+          ) {
+            notify({ title: 'Chú ý', body: 'Bộ hẹn giờ đã tồn tại bạn vui lòng chọn một thời gian khác!' });
+            return;
+          }
         }
+  
+        if (node.id && idUser && infoSetting?.id) {
+          try {
+            const pathTimestampNode = `user-${idUser}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer`;
+            const dbRef = ref(database, pathTimestampNode);
+            await push(dbRef, {
+              unix: datePick,
+              value: valueControlTimerLogic,
+            });
+          } catch (error) {
+            notify({ title: 'Lỗi rồi', body: 'Tạo bộ hẹn giờ không thành công, vui lòng tạo lại bạn nhé.' });
+          }
+        }
+
+      }else {
+        // alert error pick other time
+        notify({ title: 'Không được rồi', body: 'Bạn vui lòng chọn thời gian lớn hơn thời gian hiện tại 1 phút nhé.' });
       }
 
-      if (node.id && idUser && infoSetting?.id) {
-        try {
-          const pathTimestampNode = `user-${idUser}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer`;
-          const dbRef = ref(database, pathTimestampNode);
-          const state = await push(dbRef, {
-            unix: datePick,
-            value: valueControlTimerLogic,
-          });
-        } catch (error) {
-          notify({ title: 'Lỗi rồi', body: 'Tạo bộ hẹn giờ không thành công, vui lòng tạo lại bạn nhé.' });
-        }
-      }
-    } else {
-      // alert error pick other time
-      notify({ title: 'Không được rồi', body: 'Bạn vui lòng chọn thời gian lớn hơn thời gian hiện tại 1 phút nhé.' });
     }
-  };
+  }, [valueControlTimerLogic, timer])
 
   return (
     <>
@@ -465,7 +468,7 @@ function Node({ devices, node, idUser }: PropsType) {
         open={openSettingTimer}
         TransitionComponent={Transition}
         keepMounted
-        onClose={handleClickCloseSettingTimer}
+        // onClose={handleClickCloseSettingTimer}
         aria-describedby="alert-dialog-slide-description"
         fullWidth
         fullScreen
@@ -532,18 +535,24 @@ function Node({ devices, node, idUser }: PropsType) {
           </Box>
           <div className="">
             {stackTime.length > 0 ? (
-              stackTime.map((time, index) => (
-                <div className={`flex justify-between items-center border-[1px] border-slate-700 rounded-md p-4 ${ index !== 0 ? 'mt-3' : '' }`} key={time.unix}>
-                  <div className="flex flex-col items-center">
-                    <span className="pb-2">Thời gian</span>
-                    <span className="text-5xl">{ new Date(time.unix * 1000).getHours() }:{ new Date(time.unix * 1000).getMinutes() }</span>
+              stackTime.map((time, index) => {
+                const unix = new Date(time.unix * 1000);
+                const timeParser = unix.toLocaleString([], { hour: '2-digit', minute: '2-digit' });
+                const dateParser = unix.toLocaleString([], { dateStyle: 'short' });
+                return (
+                  <div className={`flex justify-between items-center border-[1px] border-slate-700 rounded-md p-4 ${ index !== 0 ? 'mt-3' : '' }`} key={time.unix}>
+                    <div className="flex flex-col items-center">
+                      <span className="pb-2">Thời gian</span>
+                      <span className="text-3xl uppercase">{ timeParser }</span>
+                      <span className="text-sm">{ dateParser }</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <span className="pb-2">Điều khiển</span>
+                      <span className="text-3xl">{ infoSetting?.type === WidgetType.LOGIC ? TypeLogicControl[time.value as unknown as keyof typeof TypeLogicControl] : null }</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-center">
-                    <span className="pb-2">Điều khiển</span>
-                    <span className="text-3xl">{ infoSetting?.type === WidgetType.LOGIC ? TypeLogicControl[time.value as unknown as keyof typeof TypeLogicControl] : null }</span>
-                  </div>
-                </div>
-              ))
+                )
+              })
             ) : (
               <div className="text-slate-600 flex flex-col items-center mt-8">
                 <AlarmOnOutlinedIcon style={{ fontSize: "5rem" }} />

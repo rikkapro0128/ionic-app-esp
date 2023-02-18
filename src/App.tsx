@@ -47,7 +47,6 @@ setupIonicReact();
 const App: React.FC = () => {
   const FBConnection = useAppSelector((state) => state.commons.fbConnection);
   const dispatch = useAppDispatch();
-  const [isSign, setIsSign] = useState(false);
 
   useEffect(() => {
     const connectedRef = ref(database, ".info/connected");

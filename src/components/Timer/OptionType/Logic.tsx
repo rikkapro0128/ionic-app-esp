@@ -22,7 +22,7 @@ export enum TypeSelect {
 export const TypeLogicControl = {
   1: 'Bật',
   2: 'Tắt',
-  3: 'Đổi trạng thái',
+  3: 'Ngược lại',
 }
 
 const Option = ({ type, onChange }: PropType) => {
@@ -36,7 +36,7 @@ const Option = ({ type, onChange }: PropType) => {
       value: 2,
     },
     {
-      title: "Tự động",
+      title: "Đổi trạng thái",
       value: 3,
     },
   ]);

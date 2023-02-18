@@ -51,7 +51,6 @@ export const counterSlice = createSlice({
     },
     updateValueDevice: (state, { payload }) => {
       const { nodeId, deviceId, value } = payload;
-      console.log(value);
       
       if(nodeId && deviceId) {
         state.value[nodeId].devices.find((dv, index) => {

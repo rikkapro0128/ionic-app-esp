@@ -5,7 +5,7 @@ interface CommonType {
 }
 
 const initialState: CommonType = {
-  fbConnection: false
+  fbConnection: true
 }
 
 export const commonSlice = createSlice({

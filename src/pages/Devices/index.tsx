@@ -82,20 +82,19 @@ function Devices() {
 
   useEffect(() => {
     const getNode = async () => {
-      setLoading(true);
       const user = await FirebaseAuthentication.getCurrentUser();
       const idUser = user.user?.uid;
       if (idUser) {
+        setLoading(true);
         const pathListNode = `user-${idUser}/nodes`;
         const dbRef = ref(database, pathListNode);
         onValue(dbRef, (snapshot) => {
           const nodes = snapshot.val();
           transferNodes(nodes);
+          setLoading(false);
         })
-        // const snapshot = await get(child(dbRef, pathListNode));
       }
       setIDUser(idUser);
-      setLoading(false);
     };
     if(statusFB) {
       getNode();
