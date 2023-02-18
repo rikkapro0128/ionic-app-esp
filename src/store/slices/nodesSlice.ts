@@ -1,6 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { RootState } from '../index';
 
+import { WidgetType } from '../../components/Widget/type';
+
 interface Map {
   value: {
     [key: string]: {
@@ -19,7 +21,7 @@ interface DevicesFixType {
   value?: any;
   state?: any;
   icon: string;
-  type: string;
+  type: WidgetType;
   uint?: string;
   node_id: string,
 }

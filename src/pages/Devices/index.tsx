@@ -17,6 +17,8 @@ import { database } from "../../firebase/db";
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { setNodes } from '../../store/slices/nodesSlice';
 
+import { WidgetType } from '../../components/Widget/type'
+
 const transferTypeModel = {
   LOGIC: "toggle",
   TRANSFORM: "slider",
@@ -33,7 +35,7 @@ interface DevicesFixType {
   value?: any;
   state?: any;
   icon: string;
-  type: string;
+  type: WidgetType;
   uint?: string;
   node_id: string,
 }
@@ -44,7 +46,7 @@ interface Map {
 interface TransferNodeType {
   nodes: {
     [node: string]: {
-      type: string;
+      type: WidgetType;
       value: any;
     };
   };
