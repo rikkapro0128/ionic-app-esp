@@ -10,7 +10,7 @@ import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { ref, get, set, child } from "firebase/database";
 import { database } from '../../firebase/db';
 
-import { routes as configRouter } from '../../ConfigGlobal';
+import { routes as configRouter } from '../../ConfigGlobal/index';
 
 function Dashboard() {
   const navigate = useNavigate();

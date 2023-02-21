@@ -1,4 +1,11 @@
-import { memo, useState, useEffect, forwardRef, useCallback } from "react";
+import {
+  memo,
+  useState,
+  useEffect,
+  forwardRef,
+  useCallback,
+  useRef,
+} from "react";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -45,6 +52,7 @@ import WidgetColor from "../Widget/Rgb";
 import WidgetNotFound from "../Widget/NotFound";
 
 import TimerControllOption from "../Timer/OptionType/Logic";
+import TimerView from "../Timer/Widget/index";
 
 import { ref, get, set, child, push, update, onValue } from "firebase/database";
 import { database } from "../../firebase/db";
@@ -204,7 +212,7 @@ function Node({ devices, node, idUser }: PropsType) {
     useState<null | HTMLElement>(null);
   const [timer, setTimer] = useState<Dayjs | null>(dayjs(Date.now()));
   const [stackTime, setStackTime] = useState<
-    Array<{ unix: number; value: any }> | []
+    Array<{ unix: number; value: any; key: string }> | []
   >([]);
   const openMenu = Boolean(anchorElMenuSetting);
 
@@ -218,7 +226,6 @@ function Node({ devices, node, idUser }: PropsType) {
 
   useEffect(() => {
     const run = () => {
-      
       if (infoSetting?.id && openSettingTimer) {
         const pathTimestampNode = `user-${idUser}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer`;
         const dbRef = ref(database, pathTimestampNode);
@@ -227,12 +234,16 @@ function Node({ devices, node, idUser }: PropsType) {
             setStackTime(() => []);
             snapshot.val() &&
               snapshot.forEach((snapChild) => {
-                setStackTime((state) => ([
+                setStackTime((state) => [
                   ...state,
-                  snapChild.val() as { unix: number; value: any },
-                ]));
+                  {
+                    unix: snapChild.val().unix as number,
+                    value: snapChild.val().value,
+                    key: snapChild.key as string,
+                  },
+                ]);
               });
-          }else {
+          } else {
             setStackTime(() => []);
           }
         });
@@ -246,10 +257,6 @@ function Node({ devices, node, idUser }: PropsType) {
       setStackTime(() => []);
     };
   }, [infoSetting, openSettingTimer]);
-
-  useEffect(() => {
-    console.log(stackTime);
-  }, [stackTime]);
 
   useEffect(() => {
     const syncTime = async () => {
@@ -271,11 +278,14 @@ function Node({ devices, node, idUser }: PropsType) {
     };
   }, []);
 
-  const onChangeControllTimer = useCallback((value: any) => {
-    if (infoSetting?.type === WidgetType.LOGIC) {
-      setValueControlTimerLogic(value);
-    }
-  }, [infoSetting]);
+  const onChangeControllTimer = useCallback(
+    (value: any) => {
+      if (infoSetting?.type === WidgetType.LOGIC) {
+        setValueControlTimerLogic(value);
+      }
+    },
+    [infoSetting]
+  );
 
   const handleCloseMenu = () => {
     setAnchorElMenuSetting(null);
@@ -365,18 +375,22 @@ function Node({ devices, node, idUser }: PropsType) {
     const datePick = timer?.unix();
 
     if (dateNow && datePick) {
-      if(datePick > dateNow + 60) { // validate timepicker must be than one minutes
-        
+      if (datePick > dateNow + 60) {
+        // validate timepicker must be than one minutes
+
         if (stackTime.length > 0) {
           if (
             typeof stackTime.find((stack) => stack.unix === datePick) !==
             "undefined"
           ) {
-            notify({ title: 'Chú ý', body: 'Bộ hẹn giờ đã tồn tại bạn vui lòng chọn một thời gian khác!' });
+            notify({
+              title: "Chú ý",
+              body: "Bộ hẹn giờ đã tồn tại bạn vui lòng chọn một thời gian khác!",
+            });
             return;
           }
         }
-  
+
         if (node.id && idUser && infoSetting?.id) {
           try {
             const pathTimestampNode = `user-${idUser}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer`;
@@ -386,17 +400,26 @@ function Node({ devices, node, idUser }: PropsType) {
               value: valueControlTimerLogic,
             });
           } catch (error) {
-            notify({ title: 'Lỗi rồi', body: 'Tạo bộ hẹn giờ không thành công, vui lòng tạo lại bạn nhé.' });
+            notify({
+              title: "Lỗi rồi",
+              body: "Tạo bộ hẹn giờ không thành công, vui lòng tạo lại bạn nhé.",
+            });
           }
+          setTimer(dayjs(Date.now()));
         }
-
-      }else {
+      } else {
         // alert error pick other time
-        notify({ title: 'Không được rồi', body: 'Bạn vui lòng chọn thời gian lớn hơn thời gian hiện tại 1 phút nhé.' });
+        notify({
+          title: "Không được rồi",
+          body: "Bạn vui lòng chọn thời gian lớn hơn thời gian hiện tại 1 phút nhé.",
+        });
       }
-
     }
-  }, [valueControlTimerLogic, timer])
+  }, [valueControlTimerLogic, timer, stackTime]);
+
+  const onExpand = () => {
+    setExpand((state) => !state);
+  };
 
   return (
     <>
@@ -463,7 +486,7 @@ function Node({ devices, node, idUser }: PropsType) {
           </Button>
         </DialogActions>
       </Dialog>
-      {/* dialog for edit infomation */}
+      {/* dialog for edit timer */}
       <Dialog
         open={openSettingTimer}
         TransitionComponent={Transition}
@@ -537,21 +560,28 @@ function Node({ devices, node, idUser }: PropsType) {
             {stackTime.length > 0 ? (
               stackTime.map((time, index) => {
                 const unix = new Date(time.unix * 1000);
-                const timeParser = unix.toLocaleString([], { hour: '2-digit', minute: '2-digit' });
-                const dateParser = unix.toLocaleString([], { dateStyle: 'short' });
+                const timeParser = unix.toLocaleString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+                const dateParser = unix.toLocaleString([], {
+                  dateStyle: "short",
+                });
                 return (
-                  <div className={`flex justify-between items-center border-[1px] border-slate-700 rounded-md p-4 ${ index !== 0 ? 'mt-3' : '' }`} key={time.unix}>
-                    <div className="flex flex-col items-center">
-                      <span className="pb-2">Thời gian</span>
-                      <span className="text-3xl uppercase">{ timeParser }</span>
-                      <span className="text-sm">{ dateParser }</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <span className="pb-2">Điều khiển</span>
-                      <span className="text-3xl">{ infoSetting?.type === WidgetType.LOGIC ? TypeLogicControl[time.value as unknown as keyof typeof TypeLogicControl] : null }</span>
-                    </div>
-                  </div>
-                )
+                  <TimerView
+                    key={time.unix}
+                    pathUpdate={
+                      infoSetting?.id && openSettingTimer
+                        ? `user-${idUser}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer/${time.key}`
+                        : ""
+                    }
+                    className={`${index !== 0 ? "mt-3" : ""}`}
+                    dateParser={dateParser}
+                    timeParser={timeParser}
+                    type={infoSetting?.type}
+                    value={time.value}
+                  />
+                );
               })
             ) : (
               <div className="text-slate-600 flex flex-col items-center mt-8">
@@ -608,27 +638,23 @@ function Node({ devices, node, idUser }: PropsType) {
             <IconButton aria-label="setting">
               <SettingsIcon />
             </IconButton>
-            <IconButton
-              onClick={() => {
-                setExpand((state) => !state);
-              }}
-              aria-label="expand"
-            >
+            <IconButton onClick={onExpand} aria-label="expand">
               {expand ? <UnfoldLessIcon /> : <UnfoldMoreIcon />}
             </IconButton>
           </div>
         </Box>
       </Box>
-      <Box className={`col-span-2 grid grid-cols-2 gap-2`}>
+      <Box
+        className={`col-span-2 grid grid-cols-2 gap-2`}
+      >
         {devices.map((device, index) =>
           device.type === WidgetType.LOGIC ? (
             <Box
               key={index}
               style={{
-                marginTop: expand ? 40 : 0,
-                transition: "margin 200ms ease-in-out",
+                marginTop: `${expand ? 40 : 0}px`,
               }}
-              className={`flex flex-nowrap ${
+              className={`flex h-24 flex-nowrap transition-all ${
                 device.type in grids
                   ? grids[device.type as keyof typeof grids]
                   : grids["none"]
