@@ -226,7 +226,7 @@ function Connect() {
 
   const checkLinkFirebaseThenAction = async () => {
     try {
-      if (wifiPresent?.SSID.includes('esp')) {
+      if (wifiPresent?.SSID.includes("esp")) {
         const userID =
           (await FirebaseAuthentication.getCurrentUser()).user?.uid || "";
         const genIDNode = genIDByTimeStamp();
@@ -492,7 +492,12 @@ function Connect() {
           <Button onClick={hanldeConnectFromNodeToTarget}>lưu kết nối</Button>
         </DialogActions>
       </Dialog>
-      <div style={{ height: "100vh" }} className="bg-slate-100 flex flex-col">
+      <div
+        style={{
+          height: "100vh",
+        }}
+        className="bg-slate-100 flex flex-col"
+      >
         <Box>
           <BtnScan onCLick={clickScan} />
         </Box>
