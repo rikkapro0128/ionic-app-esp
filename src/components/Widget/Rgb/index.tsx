@@ -12,34 +12,17 @@ import { database } from "../../../firebase/db";
 
 import icon from '../index';
 
+import { DeviceType, ColorType } from '../type';
+
 interface PayloadType {
-  device: {
-    id: string,
-    name?: string;
-    num?: number;
-    pin: number;
-    sub?: string;
-    value?: {
-      r: number,
-      g: number,
-      b: number,
-      contrast: number,
-    };
-    icon: string;
-    node_id: string;
-  },
+  device: DeviceType,
   idUser: string | undefined;
 }
 
-interface ColorType {
-  r: number;
-  g: number;
-  b: number;
-  [key: string]: number;
-}
+
 
 function Rgb({ device, idUser }: PayloadType) {
-  const [hsva, setHsva] = useState(() => device.value ? rgbaToHsva({ r: device.value.r, g: device.value.g, b: device.value.b, a: Number((device.value.contrast / 100).toFixed(1)) }) : { h: 0, s: 100, v: 100, a: 1 });
+  const [hsva, setHsva] = useState(() => device.value && typeof device.value === 'object' ? rgbaToHsva({ r: device.value.r, g: device.value.g, b: device.value.b, a: Number((device.value.contrast / 100).toFixed(1)) }) : { h: 0, s: 100, v: 100, a: 1 });
   const [rgba, setRgba] = useState({ r: 0, g: 0, b: 0, a: 0 });
   const [userID, setUser] = useState<string | undefined>(idUser);
   const [timeBounce, setTimeBounce] = useState<number>(200);

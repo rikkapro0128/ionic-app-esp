@@ -1,32 +1,18 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { RootState } from '../index';
 
-import { WidgetType } from '../../components/Widget/type';
+import { WidgetType, DeviceType } from '../../components/Widget/type';
 
-interface Map {
+export interface MapNode {
   value: {
     [key: string]: {
-      devices: DevicesFixType[],
+      devices: DeviceType[],
       [key: string]: any,
     }
-  }
+  },
 }
 
-interface DevicesFixType {
-  id: string,
-  name?: string;
-  num?: number;
-  pin: number;
-  sub?: string;
-  value?: any;
-  state?: any;
-  icon: string;
-  type: WidgetType;
-  uint?: string;
-  node_id: string,
-}
-
-const initialState: Map = {
+const initialState: MapNode = {
   value: {},
 }
 
@@ -62,7 +48,7 @@ export const counterSlice = createSlice({
         })
       }
     }
-  }
+  },
 })
 
 // Action creators are generated for each case reducer function

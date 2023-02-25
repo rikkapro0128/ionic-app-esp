@@ -9,15 +9,10 @@ import 'react-circular-progressbar/dist/styles.css';
 
 import icon from '../index';
 
+import { DeviceType } from '../type';
+
 interface PayloadType {
-  device: {
-    id: string,
-    name: string,
-    sub: string,
-    value: number,
-    icon: string,
-    type: string,
-  }
+  device: DeviceType,
 }
 
 function Progress({ device }: PayloadType) {
@@ -31,7 +26,7 @@ function Progress({ device }: PayloadType) {
         <Box className='w-36 h-36' sx={{ position: 'relative', display: 'inline-flex' }}>
           <CircularProgressbar styles={buildStyles({
             pathColor: 'rgb(99, 102, 241)',
-          })} value={device.value} />;
+          })} value={device.value as number} />;
           <Box
             sx={{
               top: 0,
@@ -50,7 +45,7 @@ function Progress({ device }: PayloadType) {
                 className='text-slate-600 text-lg'
                 sx={{ fontSize: '1.5rem' }}
                 component="div"
-              >{`${Math.round(device.value)}%`}</Typography>
+              >{`${Math.round(device.value as number)}%`}</Typography>
               <Typography
                 variant="caption"
                 className='text-slate-600 text-lg capitalize'

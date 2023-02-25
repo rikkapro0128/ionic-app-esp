@@ -20,17 +20,10 @@ import AntSwitch from '../../../components/Switch';
 
 import icon from '../index';
 
+import { DeviceType } from '../type';
+
 interface PayloadType {
-  device: {
-    id: string,
-    name?: string;
-    num?: number;
-    pin: number;
-    sub?: string;
-    state?: boolean;
-    icon: string;
-    node_id: string;
-  },
+  device: DeviceType,
   idUser: string | undefined;
 }
 
@@ -41,6 +34,8 @@ function Toggle({ device, idUser }: PayloadType) {
   const [block, setBlock] = useState<boolean>(false);
 
   useEffect(() => {
+    console.log(device);
+    
     const run = () => {
       const refDBState = `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/state`;
       const dbRef = ref(database, refDBState);

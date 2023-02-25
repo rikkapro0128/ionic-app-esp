@@ -9,22 +9,15 @@ import { database } from "../../../firebase/db";
 
 import icon from '../index';
 
+import { DeviceType } from '../type';
+
 interface PayloadType {
-  device: {
-    id: string,
-    name?: string;
-    num?: number;
-    pin: number;
-    sub?: string;
-    value?: number;
-    icon: string;
-    node_id: string;
-  },
+  device: DeviceType,
   idUser: string | undefined;
 }
 
 function Slider({ device, idUser }: PayloadType) {
-  const [percent, setPercent] = useState(device.value);
+  const [percent, setPercent] = useState(device.value as number);
   const [userID, setUser] = useState<string | undefined>(idUser);
   const [timeBounce, setTimeBounce] = useState<number>(200);
   const [startBounce, setStartBounce] = useState<boolean>(false);

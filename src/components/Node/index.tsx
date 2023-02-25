@@ -56,6 +56,7 @@ import WidgetNotFound from "../Widget/NotFound";
 
 import TimerControllOption from "../Timer/OptionType/Logic";
 import TimerView from "../Timer/Widget/index";
+import CreateBindingDevice from "../Binding";
 
 import { ref, get, child, push, update, onValue } from "firebase/database";
 import { database } from "../../firebase/db";
@@ -68,22 +69,10 @@ import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 import { WidgetType } from "../Widget/type";
 import { TypeSelect, TypeLogicControl } from "../Timer/OptionType/Logic";
 
-interface DevicesFixType {
-  id: string;
-  name?: string;
-  num?: number;
-  pin: number;
-  sub?: string;
-  value?: any;
-  state?: any;
-  icon: string;
-  type: WidgetType;
-  uint?: string;
-  node_id: string;
-}
+import { DeviceType } from "../Widget/type";
 
 interface PropsType {
-  devices: DevicesFixType[] | [];
+  devices: DeviceType[] | [];
   node: NodeType;
   idUser: string | undefined;
 }
@@ -104,7 +93,7 @@ interface BoardType {
 }
 interface InfoEditType {
   type: EditType;
-  payload: DevicesFixType;
+  payload: DeviceType;
 }
 
 interface UpdateType {
@@ -168,7 +157,7 @@ const StyledMenu = styled((props: MenuProps) => (
   },
 }));
 
-const getTypeWidget = (device: DevicesFixType, idUser: string | undefined) => {
+const getTypeWidget = (device: DeviceType, idUser: string | undefined) => {
   if (device.type === WidgetType.LOGIC) {
     return <WidgetToggle device={device} idUser={idUser} />;
   }
@@ -203,7 +192,7 @@ function Node({ devices, node, idUser }: PropsType) {
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [loadingUpdate, setLoadingUpdate] = useState<boolean>(false);
   const [infoEdit, setInfoEdit] = useState<InfoEditType>();
-  const [infoSetting, setInfoSetting] = useState<DevicesFixType>();
+  const [infoSetting, setInfoSetting] = useState<DeviceType>();
   const [board, setBoard] = useState<BoardType>();
   const [valueControlTimerLogic, setValueControlTimerLogic] =
     useState<TypeSelect>(TypeSelect.TURN_ON);
@@ -217,7 +206,7 @@ function Node({ devices, node, idUser }: PropsType) {
 
   const handleClickSetting = (
     event: React.MouseEvent<HTMLElement>,
-    device: DevicesFixType
+    device: DeviceType
   ) => {
     setAnchorElMenuSetting(event.currentTarget);
     setInfoSetting(device);
@@ -323,7 +312,7 @@ function Node({ devices, node, idUser }: PropsType) {
     setBoard(undefined);
   };
 
-  const activeEditDevice = (device: DevicesFixType) => {
+  const activeEditDevice = (device: DeviceType) => {
     setInfoEdit({ type: EditType.DEVICE, payload: device });
     setBoard({ name: device.name || "", sub: device.sub || "" });
     handleClickOpenEdit();
@@ -613,39 +602,31 @@ function Node({ devices, node, idUser }: PropsType) {
         fullWidth
         fullScreen
       >
-        <DialogTitle className="flex justify-between items-center">
-          <span>
-            Ràng buộc điều khiển
+        <DialogTitle className="">
+          <div className="flex justify-between items-center pt-5">
+            <Typography variant="h5">Ràng buộc điều khiển</Typography>
+            <IconButton
+              onClick={handleClickCloseSettingBind}
+              aria-label="close"
+            >
+              <CloseRoundedIcon />
+            </IconButton>
+          </div>
+          <Typography className="pt-2">
+            <span className="font-semibold">Thiết bị áp dụng:</span>
             {infoSetting?.name
               ? ` ${infoSetting?.name}`
               : ` ${infoSetting?.id}`}
-          </span>
-          <IconButton onClick={handleClickCloseSettingBind} aria-label="close">
-            <CloseRoundedIcon />
-          </IconButton>
+          </Typography>
         </DialogTitle>
         <DialogContent>
-          <div className="flex justify-start items-center">
-            <Chip label="Nếu" color="success" />
-            <Typography className="px-2 whitespace-nowrap">
-              {infoSetting?.id}
-            </Typography>
-            <Chip label="Đang" color="success" />
-            <FormControl sx={{ m: 1 }} fullWidth size="small">
-              <InputLabel id="demo-select-small">chọn trạng thái</InputLabel>
-              <Select
-                labelId="demo-select-small"
-                id="demo-select-small"
-                fullWidth
-                value={10}
-                label="Age"
-                onChange={() => {}}
-              >
-                <MenuItem value={10}>bật</MenuItem>
-                <MenuItem value={20}>tắt</MenuItem>
-              </Select>
-            </FormControl>
-          </div>
+          {infoSetting ? (
+            <CreateBindingDevice
+              id={infoSetting.id}
+              name={infoSetting.name}
+              type={infoSetting.type}
+            />
+          ) : null}
         </DialogContent>
       </Dialog>
 

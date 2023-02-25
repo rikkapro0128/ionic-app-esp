@@ -17,7 +17,7 @@ import { database } from "../../firebase/db";
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { setNodes } from "../../store/slices/nodesSlice";
 
-import { WidgetType } from "../../components/Widget/type";
+import { WidgetType, DeviceType } from "../../components/Widget/type";
 
 const transferTypeModel = {
   LOGIC: "toggle",
@@ -26,19 +26,6 @@ const transferTypeModel = {
   PROGRESS: "progress",
   none: "none",
 };
-interface DevicesFixType {
-  id: string;
-  name?: string;
-  num?: number;
-  pin: number;
-  sub?: string;
-  value?: any;
-  state?: any;
-  icon: string;
-  type: WidgetType;
-  uint?: string;
-  node_id: string;
-}
 interface Map {
   [key: string]: any;
 }
@@ -71,8 +58,8 @@ function Devices() {
         deviceTemp[keyNode].sub = field?.sub;
         deviceTemp[keyNode].devices = [
           ...Object.entries(field.devices).map(
-            ([key, field]): DevicesFixType => ({
-              ...(field as DevicesFixType),
+            ([key, field]): DeviceType => ({
+              ...(field as DeviceType),
               id: key.slice(7),
               icon: "light",
               node_id: keyNode,
@@ -83,9 +70,6 @@ function Devices() {
         return false;
       }
     });
-    console.log(deviceTemp);
-
-    // setNodes(deviceTemp);
     dispatch(setNodes(deviceTemp));
   };
 
