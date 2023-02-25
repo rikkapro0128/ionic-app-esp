@@ -12,9 +12,7 @@ import {
   User,
 } from "@capacitor-firebase/authentication";
 
-import toast from "react-hot-toast";
-
-import Notify from "../../components/Notify";
+import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 import { Box } from "@mui/material";
 
 import BtnScan from "../../components/Btn/Scan";
@@ -36,6 +34,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 
 import LabelIcon from "@mui/material/Typography";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import WifiTetheringErrorIcon from '@mui/icons-material/WifiTetheringError';
 
 import { ref, get, set, child, remove } from "firebase/database";
 import { database } from "../../firebase/db";
@@ -80,12 +79,8 @@ const StatusConnectWifiESP = {
 
 interface WifiStation extends WifiPresent {}
 
-const notify = ({ title = "Thông báo", body = "Push notìy thành công!" }) =>
-  toast.custom((t) => <Notify title={title} body={body} state={t} />, {
-    duration: 5000,
-  });
-
 function Connect() {
+  const [activeSnack, closeSnack] = useSnackbar();
   const [wifiPresent, setWifiPresent] = useState<WifiPresent>();
   const [wifiTarget, setWifiTarget] = useState<string>(
     () => localStorage.getItem("wifi-target") || ""
@@ -211,14 +206,16 @@ function Connect() {
           headers: { "Content-Type": "application/json" },
         });
         console.log(result);
-
-        notify({
-          body: `Cấu hình WIFI ${wifiTarget} cho ${wifiPresent.SSID} thành công.`,
-        });
+        activeSnack({
+          message: `Cấu hình WIFI ${wifiTarget} cho ${wifiPresent.SSID} thành công.`,
+        } as PropsSnack & string);
       }
     } catch (error) {
       console.log(error);
-      notify({ body: "Có lỗi xảy ra khi cấu hình WIFI!", title: "Lỗi rồi" });
+      activeSnack({
+        title: "Lỗi rồi",
+        message: "Có lỗi xảy ra khi cấu hình WIFI!",
+      } as PropsSnack & string);
     }
     setPickWifi(undefined);
     onCloseDiaConfigNode();
@@ -241,18 +238,18 @@ function Connect() {
           });
           console.log(userID, genIDNode, stateLinkApp);
           if (stateLinkApp.data.message === "LINK APP HAS BEEN SUCCESSFULLY") {
-            notify({
-              body: "Phần cứng liên kết ứng dụng thành công!",
-              title: "Lỗi rồi",
-            });
+            activeSnack({
+              title: "Thành công",
+              message: "Phần cứng liên kết ứng dụng thành công!",
+            } as PropsSnack & string);
           }
         }
       }
     } catch (error) {
-      notify({
-        body: "Có lỗi xảy ra khi cấu hình liên kết ứng dụng vui lòng thử lại!",
+      activeSnack({
         title: "Lỗi rồi",
-      });
+        message: "Có lỗi xảy ra khi cấu hình liên kết ứng dụng vui lòng thử lại!",
+      } as PropsSnack & string);
       console.log(error);
     }
   };
@@ -281,10 +278,10 @@ function Connect() {
       setWifiViewConfig(response.data);
     } catch (error) {
       console.log(error);
-      notify({
-        body: "Không thể đọc được thông tin cấu hình ESP8266!",
+      activeSnack({
         title: "Lỗi rồi",
-      });
+        message: "Không thể đọc được thông tin cấu hình ESP8266!",
+      } as PropsSnack & string);
     }
     setLoadingViewConfigESP(false);
   };
@@ -518,29 +515,28 @@ function Connect() {
             className="text-slate-600 h-full overflow-y-scroll"
           >
             {/* render list wifi */}
-            {wifis.length > 0 ? (
-              loading ? (
-                <div className="h-full flex flex-col justify-center items-center">
-                  <CircularProgress />
-                  <h2 className="pt-2">Đang quét wifi...</h2>
-                </div>
-              ) : (
-                wifis.map((wifi, index) => (
-                  <StatusWifi
-                    present={wifiPresent}
-                    end={index === 0 ? true : false}
-                    connectWifi={pickWifiConnect}
-                    setAreaConnect={setDefaultConnect}
-                    configWifiForEsp={handleConnectWifiForEsp}
-                    payload={wifi}
-                    linkApplication={checkLinkFirebaseThenAction}
-                    viewConfig={hanldeViewInfoWifi}
-                    key={wifi.SSID + wifi.BSSID}
-                  />
-                ))
-              )
+            {loading ? (
+              <div className="h-full flex flex-col justify-center items-center">
+                <CircularProgress />
+                <h2 className="pt-2">Đang quét wifi...</h2>
+              </div>
+            ) : wifis.length > 0 ? (
+              wifis.map((wifi, index) => (
+                <StatusWifi
+                  present={wifiPresent}
+                  end={index === 0 ? true : false}
+                  connectWifi={pickWifiConnect}
+                  setAreaConnect={setDefaultConnect}
+                  configWifiForEsp={handleConnectWifiForEsp}
+                  payload={wifi}
+                  linkApplication={checkLinkFirebaseThenAction}
+                  viewConfig={hanldeViewInfoWifi}
+                  key={wifi.SSID + wifi.BSSID}
+                />
+              ))
             ) : (
               <div className="h-full flex flex-col justify-center items-center">
+                <WifiTetheringErrorIcon className="mb-2" sx={{ fontSize: 89 }} />
                 <h2>chưa có wifi nào được quét.</h2>
               </div>
             )}

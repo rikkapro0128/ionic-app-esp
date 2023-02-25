@@ -41,17 +41,21 @@ function Toggle({ device, idUser }: PayloadType) {
   const [block, setBlock] = useState<boolean>(false);
 
   useEffect(() => {
-    const refDBState = `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/state`;
-    const dbRef = ref(database, refDBState);
-    onValue(dbRef, (snapshot) => {
-      const val = snapshot.val();
-      if(!block) {
-        setBlock(() => true);
-        setToggle(val);
-        dispatch(updateValueDevice({ nodeId: device.node_id, deviceId: device.id, value: val }));
-        setBlock(() => false);
-      }
-    })
+    const run = () => {
+      const refDBState = `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/state`;
+      const dbRef = ref(database, refDBState);
+      return onValue(dbRef, (snapshot) => {
+        const val = snapshot.val();
+        if(!block) {
+          setBlock(() => true);
+          setToggle(val);
+          dispatch(updateValueDevice({ nodeId: device.node_id, deviceId: device.id, value: val }));
+          setBlock(() => false);
+        }
+      })
+    }
+    const Unsubscribe = run();
+    return Unsubscribe;
   }, [])
 
   const handleClick = async () => {

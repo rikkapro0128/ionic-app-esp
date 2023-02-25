@@ -20,7 +20,6 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import { styled, alpha } from "@mui/material/styles";
 import Menu, { MenuProps } from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -37,6 +36,10 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AcUnitIcon from "@mui/icons-material/AcUnit";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import AlarmOnOutlinedIcon from "@mui/icons-material/AlarmOnOutlined";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
 
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/vi"; // import locale
@@ -54,14 +57,13 @@ import WidgetNotFound from "../Widget/NotFound";
 import TimerControllOption from "../Timer/OptionType/Logic";
 import TimerView from "../Timer/Widget/index";
 
-import { ref, get, set, child, push, update, onValue } from "firebase/database";
+import { ref, get, child, push, update, onValue } from "firebase/database";
 import { database } from "../../firebase/db";
 
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { setNodes, updateDevice } from "../../store/slices/nodesSlice";
 
-import toast from "react-hot-toast";
-import Notify from "../../components/Notify";
+import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 
 import { WidgetType } from "../Widget/type";
 import { TypeSelect, TypeLogicControl } from "../Timer/OptionType/Logic";
@@ -120,11 +122,6 @@ const grids = {
   PROGRESS: "col-span-1 row-span-2",
   none: "col-span-1",
 };
-
-const notify = ({ title = "", body = "" }) =>
-  toast.custom((t) => <Notify title={title} body={body} state={t} />, {
-    duration: 5000,
-  });
 
 const dbRef = ref(database);
 
@@ -197,10 +194,12 @@ const Transition = forwardRef(function Transition(
 });
 
 function Node({ devices, node, idUser }: PropsType) {
+  const [activeSnack, closeSnack] = useSnackbar();
   const dispatch = useAppDispatch();
   const [nodeOnline, setNodeOnline] = useState<boolean>(false);
   const [expand, setExpand] = useState<boolean>(false);
   const [openSettingTimer, setOpenSettingTimer] = useState<boolean>(false);
+  const [openSettingbind, setOpenSettingbind] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [loadingUpdate, setLoadingUpdate] = useState<boolean>(false);
   const [infoEdit, setInfoEdit] = useState<InfoEditType>();
@@ -226,7 +225,7 @@ function Node({ devices, node, idUser }: PropsType) {
 
   useEffect(() => {
     const run = () => {
-      if (infoSetting?.id && openSettingTimer) {
+      if (infoSetting?.id) {
         const pathTimestampNode = `user-${idUser}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer`;
         const dbRef = ref(database, pathTimestampNode);
         return onValue(dbRef, (snapshot) => {
@@ -252,6 +251,9 @@ function Node({ devices, node, idUser }: PropsType) {
       }
     };
     const unSubrice = run();
+    if (openSettingTimer) {
+      setTimer(dayjs(Date.now()));
+    }
     return () => {
       unSubrice();
       setStackTime(() => []);
@@ -298,6 +300,16 @@ function Node({ devices, node, idUser }: PropsType) {
   const handleClickOpenSettingTimer = () => {
     handleCloseMenu();
     setOpenSettingTimer(true);
+  };
+
+  const handleClickOpenSettingBind = () => {
+    handleCloseMenu();
+    setOpenSettingbind(true);
+  };
+
+  const handleClickCloseSettingBind = () => {
+    setOpenSettingbind(false);
+    setInfoSetting(undefined);
   };
 
   const handleClickCloseSettingTimer = () => {
@@ -383,10 +395,11 @@ function Node({ devices, node, idUser }: PropsType) {
             typeof stackTime.find((stack) => stack.unix === datePick) !==
             "undefined"
           ) {
-            notify({
+            activeSnack({
               title: "Chú ý",
-              body: "Bộ hẹn giờ đã tồn tại bạn vui lòng chọn một thời gian khác!",
-            });
+              message:
+                "Bộ hẹn giờ đã tồn tại bạn vui lòng chọn một thời gian khác!",
+            } as PropsSnack & string);
             return;
           }
         }
@@ -400,19 +413,21 @@ function Node({ devices, node, idUser }: PropsType) {
               value: valueControlTimerLogic,
             });
           } catch (error) {
-            notify({
+            activeSnack({
               title: "Lỗi rồi",
-              body: "Tạo bộ hẹn giờ không thành công, vui lòng tạo lại bạn nhé.",
-            });
+              message:
+                "Tạo bộ hẹn giờ không thành công, vui lòng tạo lại bạn nhé.",
+            } as PropsSnack & string);
           }
           setTimer(dayjs(Date.now()));
         }
       } else {
         // alert error pick other time
-        notify({
+        activeSnack({
           title: "Không được rồi",
-          body: "Bạn vui lòng chọn thời gian lớn hơn thời gian hiện tại 1 phút nhé.",
-        });
+          message:
+            "Bạn vui lòng chọn thời gian lớn hơn thời gian hiện tại 1 phút nhé.",
+        } as PropsSnack & string);
       }
     }
   }, [valueControlTimerLogic, timer, stackTime]);
@@ -491,7 +506,6 @@ function Node({ devices, node, idUser }: PropsType) {
         open={openSettingTimer}
         TransitionComponent={Transition}
         keepMounted
-        // onClose={handleClickCloseSettingTimer}
         aria-describedby="alert-dialog-slide-description"
         fullWidth
         fullScreen
@@ -533,7 +547,6 @@ function Node({ devices, node, idUser }: PropsType) {
                 <TimePicker
                   toolbarTitle="Thời gian"
                   ampm={true}
-                  // displayStaticWrapperAs="mobile"
                   value={timer}
                   onChange={(newValue) => {
                     setTimer(newValue);
@@ -592,6 +605,49 @@ function Node({ devices, node, idUser }: PropsType) {
           </div>
         </DialogContent>
       </Dialog>
+      <Dialog
+        open={openSettingbind}
+        TransitionComponent={Transition}
+        keepMounted
+        aria-describedby="alert-dialog-slide-description"
+        fullWidth
+        fullScreen
+      >
+        <DialogTitle className="flex justify-between items-center">
+          <span>
+            Ràng buộc điều khiển
+            {infoSetting?.name
+              ? ` ${infoSetting?.name}`
+              : ` ${infoSetting?.id}`}
+          </span>
+          <IconButton onClick={handleClickCloseSettingBind} aria-label="close">
+            <CloseRoundedIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <div className="flex justify-start items-center">
+            <Chip label="Nếu" color="success" />
+            <Typography className="px-2 whitespace-nowrap">
+              {infoSetting?.id}
+            </Typography>
+            <Chip label="Đang" color="success" />
+            <FormControl sx={{ m: 1 }} fullWidth size="small">
+              <InputLabel id="demo-select-small">chọn trạng thái</InputLabel>
+              <Select
+                labelId="demo-select-small"
+                id="demo-select-small"
+                fullWidth
+                value={10}
+                label="Age"
+                onChange={() => {}}
+              >
+                <MenuItem value={10}>bật</MenuItem>
+                <MenuItem value={20}>tắt</MenuItem>
+              </Select>
+            </FormControl>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <StyledMenu
         id="demo-customized-menu"
@@ -607,7 +663,7 @@ function Node({ devices, node, idUser }: PropsType) {
           Hẹn giờ
         </MenuItem>
         <Divider sx={{ my: 0.5 }} />
-        <MenuItem disableRipple>
+        <MenuItem onClick={handleClickOpenSettingBind} disableRipple>
           <AvTimerIcon />
           Ràng buộc
         </MenuItem>
@@ -644,9 +700,7 @@ function Node({ devices, node, idUser }: PropsType) {
           </div>
         </Box>
       </Box>
-      <Box
-        className={`col-span-2 grid grid-cols-2 gap-2`}
-      >
+      <Box className={`col-span-2 grid grid-cols-2 gap-2`}>
         {devices.map((device, index) =>
           device.type === WidgetType.LOGIC ? (
             <Box

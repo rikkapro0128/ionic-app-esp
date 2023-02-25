@@ -26,9 +26,8 @@ function Dashboard() {
           // check info user
           const userPath = `user-${hasUser.user?.uid}/`;
           const dbRef = ref(database);
-          const snapshot = await get(child(dbRef, userPath));
-          const val = snapshot.val();
-          if(!val || !val?.info) {
+          const snapshot = await (await get(child(dbRef, userPath))).exists();
+          if(!snapshot) {
             await set(ref(database, `${userPath}/info`), hasUser.user);
           }
           navigate(location.pathname !== '/' ? location.pathname : configRouter.afterAuthSuccess);

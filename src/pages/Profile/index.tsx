@@ -19,9 +19,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
-import toast from 'react-hot-toast';
-
-import Notify from '../../components/Notify';
+import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 
 import { FirebaseAuthentication, GetCurrentUserResult } from '@capacitor-firebase/authentication';
 
@@ -54,13 +52,8 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   },
 }));
 
-const notify = ({ title= 'Thông báo', body = 'Push notìy thành công!' }) => toast.custom((t) => (
-  <Notify title={title} body={body} state={t} />
-), {
-  duration: 5000,
-});
-
 function Profile() {
+  const [activeSnack, closeSnack] = useSnackbar();
   const navigate = useNavigate();
   const [info, setInfo] = useState<GetCurrentUserResult>();
   const [dialog, setDialog] = useState(false);
@@ -78,7 +71,9 @@ function Profile() {
   const logout = async () => {
     try {
       await FirebaseAuthentication.signOut();
-      notify({ body: 'Bạn đã đăng xuất tài khoản khỏi ứng dụng!' });
+      activeSnack({
+        message: 'Bạn đã đăng xuất tài khoản khỏi ứng dụng!',
+      } as PropsSnack & string);
       navigate('/sign');
     } catch (error) {
       console.log();

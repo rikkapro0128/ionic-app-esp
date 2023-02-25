@@ -1,4 +1,3 @@
-import Button from "@mui/material/Button";
 import {
   LocalNotifications,
   LocalNotificationSchema,
@@ -11,24 +10,32 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Collapse from "@mui/material/Collapse";
+import Button from "@mui/material/Button";
 
 import WebAssetIcon from "@mui/icons-material/WebAsset";
 import NightsStayOutlinedIcon from "@mui/icons-material/NightsStayOutlined";
 import NotificationsActiveOutlinedIcon from "@mui/icons-material/NotificationsActiveOutlined";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
-import PodcastsRoundedIcon from '@mui/icons-material/PodcastsRounded';
+import PodcastsRoundedIcon from "@mui/icons-material/PodcastsRounded";
 
 import AntSwitch from "../../components/Switch/index";
 import { MaterialUISwitch } from "../../components/Switch/MuiDesigner";
 import { Android12Switch } from "../../components/Switch/Ant12Designer";
 import { useState } from "react";
 
+import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
+
 function Setting() {
+  const [activeSnack, closeSnack] = useSnackbar();
   const [notifyOpened, setNotifyOpened] = useState(false);
 
   const toggleNotify = () => {
     setNotifyOpened(!notifyOpened);
-  }
+  };
+
+  const handleClick = () => {
+    const key = activeSnack({ message: 'Hello mọi người' } as PropsSnack & string);
+  };
 
   return (
     <div className="bg-slate-50 h-screen text-slate-600 pt-1">
@@ -65,7 +72,10 @@ function Setting() {
         </Typography>
         <div className="shadow">
           {/* ITEM NOTIFY */}
-          <div onClick={toggleNotify} className="flex items-center justify-between px-4 py-3">
+          <div
+            onClick={toggleNotify}
+            className="flex items-center justify-between px-4 py-3"
+          >
             <div className="flex items-center">
               <div className="bg-purple-500 rounded-md p-2 mr-2">
                 <NotificationsActiveOutlinedIcon className="text-slate-50 text-lg" />
@@ -74,10 +84,13 @@ function Setting() {
                 Tuỳ chọn ẩn
               </Typography>
             </div>
-            <KeyboardArrowRightRoundedIcon sx={{
-              transition: 'transform ease-in-out 200ms',
-              transform: `rotate(${ notifyOpened ? 90 : 0 }deg)`,
-            }} fontSize="large" />
+            <KeyboardArrowRightRoundedIcon
+              sx={{
+                transition: "transform ease-in-out 200ms",
+                transform: `rotate(${notifyOpened ? 90 : 0}deg)`,
+              }}
+              fontSize="large"
+            />
           </div>
           <Collapse in={notifyOpened} unmountOnExit>
             <List component="div" disablePadding>

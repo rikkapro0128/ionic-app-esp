@@ -5,7 +5,7 @@ import { TypeLogicControl } from "../OptionType/Logic";
 import { ref, remove } from "firebase/database";
 import { database } from "../../../firebase/db";
 
-import { notify } from "../../../ConfigGlobal/index";
+import { useSnackbar, PropsSnack } from "../../../hooks/SnackBar";
 
 interface PropsType {
   timeParser: string;
@@ -24,6 +24,7 @@ const TimerView = ({
   value,
   pathUpdate,
 }: PropsType) => {
+  const [activeSnack, closeSnack] = useSnackbar();
   const [expand, setExpand] = useState(false);
   const [autoWidth, setAutoWidth] = useState(0);
 
@@ -41,15 +42,15 @@ const TimerView = ({
     try {
       const dbRef = ref(database, pathUpdate);
       await remove(dbRef);
-      notify({
+      activeSnack({
         title: "Xoá rồi",
-        body: `Đã xoá thành công timer - ${timeParser} - ${dateParser}`,
-      });
+        message: `Đã xoá thành công timer - ${timeParser} - ${dateParser}`,
+      } as PropsSnack & string);
     } catch (error) {
-      notify({
+      activeSnack({
         title: "Lỗi rồi",
-        body: `Không thể xoá timer - ${timeParser} - ${dateParser}`,
-      });
+        message: `Không thể xoá timer - ${timeParser} - ${dateParser}`,
+      } as PropsSnack & string);
     }
   };
 

@@ -1,6 +1,6 @@
 {
   "appId": "io.ionic.esp8266",
-  "appName": "esp8266",
+  "appName": "Smart Controll",
   "webDir": "build",
   "bundledWebRuntime": false,
   "plugins": {

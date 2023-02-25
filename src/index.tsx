@@ -6,13 +6,16 @@ import reportWebVitals from "./reportWebVitals";
 
 import store from "./store";
 import { Provider } from "react-redux";
+import { SnackbarProvider } from "notistack";
 
 const container = document.getElementById("root");
 const root = createRoot(container!);
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+      <SnackbarProvider >
+        <App />
+      </SnackbarProvider>
     </Provider>
   </React.StrictMode>
 );
