@@ -33,7 +33,7 @@ import Typography from "@mui/material/Typography";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { routes } from "./routes";
 
-import { getDatabase, ref, onValue } from "firebase/database";
+import { getDatabase, ref, onValue, goOnline } from "firebase/database";
 import { database } from "./firebase/db";
 
 import { setFbConnection } from "./store/slices/commonSlice";
@@ -52,6 +52,7 @@ const App: React.FC = () => {
     const connectedRef = ref(database, ".info/connected");
     onValue(connectedRef, (snap) => {
       if (snap.val() === true) {
+        goOnline(database);
         dispatch(setFbConnection(true));
       } else {
         dispatch(setFbConnection(false));

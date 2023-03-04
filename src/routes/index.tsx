@@ -7,6 +7,7 @@ import Sign from "../pages/Sign";
 import CheckUser from "../pages/Check";
 import Profile from "../pages/Profile";
 import Setting from "../pages/Setting";
+import Rooms from "../pages/Room";
 
 const publicRoutes: never[] = [];
 
@@ -14,6 +15,7 @@ const routes = [
   { path: "/sign", element: Sign },
   { path: "/devices", element: Devices },
   { path: "/connect", element: Connect },
+  { path: "/rooms", element: Rooms },
   { path: "/re-connect", element: ReconnectWifi, state: {name: 'some'} },
   { path: "/check-user", element: CheckUser },
   { path: "/profile", element: Profile },

@@ -2,9 +2,23 @@ import { ChangeEvent, memo, useState, useEffect } from "react";
 import { IonToast } from "@ionic/react";
 import { useNavigate } from "react-router";
 
-import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  UserCredential,
+} from "firebase/auth";
+
+import {
+  FirebaseAuthentication,
+  SignInResult,
+} from "@capacitor-firebase/authentication";
+
+import { appAuthWeb } from "../../firebase";
 
 import { IconGoogle } from "../../icons";
+
+import detechOS from "detectos.js";
 
 import Divider from "@mui/material/Divider";
 import Avatar from "@mui/material/Avatar";
@@ -31,6 +45,8 @@ import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 
 const theme = createTheme();
 const defaultRouteEnter = "devices";
+
+const OSType = new detechOS();
 
 function Copyright(props: any) {
   return (
@@ -137,44 +153,62 @@ function Sign() {
 
   const signNormalize = async () => {
     try {
+      const auth = getAuth(appAuthWeb);
       if (tab === "sign-in") {
         if (validate.email === "" && validate.password === "") {
+          let result: SignInResult | UserCredential | undefined;
           setState(true);
-          const result =
-            await FirebaseAuthentication.signInWithEmailAndPassword({
+          if (OSType.OS === "Windows") {
+            result = await signInWithEmailAndPassword(
+              auth,
+              sign.email,
+              sign.password
+            );
+          } else if (OSType.OS === "Android") {
+            result = await FirebaseAuthentication.signInWithEmailAndPassword({
               email: sign.email,
               password: sign.password,
             });
-          if (result.user) {
+          }
+          console.log(result);
+          setState(false);
+          if (result?.user) {
             activeSnack({
               message: "Bạn đã đăng nhập thành công!",
             } as PropsSnack & string);
             navigate(`/${defaultRouteEnter}`);
           }
-          console.log(result);
-          setState(false);
         }
       } else {
-        if (
-          validate.email === "" &&
-          validate.password === "" &&
-          validate.confirm === ""
-        ) {
-          setState(true);
-          const result =
-            await FirebaseAuthentication.createUserWithEmailAndPassword({
-              email: sign.email,
-              password: sign.password,
-            });
-          if (result.user) {
-            // setToast('Bạn đã đăng ký thành công');
-            activeSnack({
-              message: "Bạn đã đăng ký thành công!",
-            } as PropsSnack & string);
-            navigate(`/${defaultRouteEnter}`);
+        setState(true);
+        let result: SignInResult | UserCredential | undefined;
+        if (OSType.OS === "Windows") {
+          result = await createUserWithEmailAndPassword(
+            auth,
+            sign.email,
+            sign.password
+          );
+        } else if (OSType.OS === "Android") {
+          if (
+            validate.email === "" &&
+            validate.password === "" &&
+            validate.confirm === ""
+          ) {
+            result =
+              await FirebaseAuthentication.createUserWithEmailAndPassword({
+                email: sign.email,
+                password: sign.password,
+              });
           }
-          console.log(result);
-          setState(false);
+        }
+        console.log(result);
+        setState(false);
+        if (result?.user) {
+          // setToast('Bạn đã đăng ký thành công');
+          activeSnack({
+            message: "Bạn đã đăng ký thành công!",
+          } as PropsSnack & string);
+          navigate(`/${defaultRouteEnter}`);
         }
       }
     } catch (error) {

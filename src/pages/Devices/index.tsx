@@ -10,14 +10,21 @@ import Node from "../../components/Node";
 
 import { IconNotFound } from "../../icons";
 
-import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
+
+import DetachOS from "detectos.js";
+
+import { FirebaseAuthentication, GetCurrentUserResult } from "@capacitor-firebase/authentication";
+import { getAuth, User } from "firebase/auth";
 import { ref, onValue } from "firebase/database";
 import { database } from "../../firebase/db";
+import { appAuthWeb } from "../../firebase";
 
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { setNodes } from "../../store/slices/nodesSlice";
 
 import { WidgetType, DeviceType } from "../../components/Widget/type";
+
+const TypeOS = new DetachOS();
 
 const transferTypeModel = {
   LOGIC: "toggle",
@@ -77,8 +84,17 @@ function Devices() {
     let idCheck: NodeJS.Timeout;
     let cbUnOn: any;
     const getNode = async () => {
-      const user = await FirebaseAuthentication.getCurrentUser();
-      const idUser = user.user?.uid;
+      let user: GetCurrentUserResult | User | null;
+      let idUser;
+      if (TypeOS.OS === "Android") {
+        user = await FirebaseAuthentication.getCurrentUser();
+        idUser = user.user?.uid
+      } else if (TypeOS.OS === "Windows") {
+        const auth = getAuth(appAuthWeb);
+        user = auth.currentUser;
+        idUser = user?.uid;
+      }
+      
       if (idUser) {
         setLoading(true);
         const pathListNode = `user-${idUser}/nodes`;
@@ -88,7 +104,9 @@ function Devices() {
         }, 4000);
         cbUnOn = onValue(dbRef, (snapshot) => {
           const nodes = snapshot.val();
-          transferNodes(nodes);
+          if(nodes) {
+            transferNodes(nodes);
+          }
           setLoading(false);
         });
       }

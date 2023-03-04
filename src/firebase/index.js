@@ -16,7 +16,24 @@ const firebaseConfig = {
   measurementId: "G-7L8D004HB1"
 };
 
+const firebaseConfigAuthWeb = {
+  apiKey: "AIzaSyBuRUejKkZ8ffQmn4XI_wfOuOKaFIX5VOg",
+  authDomain: "esp8266-credentials.firebaseapp.com",
+  databaseURL: "https://esp8266-credentials-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "esp8266-credentials",
+  storageBucket: "esp8266-credentials.appspot.com",
+  messagingSenderId: "850158074973",
+  appId: "1:850158074973:web:bab741af4069438fede1b4",
+  measurementId: "G-LN4VZY2QSM"
+};
+
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const appAuthWeb = initializeApp(firebaseConfigAuthWeb, 'auth-web');
+
+export {
+  appAuthWeb,
+}
 
 export default app;

@@ -39,6 +39,8 @@ import WifiTetheringErrorIcon from '@mui/icons-material/WifiTetheringError';
 import { ref, get, set, child, remove } from "firebase/database";
 import { database } from "../../firebase/db";
 
+import DetachOS from 'detectos.js';
+
 const ipESPDefault = "192.168.4.1";
 
 export interface WifiInfo {
@@ -76,6 +78,8 @@ const StatusConnectWifiESP = {
   6: "WIFI cấu hình bị sai mật khẩu", // WL_WRONG_PASSWORD
   7: "WIFI bị ngắt kết nối", // WL_DISCONNECTED
 };
+
+const TypeOS = new DetachOS();
 
 interface WifiStation extends WifiPresent {}
 
@@ -144,21 +148,27 @@ function Connect() {
 
   const clickScan = useCallback(async () => {
     // excute scan wifi
-    setLoading(true);
-    try {
-      const state: string = await WifiWizard2.startScan();
-      if (state === "OK") {
-        const listWifi: Array<WifiInfo> = await WifiWizard2.getScanResults({
-          numLevels: 0,
-        });
-        console.log(listWifi);
-
-        setWifis(listWifi);
+    if(TypeOS.OS === 'Android') {
+      setLoading(true);
+      try {
+        const state: string = await WifiWizard2.startScan();
+        if (state === "OK") {
+          const listWifi: Array<WifiInfo> = await WifiWizard2.getScanResults({
+            numLevels: 0,
+          });
+          console.log(listWifi);
+  
+          setWifis(listWifi);
+        }
+      } catch (error) {
+        console.log(error);
       }
-    } catch (error) {
-      console.log(error);
+      setLoading(false);
+    }else {
+      activeSnack({
+        message: `Hệ điều hành ${TypeOS.OS} hiện không hỗ trợ việc tìm kiếm wifi, vui lòng cài đặt ứng dụng lên thiết bị Android.`,
+      } as PropsSnack & string);
     }
-    setLoading(false);
   }, []);
 
   const setDefaultConnect = useCallback(async (wifi: WifiInfo) => {
@@ -189,6 +199,7 @@ function Connect() {
       } catch (error) {
         console.log(error);
       }
+      setPickWifi(undefined);
       onCloseDia();
     }
   };
@@ -495,8 +506,8 @@ function Connect() {
         }}
         className="bg-slate-100 flex flex-col"
       >
-        <Box>
-          <BtnScan onCLick={clickScan} />
+        <Box className="overflow-hidden">
+          <BtnScan isScan={loading} onCLick={clickScan} />
         </Box>
         <Box className="bg-white w-full flex-1 rounded-t-3xl shadow-lg px-8 pt-8 shadow-slate-900">
           <div className="mb-3 flex justify-between">
@@ -518,7 +529,7 @@ function Connect() {
             {loading ? (
               <div className="h-full flex flex-col justify-center items-center">
                 <CircularProgress />
-                <h2 className="pt-2">Đang quét wifi...</h2>
+                <h2 className="pt-2">Đang tìm kiếm wifi...</h2>
               </div>
             ) : wifis.length > 0 ? (
               wifis.map((wifi, index) => (
@@ -537,7 +548,7 @@ function Connect() {
             ) : (
               <div className="h-full flex flex-col justify-center items-center">
                 <WifiTetheringErrorIcon className="mb-2" sx={{ fontSize: 89 }} />
-                <h2>chưa có wifi nào được quét.</h2>
+                <h2>chưa có wifi nào được tìm thấy.</h2>
               </div>
             )}
           </div>

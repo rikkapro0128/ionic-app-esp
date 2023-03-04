@@ -11,6 +11,7 @@ import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
+import RoomPreferencesRoundedIcon from '@mui/icons-material/RoomPreferencesRounded';
 import MoreIcon from "@mui/icons-material/MoreVert";
 import SwipeableDrawer from "@mui/material/SwipeableDrawer";
 import List from "@mui/material/List";
@@ -41,16 +42,16 @@ const notShow = ["/sign", "/check-user"];
 const menu = [
   {
     id: 1,
-    field: "quản lí điều khiển",
+    field: "quản lí thiết bị",
     icon: <TuneIcon />,
     path: "/devices",
   },
-  // {
-  //   id: 2,
-  //   field: 'danh sách node',
-  //   icon: <RouterIcon />,
-  //   path: '/nodes'
-  // },
+  {
+    id: 2,
+    field: 'danh sách phòng',
+    icon: <RoomPreferencesRoundedIcon />,
+    path: '/rooms'
+  },
   {
     id: 3,
     field: "kết nối node",

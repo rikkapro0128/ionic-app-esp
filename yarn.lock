@@ -2852,6 +2852,11 @@
   resolved "https://registry.npmjs.org/@types/cordova/-/cordova-0.0.34.tgz"
   integrity sha512-rkiiTuf/z2wTd4RxFOb+clE7PF4AEJU0hsczbUdkHHBtkUmpWQpEddynNfJYKYtZFJKbq4F+brfekt1kx85IZA==
 
+"@types/detectos.js@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@types/detectos.js/-/detectos.js-1.5.0.tgz#e50ceb8f08fa4ef4e1445c464c102d8cfb832267"
+  integrity sha512-qtd045yfG5bLzkOO0Abrg6fqzxaYNCiLbOpdL8lAiR2n1ZTpT3Eh/3db8e4asBTjHVMTxYWx2h/K996r+zcUmQ==
+
 "@types/eslint-scope@^3.7.3":
   version "3.7.4"
   resolved "https://registry.npmjs.org/@types/eslint-scope/-/eslint-scope-3.7.4.tgz"
@@ -4967,6 +4972,11 @@ detective@^5.2.1:
     acorn-node "^1.8.2"
     defined "^1.0.0"
     minimist "^1.2.6"
+
+detectos.js@^1.5.2:
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/detectos.js/-/detectos.js-1.5.2.tgz#e67e1da0503c4ee7bd2d44f88de24d7d739ac5d0"
+  integrity sha512-/3ZMLcs7KzyyYCtyo1sql6JDqhY5ZHSHC1Z76wSPO6+Fc/4hAYn2d7KA9IVEXmGyrpK2qxafcZUgxvyw+hD0TQ==
 
 didyoumean@^1.2.2:
   version "1.2.2"
