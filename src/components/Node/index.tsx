@@ -658,8 +658,8 @@ function Node({ devices, node, idUser }: PropsType) {
         >
           {node.name || node.id}
         </Typography>
-        <Box className="ml-5 flex flex-nowrap justify-between items-center">
-          <span
+        <Box className="ml-5 flex flex-nowrap items-center justify-end">
+          {/* <span
             className={`px-2 py-1 text-xs border-[1px]  rounded-full ${
               nodeOnline
                 ? "border-green-500 text-green-500"
@@ -667,7 +667,7 @@ function Node({ devices, node, idUser }: PropsType) {
             }`}
           >
             {nodeOnline ? "online" : "offline"}
-          </span>
+          </span> */}
           <div>
             <IconButton aria-label="edit">
               <EditIcon />
@@ -697,7 +697,7 @@ function Node({ devices, node, idUser }: PropsType) {
                 device.type === WidgetType.LOGIC
                   ? `col-start-${index + 1} col-end-${index + 2}`
                   : ""
-              } relative col-auto p-3 rounded-2xl border-indigo-600 border-2 shadow-md z-20 bg-[#edf1f5]`}
+              } relative col-auto p-3 rounded-2xl border-indigo-600 border-2 shadow-md z-20 bg-white`}
             >
               <div
                 style={{

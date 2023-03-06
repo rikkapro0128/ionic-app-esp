@@ -67,14 +67,16 @@ function Toggle({ device, idUser }: PayloadType) {
   }
 
   return (
-    <Box onClick={handleClick} className="flex flex-nowrap mx-auto">
-      <Box className='mr-3'>
-        { device.icon in icon ? icon[device.icon as keyof typeof icon] : icon['light'] }
-        <AntSwitch className="mt-2" checked={toggle} inputProps={{ 'aria-label': 'ant design' }} />
+    <Box onClick={handleClick} className="flex flex-nowrap mx-auto max-w-full overflow-hidden">
+      <Box className='mr-3 flex flex-col items-center justify-between'>
+        <div className={`flex justify-center p-2 rounded-full ${ toggle ? 'fill-slate-50' : 'fill-indigo-400' } bg-indigo-500`}>
+          { device.icon in icon ? icon[device.icon as keyof typeof icon] : icon['light'] }
+        </div>
+        <AntSwitch className="mt-2 " checked={toggle} inputProps={{ 'aria-label': 'ant design' }} />
       </Box>
-      <Box className="flex flex-col flex-1">
-        <Typography className='text-slate-600 capitalize' variant="subtitle1">{ device.name || device.id }</Typography>
-        <Typography className='text-slate-600' variant="caption">{ device.sub || 'không có mô tả nào' }</Typography>
+      <Box className="flex flex-col flex-1 max-w-[75%]">
+        <Typography className='text-slate-600 capitalize whitespace-nowrap text-ellipsis overflow-hidden' variant="subtitle2">{ device.name || device.id }</Typography>
+        <Typography className='text-slate-600 whitespace-nowrap text-ellipsis overflow-hidden' component={'p'} variant="caption">{ device.sub || 'không có mô tả nào' }</Typography>
         <Typography className='text-slate-600 flex-1 flex items-end' variant="subtitle1">
           <span className={`capitalize ${ toggle ? 'text-green-400' : 'text-slate-500' }`}>{ toggle ? 'bật' : 'tắt' }</span>
         </Typography>

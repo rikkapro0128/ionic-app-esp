@@ -310,8 +310,8 @@ const Rooms = () => {
       </Modal>
       <div className="w-full h-screen bg-slate-100 text-slate-700 p-4 flex flex-col">
         <div className="flex justify-between items-center mb-5">
-          <Typography className="capitalize" variant="h6">
-            Số phòng hiện có: 0
+          <Typography className="capitalize text-slate-600" variant="h6">
+            Số phòng hiện có: { rooms.length }
           </Typography>
           <Button
             startIcon={<AddIcon />}

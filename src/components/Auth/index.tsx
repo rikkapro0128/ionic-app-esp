@@ -17,7 +17,7 @@ import {
   getAuth,
   UserInfo as UserWebsite,
   onAuthStateChanged,
-  Unsubscribe
+  Unsubscribe,
 } from "firebase/auth";
 
 import { appAuthWeb } from "../../firebase";
@@ -37,13 +37,12 @@ function Dashboard() {
     let unAuthOnWeb: Unsubscribe | undefined;
     let clearTimeoutNotDone: NodeJS.Timeout;
     const check = async (userProp: UserAndroid | UserWebsite | null) => {
+      setLoading(true);
       try {
         let user: UserAndroid | UserWebsite | null = userProp;
 
-        setLoading(true);
-
         if (OSType.OS === "Android") {
-          user = await (await FirebaseAuthentication.getCurrentUser()).user;
+          user = (await FirebaseAuthentication.getCurrentUser()).user;
         }
 
         if (user) {
@@ -60,7 +59,6 @@ function Dashboard() {
               ? location.pathname
               : configRouter.afterAuthSuccess
           );
-          setLoading(false);
         } else {
           navigate(configRouter.afterAuthFailure);
         }
@@ -68,6 +66,7 @@ function Dashboard() {
         navigate(configRouter.afterAuthFailure);
         console.log("Is error => ", error);
       }
+      setLoading(false);
     };
 
     if (OSType.OS === "Windows") {
@@ -89,18 +88,16 @@ function Dashboard() {
           check(userCtx);
         }
       });
-    }else if(OSType.OS === "Android") {
+    } else if (OSType.OS === "Android") {
       check(null);
     }
 
-    
     return () => {
       clearTimeout(clearTimeoutNotDone);
-      if(typeof unAuthOnWeb === 'function') {
+      if (typeof unAuthOnWeb === "function") {
         unAuthOnWeb();
       }
-    }
-
+    };
   }, []);
 
   return loading ? (
