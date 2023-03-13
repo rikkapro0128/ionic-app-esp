@@ -63,7 +63,7 @@ import Transition from "../../components/Transition/index";
 import { v1 as genIDByTimeStamp } from "uuid";
 
 import { getUserIDByPlaform } from "../../ConfigGlobal";
-import { RouterIcon } from '../../icons';
+import { RouterIcon } from "../../icons";
 
 import detechOS from "detectos.js";
 
@@ -124,44 +124,17 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
 const Rooms = () => {
   const dispatch = useAppDispatch();
   const rooms = useAppSelector((state) => state.rooms.value);
-  const nodes = useAppSelector((state) => state.nodes.value);
   const [activeSnack, closeSnack] = useSnackbar();
   const [userIDCtx, setUserIDCtx] = useState<string | undefined>();
   const [pickViewRoom, setPickViewRoom] = useState<RoomType | undefined>();
-  const [devices, setDevices] = useState<DeviceType[] | []>([]);
   const [createRoom, setCreateRoom] = useState(false);
   const [openSucessCreateRoom, setOpenSucessCreateRoom] = useState(false);
   const [loadingCreateRoom, setLoadingCreateRoom] = useState(false);
-
-  const getDevicesFromNodes = (nodes: NodePayload): DeviceType[] | [] => {
-    let devices: DeviceType[] | [] = [];
-    Object.entries(nodes).forEach(([key, node]) => {
-      if (node.devices.length > 0) {
-        devices = [...devices, ...node.devices];
-      }
-    });
-    return devices;
-  };
 
   useEffect(() => {
     console.log(rooms);
     
   }, [rooms])
-
-  useEffect(() => {
-    devices.forEach(async (device) => {
-      if(device.room?.id) {
-        await dispatch(updateDeviceRoom({ idRoom: device.room.id, device }));
-      }
-    })
-  }, [devices]);
-
-  useEffect(() => {
-    if (Object.entries(nodes).length > 0) {
-      const devices = getDevicesFromNodes(nodes);
-      setDevices(devices);
-    }
-  }, [nodes]);
 
   useEffect(() => {
     const runNow = async () => {
@@ -170,47 +143,6 @@ const Rooms = () => {
     };
     runNow();
   }, []);
-
-  useEffect(() => {
-    let UnRemove: any;
-    let UnAdd: any;
-    if (userIDCtx) {
-      const roomsRef = ref(database, `user-${userIDCtx}/rooms`);
-      UnRemove = onChildRemoved(roomsRef, async (snapshot) => {
-        const idRoom = snapshot.key?.split("room-")[1];
-        if (idRoom) {
-          await dispatch(removeRoom(idRoom));
-        }
-      });
-      UnAdd = onChildAdded(roomsRef, async (snapshot) => {
-        const snapRoom = snapshot.val();
-        if (snapRoom) {
-          const {
-            name,
-            sub,
-            createAt,
-          }: { name: string; sub: string; createAt: number } = snapRoom;
-          const idRoom = snapshot.key?.split("room-")[1];
-          const rooomExist = rooms.find((room) => room.id === idRoom);
-          if (!rooomExist) {
-            const unix = createAt ? new Date(createAt) : null;
-            const dateParser = unix ? unix.toLocaleDateString("en-US") : "";
-            await dispatch(
-              addRoom({ id: idRoom, name, sub, createAt: dateParser })
-            );
-          }
-        }
-      });
-    }
-    return () => {
-      if (typeof UnRemove === "function") {
-        UnRemove();
-      }
-      if (typeof UnAdd === "function") {
-        UnAdd();
-      }
-    };
-  }, [userIDCtx]);
 
   const [infoCreateRoom, setInfoCreateRoom] = useState<RoomType>(
     () => defaultRoomEmpty
@@ -310,7 +242,9 @@ const Rooms = () => {
           <DialogTitle className="flex justify-between items-start">
             <div className="flex flex-col">
               <Typography variant="h6">Bạn đang trong</Typography>
-              <span className="font-bold block">{ ` "${pickViewRoom?.name || pickViewRoom?.id}"` }</span>
+              <span className="font-bold block">{` "${
+                pickViewRoom?.name || pickViewRoom?.id
+              }"`}</span>
             </div>
             <IconButton onClick={handleCloseRoomView} aria-label="close">
               <CloseRoundedIcon />
@@ -319,7 +253,9 @@ const Rooms = () => {
           <DialogContent>
             <div className="h-full flex flex-col justify-center items-center">
               <RouterIcon className="w-20 h-20 pb-2" />
-              <Typography variant="subtitle2">không tìm thấy thiết bị nào trong phòng này.</Typography>
+              <Typography variant="subtitle2">
+                không tìm thấy thiết bị nào trong phòng này.
+              </Typography>
             </div>
           </DialogContent>
         </Dialog>

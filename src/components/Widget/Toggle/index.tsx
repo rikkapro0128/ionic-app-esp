@@ -21,6 +21,7 @@ import AntSwitch from '../../../components/Switch';
 import icon from '../index';
 
 import { DeviceType } from '../type';
+import { getUserIDByPlaform } from '../../../ConfigGlobal';
 
 interface PayloadType {
   device: DeviceType,
@@ -30,32 +31,43 @@ interface PayloadType {
 function Toggle({ device, idUser }: PayloadType) {
   const dispatch = useAppDispatch();
   const [toggle, setToggle] = useState(device.state ? true : false);
-  const [userID, setUser] = useState<string | undefined>(idUser);
+  const [userID, setidUser] = useState<string | undefined>(idUser);
   const [block, setBlock] = useState<boolean>(false);
 
   useEffect(() => {
+    const runNow = async () => {
+      const idUser = await getUserIDByPlaform();
+      setidUser(idUser);
+    };
+    runNow();
+  }, []);
+
+  useEffect(() => {
     // console.log(device);
-    
     const run = () => {
-      const refDBState = `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/state`;
-      const dbRef = ref(database, refDBState);
-      return onValue(dbRef, (snapshot) => {
-        const val = snapshot.val();
-        if(!block) {
-          setBlock(() => true);
-          setToggle(val);
-          dispatch(updateValueDevice({ nodeId: device.node_id, deviceId: device.id, value: val }));
-          setBlock(() => false);
-        }
-      })
+      if(userID) {
+        const refDBState = `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/state`;
+        const dbRef = ref(database, refDBState);
+        return onValue(dbRef, (snapshot) => {
+          const val = snapshot.val();
+          
+          if(!block) {
+            setBlock(() => true);
+            setToggle(val);
+            dispatch(updateValueDevice({ nodeId: device.node_id, deviceId: device.id, value: val }));
+            setBlock(() => false);
+          }
+        })
+      }
     }
     const Unsubscribe = run();
     return Unsubscribe;
-  }, [])
+  }, [userID])
 
   const handleClick = async () => {
     if(userID && device.id && !block) {
       setBlock(() => true);
+      
       try {
         await set(ref(database, `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/state`), !toggle);
       } catch (error) {

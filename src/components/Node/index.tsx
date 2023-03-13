@@ -83,7 +83,7 @@ import { database } from "../../firebase/db";
 
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { setNodes, updateDevice } from "../../store/slices/nodesSlice";
-import { addRoom, removeRoom, setRooms, RoomType } from "../../store/slices/roomsSlice";
+import { addRoom, removeRoom, setRooms, RoomType, RoomFirebase, removeDeviceRoom, updateDeviceRoom } from "../../store/slices/roomsSlice";
 
 import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 
@@ -203,6 +203,7 @@ function Node({ devices, node, idUser }: PropsType) {
   const [userIDCtx, setUserIDCtx] = useState<string | undefined>();
   const [nodeOnline, setNodeOnline] = useState<boolean>(false);
   const [pickRoom, setPickRoom] = useState<RoomType | undefined | null>();
+  const [roomPresent, setRoomPresent] = useState<RoomFirebase | undefined>();
   const [expand, setExpand] = useState<boolean>(false);
   const [openSettingTimer, setOpenSettingTimer] = useState<boolean>(false);
   const [openSettingbind, setOpenSettingbind] = useState<boolean>(false);
@@ -239,46 +240,16 @@ function Node({ devices, node, idUser }: PropsType) {
   }, []);
 
   useEffect(() => {
-    let UnRemove: any;
-    let UnAdd: any;
-    if (userIDCtx) {
-      const roomsRef = ref(database, `user-${userIDCtx}/rooms`);
-      UnRemove = onChildRemoved(roomsRef, async (snapshot) => {
-        const idRoom = snapshot.key?.split("room-")[1];
-        if (idRoom) {
-          await dispatch(removeRoom(idRoom));
+    if(infoSetting && userIDCtx) {
+      const run = async () => {
+        const room = await (await get(child(dbRef, `user-${userIDCtx}/nodes/${node.id}/devices/device-${infoSetting.id}/room`))).val();
+        if(room) {
+          setRoomPresent(room);
         }
-      });
-      UnAdd = onChildAdded(roomsRef, async (snapshot) => {
-        const snapRoom = snapshot.val();
-
-        if (snapRoom) {
-          const {
-            name,
-            sub,
-            createAt,
-          }: { name: string; sub: string; createAt: number } = snapRoom;
-          const idRoom = snapshot.key?.split("room-")[1];
-          const rooomExist = rooms.find((room) => room.id === idRoom);
-          if (!rooomExist) {
-            const unix = createAt ? new Date(createAt) : null;
-            const dateParser = unix ? unix.toLocaleDateString("en-US") : "";
-            await dispatch(
-              addRoom({ id: idRoom, name, sub, createAt: dateParser })
-            );
-          }
-        }
-      });
+      }
+      run();
     }
-    return () => {
-      if (typeof UnRemove === "function") {
-        UnRemove();
-      }
-      if (typeof UnAdd === "function") {
-        UnAdd();
-      }
-    };
-  }, [userIDCtx]);
+  }, [infoSetting, userIDCtx])
 
   useEffect(() => {
     const run = () => {
@@ -509,13 +480,31 @@ function Node({ devices, node, idUser }: PropsType) {
     // console.log('Pick room = ', pickRoom);
     // console.log('Node Info = ', infoSetting);
     if(userIDCtx && pickRoom !== undefined && infoSetting) {
-      const buildPath = `user-${userIDCtx}/nodes/node-${infoSetting.node_id}/devices/device-${infoSetting.id}/room`;
-      // console.log("🚀 ~ file: index.tsx:521 ~ handleAcceptPickRoom ~ buildPath:", buildPath)
-      const dbRef = ref(database, buildPath);
-      if(pickRoom === null ) {
-        await set(dbRef, null);
-      }else {
-        await set(dbRef, { name: pickRoom.name, id: pickRoom.id, pickAt: Date.now() });
+      try {
+        const buildPath = `user-${userIDCtx}/nodes/node-${infoSetting.node_id}/devices/device-${infoSetting.id}/room`;
+        // console.log("🚀 ~ file: index.tsx:521 ~ handleAcceptPickRoom ~ buildPath:", buildPath)
+        const dbRef = ref(database, buildPath);
+        if(pickRoom === null) {
+          await set(dbRef, null);
+          setRoomPresent(undefined);
+          if(roomPresent) {
+            await dispatch(removeDeviceRoom({ idRoom: roomPresent?.id, idDevice: infoSetting.id }));
+          }
+        }else {
+          const fixRoom = { name: pickRoom.name, id: pickRoom.id, pickAt: Date.now() };
+          await set(dbRef, fixRoom);
+          if(roomPresent) {
+            await dispatch(removeDeviceRoom({ idRoom: roomPresent?.id, idDevice: infoSetting.id }));
+            await dispatch(updateDeviceRoom({ idRoom: fixRoom.id, device: devices.find(device => device.id === infoSetting.id) }));
+          }
+          setRoomPresent(fixRoom);
+        }
+      } catch (error) {
+        activeSnack({
+          title: "Lỗi rồi",
+          message:
+            "Có lỗi xảy ra khi thay đổi phòng vui lòng thử lại.",
+        } as PropsSnack & string);
       }
     }
     setLoadingUpdate(false);
@@ -546,14 +535,14 @@ function Node({ devices, node, idUser }: PropsType) {
             }}
             className="border rounded-md"
           >
-            <ListItemButton selected={ pickRoom === undefined } onClick={() => { setPickRoom(null) }}>
+            <ListItemButton selected={ pickRoom ? false : roomPresent === undefined || pickRoom === null } onClick={() => { setPickRoom(null) }}>
               <ListItemIcon>
                 <HighlightOffRoundedIcon />
               </ListItemIcon>
               <ListItemText primary="Bỏ chọn" />
             </ListItemButton>
             {rooms.map((room) => (
-              <ListItemButton selected={ pickRoom?.id === room.id } onClick={() => { setPickRoom(room) }} key={room.id}>
+              <ListItemButton selected={ pickRoom ? pickRoom.id === room.id : pickRoom === null ? false : roomPresent?.id === room.id } onClick={() => { setPickRoom(room) }} key={room.id}>
                 <ListItemIcon>
                   <MeetingRoomRoundedIcon />
                 </ListItemIcon>

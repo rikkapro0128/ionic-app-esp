@@ -31,27 +31,31 @@ export const counterSlice = createSlice({
     },
     updateDevice: (state, { payload }) => {
       const { nodeId, device } = payload;
-      if(nodeId && device) {
-        state.value[nodeId].devices.find((dv, index) => {
-          if(dv.id === device.id) {
-            state.value[nodeId].devices[index] = device;
-            return true;
-          }
-          return false;
-        });
+      if (nodeId && device) {
+        if (state.value[nodeId]?.devices && state.value[nodeId].devices.length > 0) {
+          state.value[nodeId].devices.find((dv, index) => {
+            if (dv.id === device.id) {
+              state.value[nodeId].devices[index] = device;
+              return true;
+            }
+            return false;
+          });
+        }
       }
     },
     updateValueDevice: (state, { payload }) => {
       const { nodeId, deviceId, value } = payload;
-      
-      if(nodeId && deviceId) {
-        state.value[nodeId].devices.find((dv, index) => {
-          if(dv.id === deviceId) {
-            if(state.value[nodeId].devices[index].type === 'LOGIC') {
-              state.value[nodeId].devices[index].state = value;
+
+      if (nodeId && deviceId) {
+        if (state.value[nodeId]?.devices && state.value[nodeId].devices.length > 0) {
+          state.value[nodeId].devices.find((dv, index) => {
+            if (dv.id === deviceId) {
+              if (state.value[nodeId].devices[index].type === 'LOGIC') {
+                state.value[nodeId].devices[index].state = value;
+              }
             }
-          }
-        })
+          })
+        }
       }
     }
   },

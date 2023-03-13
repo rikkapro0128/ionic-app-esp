@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect } from "react";
 
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import RouterIcon from "@mui/icons-material/Router";
@@ -17,6 +17,11 @@ interface PropType {
 }
 
 const Room = ({ room, className }: PropType) => {
+
+  useEffect(() => {
+    console.log(room.devicesOwn);
+    
+  }, [room])
 
   return (
     <div
@@ -56,6 +61,7 @@ const Room = ({ room, className }: PropType) => {
             <span>{room.createAt ? room.createAt : "không xác định."}</span>
           </p>
         </div>
+          <p>{ room.id }</p>
       </div>
     </div>
   );
