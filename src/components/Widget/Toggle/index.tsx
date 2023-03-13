@@ -34,7 +34,7 @@ function Toggle({ device, idUser }: PayloadType) {
   const [block, setBlock] = useState<boolean>(false);
 
   useEffect(() => {
-    console.log(device);
+    // console.log(device);
     
     const run = () => {
       const refDBState = `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/state`;

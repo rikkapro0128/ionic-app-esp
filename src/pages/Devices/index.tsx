@@ -21,6 +21,7 @@ import { appAuthWeb } from "../../firebase";
 
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { setNodes } from "../../store/slices/nodesSlice";
+import { transferNodes } from '../../ConfigGlobal';
 
 import { WidgetType, DeviceType } from "../../components/Widget/type";
 
@@ -54,30 +55,9 @@ function Devices() {
   const [loading, setLoading] = useState<boolean>(true);
   const [idUser, setIDUser] = useState<string | undefined>();
 
-  const transferNodes = (nodes: TransferNodeType) => {
-    let deviceTemp: Map = {};
-    Object.entries(nodes).forEach(([key, field]) => {
-      // console.log(field);
-      if (field.devices) {
-        const keyNode = key.split("node-")[1] || "";
-        deviceTemp[keyNode as keyof Map] = {};
-        deviceTemp[keyNode].name = field?.name;
-        deviceTemp[keyNode].sub = field?.sub;
-        deviceTemp[keyNode].devices = [
-          ...Object.entries(field.devices).map(
-            ([key, field]): DeviceType => ({
-              ...(field as DeviceType),
-              id: key.slice(7),
-              icon: "light",
-              node_id: keyNode,
-            })
-          ),
-        ];
-      } else {
-        return false;
-      }
-    });
-    dispatch(setNodes(deviceTemp));
+  const parserNodes = (nodes: TransferNodeType) => {
+    const listDevice = transferNodes(nodes);
+    dispatch(setNodes(listDevice));
   };
 
   useEffect(() => {
@@ -105,7 +85,7 @@ function Devices() {
         cbUnOn = onValue(dbRef, (snapshot) => {
           const nodes = snapshot.val();
           if(nodes) {
-            transferNodes(nodes);
+            parserNodes(nodes);
           }
           setLoading(false);
         });

@@ -7,20 +7,17 @@ import { IconRoom } from "../../icons";
 import WaveBall from "../../assets/gif/wave-ball.gif";
 import StarMuti from "../../assets/gif/star-1.gif";
 
-export interface RoomInfo {
-  id: string;
-  name: string;
-  sub?: string;
-  numberOfDevice?: number;
-  createAt?: string;
-}
+import { get }  from 'firebase/database';
+
+import { RoomType } from '../../store/slices/roomsSlice';
 
 interface PropType {
-  room: RoomInfo;
+  room: RoomType;
   className: string;
 }
 
 const Room = ({ room, className }: PropType) => {
+
   return (
     <div
       className={`border-2 active:scale-[99%] transition-transform rounded-md text-sm bg-gradient-to-r from-indigo-400 to-indigo-500 text-slate-50 shadow-md shadow-indigo-400 ${className}`}
@@ -52,7 +49,7 @@ const Room = ({ room, className }: PropType) => {
         <div className="flex justify-between items-end text-sm">
           <p className="mt-4">
             <span>Thiết bị hiện có : </span>
-            <span>{room.numberOfDevice ? room.numberOfDevice : 0}</span>
+            <span>{room.devicesOwn ? room.devicesOwn.length : 0}</span>
           </p>
           <p>
             <span>Ngày tạo: </span>

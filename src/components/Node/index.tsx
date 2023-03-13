@@ -24,11 +24,22 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import CircularProgress from "@mui/material/CircularProgress";
 import Slide from "@mui/material/Slide";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
 import { TransitionProps } from "@mui/material/transitions";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
 
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
+import RoomPreferencesRoundedIcon from "@mui/icons-material/RoomPreferencesRounded";
 import UnfoldLessIcon from "@mui/icons-material/UnfoldLess";
 import AvTimerIcon from "@mui/icons-material/AvTimer";
+import AccountTreeRoundedIcon from "@mui/icons-material/AccountTreeRounded";
 import SettingsIcon from "@mui/icons-material/Settings";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
@@ -36,10 +47,9 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AcUnitIcon from "@mui/icons-material/AcUnit";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import AlarmOnOutlinedIcon from "@mui/icons-material/AlarmOnOutlined";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
+import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
+import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
+import MeetingRoomRoundedIcon from '@mui/icons-material/MeetingRoomRounded';
 
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/vi"; // import locale
@@ -58,17 +68,30 @@ import TimerControllOption from "../Timer/OptionType/Logic";
 import TimerView from "../Timer/Widget/index";
 import CreateBindingDevice from "../Binding";
 
-import { ref, get, child, push, update, onValue } from "firebase/database";
+import {
+  ref,
+  set,
+  get,
+  child,
+  push,
+  update,
+  onValue,
+  onChildRemoved,
+  onChildAdded,
+} from "firebase/database";
 import { database } from "../../firebase/db";
 
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { setNodes, updateDevice } from "../../store/slices/nodesSlice";
+import { addRoom, removeRoom, setRooms, RoomType } from "../../store/slices/roomsSlice";
 
 import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 
+import Transition from '../Transition/index';
+
 import { WidgetType } from "../Widget/type";
 import { TypeSelect, TypeLogicControl } from "../Timer/OptionType/Logic";
-
+import { getUserIDByPlaform } from "../../ConfigGlobal";
 import { DeviceType } from "../Widget/type";
 
 interface PropsType {
@@ -173,22 +196,17 @@ const getTypeWidget = (device: DeviceType, idUser: string | undefined) => {
   }
 };
 
-const Transition = forwardRef(function Transition(
-  props: TransitionProps & {
-    children: React.ReactElement<any, any>;
-  },
-  ref: React.Ref<unknown>
-) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
-
 function Node({ devices, node, idUser }: PropsType) {
   const [activeSnack, closeSnack] = useSnackbar();
   const dispatch = useAppDispatch();
+  const rooms = useAppSelector((state) => state.rooms.value);
+  const [userIDCtx, setUserIDCtx] = useState<string | undefined>();
   const [nodeOnline, setNodeOnline] = useState<boolean>(false);
+  const [pickRoom, setPickRoom] = useState<RoomType | undefined | null>();
   const [expand, setExpand] = useState<boolean>(false);
   const [openSettingTimer, setOpenSettingTimer] = useState<boolean>(false);
   const [openSettingbind, setOpenSettingbind] = useState<boolean>(false);
+  const [openListRoom, setOpenListRoom] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [loadingUpdate, setLoadingUpdate] = useState<boolean>(false);
   const [infoEdit, setInfoEdit] = useState<InfoEditType>();
@@ -211,6 +229,56 @@ function Node({ devices, node, idUser }: PropsType) {
     setAnchorElMenuSetting(event.currentTarget);
     setInfoSetting(device);
   };
+
+  useEffect(() => {
+    const runNow = async () => {
+      const idUser = await getUserIDByPlaform();
+      setUserIDCtx(idUser);
+    };
+    runNow();
+  }, []);
+
+  useEffect(() => {
+    let UnRemove: any;
+    let UnAdd: any;
+    if (userIDCtx) {
+      const roomsRef = ref(database, `user-${userIDCtx}/rooms`);
+      UnRemove = onChildRemoved(roomsRef, async (snapshot) => {
+        const idRoom = snapshot.key?.split("room-")[1];
+        if (idRoom) {
+          await dispatch(removeRoom(idRoom));
+        }
+      });
+      UnAdd = onChildAdded(roomsRef, async (snapshot) => {
+        const snapRoom = snapshot.val();
+
+        if (snapRoom) {
+          const {
+            name,
+            sub,
+            createAt,
+          }: { name: string; sub: string; createAt: number } = snapRoom;
+          const idRoom = snapshot.key?.split("room-")[1];
+          const rooomExist = rooms.find((room) => room.id === idRoom);
+          if (!rooomExist) {
+            const unix = createAt ? new Date(createAt) : null;
+            const dateParser = unix ? unix.toLocaleDateString("en-US") : "";
+            await dispatch(
+              addRoom({ id: idRoom, name, sub, createAt: dateParser })
+            );
+          }
+        }
+      });
+    }
+    return () => {
+      if (typeof UnRemove === "function") {
+        UnRemove();
+      }
+      if (typeof UnAdd === "function") {
+        UnAdd();
+      }
+    };
+  }, [userIDCtx]);
 
   useEffect(() => {
     const run = () => {
@@ -425,8 +493,86 @@ function Node({ devices, node, idUser }: PropsType) {
     setExpand((state) => !state);
   };
 
+  const openModalPickRooms = () => {
+    handleCloseMenu();
+    setOpenListRoom(true);
+  };
+
+  const closeModalPickRooms = () => {
+    setOpenListRoom(false);
+    setInfoSetting(undefined);
+    setPickRoom(undefined);
+  };
+
+  const handleAcceptPickRoom = async () => {
+    setLoadingUpdate(true);
+    // console.log('Pick room = ', pickRoom);
+    // console.log('Node Info = ', infoSetting);
+    if(userIDCtx && pickRoom !== undefined && infoSetting) {
+      const buildPath = `user-${userIDCtx}/nodes/node-${infoSetting.node_id}/devices/device-${infoSetting.id}/room`;
+      // console.log("🚀 ~ file: index.tsx:521 ~ handleAcceptPickRoom ~ buildPath:", buildPath)
+      const dbRef = ref(database, buildPath);
+      if(pickRoom === null ) {
+        await set(dbRef, null);
+      }else {
+        await set(dbRef, { name: pickRoom.name, id: pickRoom.id, pickAt: Date.now() });
+      }
+    }
+    setLoadingUpdate(false);
+    closeModalPickRooms();
+  }
+
   return (
     <>
+      {/* dialog for pick room */}
+      <Dialog
+        open={openListRoom}
+        TransitionComponent={Transition}
+        keepMounted
+        onClose={closeModalPickRooms}
+        aria-describedby="alert-dialog-slide-description"
+        fullWidth
+      >
+        <DialogTitle>
+          chọn phòng {infoSetting?.id || infoSetting?.name}
+        </DialogTitle>
+        <DialogContent sx={{
+          overflow: 'hidden'
+        }}>
+          <List
+            sx={{
+              maxHeight: 400,
+              overflowY: 'scroll'
+            }}
+            className="border rounded-md"
+          >
+            <ListItemButton selected={ pickRoom === undefined } onClick={() => { setPickRoom(null) }}>
+              <ListItemIcon>
+                <HighlightOffRoundedIcon />
+              </ListItemIcon>
+              <ListItemText primary="Bỏ chọn" />
+            </ListItemButton>
+            {rooms.map((room) => (
+              <ListItemButton selected={ pickRoom?.id === room.id } onClick={() => { setPickRoom(room) }} key={room.id}>
+                <ListItemIcon>
+                  <MeetingRoomRoundedIcon />
+                </ListItemIcon>
+                <ListItemText primary={room.name} />
+              </ListItemButton>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeModalPickRooms}>Huỷ</Button>
+          <Button
+            variant="contained"
+            endIcon={loadingUpdate ? <CircularProgress size={20} /> : null}
+            onClick={handleAcceptPickRoom}
+          >
+            Cập nhật
+          </Button>
+        </DialogActions>
+      </Dialog>
       {/* dialog for edit infomation */}
       <Dialog
         open={openEdit}
@@ -643,10 +789,14 @@ function Node({ devices, node, idUser }: PropsType) {
           <AvTimerIcon />
           Hẹn giờ
         </MenuItem>
-        <Divider sx={{ my: 0.5 }} />
+        {/* <Divider sx={{ my: 0.5 }} /> */}
         <MenuItem onClick={handleClickOpenSettingBind} disableRipple>
-          <AvTimerIcon />
+          <AccountTreeRoundedIcon />
           Ràng buộc
+        </MenuItem>
+        <MenuItem onClick={openModalPickRooms} disableRipple>
+          <RoomPreferencesRoundedIcon />
+          chọn phòng
         </MenuItem>
       </StyledMenu>
 

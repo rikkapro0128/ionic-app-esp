@@ -3,13 +3,15 @@ import type { RootState } from '../index';
 
 import { WidgetType, DeviceType } from '../../components/Widget/type';
 
+export interface NodePayload {
+  [key: string]: {
+    devices: DeviceType[],
+    [key: string]: any,
+  }
+}
+
 export interface MapNode {
-  value: {
-    [key: string]: {
-      devices: DeviceType[],
-      [key: string]: any,
-    }
-  },
+  value: NodePayload,
 }
 
 const initialState: MapNode = {
@@ -20,6 +22,10 @@ export const counterSlice = createSlice({
   name: 'nodes',
   initialState,
   reducers: {
+    appendNode: (state, { payload }) => {
+      const { nodeId, node } = payload;
+      state.value[nodeId] = node;
+    },
     setNodes: (state, action) => {
       state.value = action.payload;
     },
@@ -52,7 +58,7 @@ export const counterSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setNodes, updateDevice, updateValueDevice } = counterSlice.actions
+export const { setNodes, updateDevice, updateValueDevice, appendNode } = counterSlice.actions
 
 export const selectCount = (state: RootState) => state.nodes.value
 

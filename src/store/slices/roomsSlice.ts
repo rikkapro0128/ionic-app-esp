@@ -6,10 +6,13 @@ import { database } from '../../firebase/db';
 
 import { getUserIDByPlaform } from '../../ConfigGlobal';
 
+import { WidgetType, DeviceType } from '../../components/Widget/type';
+
 export interface RoomType {
   name: string,
   sub?: string,
   id: string,
+  devicesOwn?: Array<DeviceType>,
   createAt?: string,
 }
 
@@ -35,6 +38,16 @@ export const roomsSlice = createSlice({
     addRoom: (state: RoomsType, action) => {
       state.value = [...state.value, action.payload]
     },
+    updateDeviceRoom: (state: RoomsType, action) => {
+      const { idRoom, device } = action.payload;
+      const indexRoom = state.value.findIndex(room => room.id === idRoom);
+      if(indexRoom >= 0) {
+        if(typeof state.value[indexRoom].devicesOwn === 'undefined') {
+          state.value[indexRoom].devicesOwn = [];
+        }
+        state.value[indexRoom].devicesOwn?.push(device);
+      }
+    },
     removeRoom: (state: RoomsType, action) => {
       state.value = state.value.filter(room => room.id !== action.payload);
     },
@@ -42,6 +55,6 @@ export const roomsSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setRooms, addRoom, removeRoom } = roomsSlice.actions;
+export const { setRooms, addRoom, removeRoom, updateDeviceRoom } = roomsSlice.actions;
 
 export default roomsSlice.reducer;

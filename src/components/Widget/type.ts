@@ -23,4 +23,10 @@ export interface DeviceType {
   type: WidgetType;
   uint?: string;
   node_id: string;
+  room?: {
+    id: string,
+    name: string,
+    pickAt?: number, 
+  };
+  [key: string]: any;
 }
