@@ -20,6 +20,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
 import IconButton from "@mui/material/IconButton";
 
 import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
@@ -27,6 +28,7 @@ import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 import AddIcon from "@mui/icons-material/Add";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import NoMeetingRoomIcon from "@mui/icons-material/NoMeetingRoom";
+import RemoveCircleOutlineRoundedIcon from "@mui/icons-material/RemoveCircleOutlineRounded";
 
 import Room from "../../components/Room";
 import WrapOnNode from "../../components/Room/watch";
@@ -126,15 +128,11 @@ const Rooms = () => {
   const rooms = useAppSelector((state) => state.rooms.value);
   const [activeSnack, closeSnack] = useSnackbar();
   const [userIDCtx, setUserIDCtx] = useState<string | undefined>();
+  const [dialog, setDialog] = useState<boolean>(false);
   const [pickViewRoom, setPickViewRoom] = useState<RoomType | undefined>();
   const [createRoom, setCreateRoom] = useState(false);
   const [openSucessCreateRoom, setOpenSucessCreateRoom] = useState(false);
   const [loadingCreateRoom, setLoadingCreateRoom] = useState(false);
-
-  useEffect(() => {
-    console.log(rooms);
-    
-  }, [rooms])
 
   useEffect(() => {
     const runNow = async () => {
@@ -228,9 +226,50 @@ const Rooms = () => {
     setPickViewRoom(undefined);
   };
 
+  const removeRoomDialog = async () => {
+    // console.log(pickViewRoom);
+    try {
+      if(userIDCtx && pickViewRoom) {
+        await set(ref(database, `user-${userIDCtx}/rooms/room-${pickViewRoom.id}`), null);
+        activeSnack({
+          message:
+            `Đã xoá phòng ${pickViewRoom.name}!`,
+        } as PropsSnack & string);
+        setPickViewRoom(undefined);
+      }
+    } catch (error) {
+      activeSnack({
+        message:
+          "Không thể xoá phòng, vui lòng thử lại!",
+      } as PropsSnack & string);
+    }
+    setDialog(false);
+  }
+
   return (
     <WrapOnNode>
       <Box>
+        <Dialog
+          open={dialog}
+          onClose={() => setDialog(false)}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">
+            {"Bạn muốn xoá phòng?"}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Hành động này của bạn sẽ xoá phòng "{pickViewRoom?.name}" ra khỏi ứng dụng bạn chắc chứ?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDialog(false)}>Huỷ</Button>
+            <Button onClick={removeRoomDialog} autoFocus>
+              Đồng ý
+            </Button>
+          </DialogActions>
+        </Dialog>
         <Dialog
           open={pickViewRoom ? true : false}
           TransitionComponent={Transition}
@@ -251,11 +290,25 @@ const Rooms = () => {
             </IconButton>
           </DialogTitle>
           <DialogContent>
-            <div className="h-full flex flex-col justify-center items-center">
-              <RouterIcon className="w-20 h-20 pb-2" />
-              <Typography variant="subtitle2">
-                không tìm thấy thiết bị nào trong phòng này.
-              </Typography>
+            <div className="h-full flex flex-col items-center">
+              <div className="w-full flex justify-end">
+                <Button
+                  onClick={() => { setDialog(true) }}
+                  variant="contained"
+                  endIcon={<RemoveCircleOutlineRoundedIcon />}
+                >
+                  xoá phòng
+                </Button>
+              </div>
+              <div className="flex flex-1 w-full">
+                
+                <div className="w-full flex flex-col justify-center items-center">
+                  <RouterIcon className="w-20 h-20 pb-2" />
+                  <Typography variant="subtitle2">
+                    không tìm thấy thiết bị nào trong phòng này.
+                  </Typography>
+                </div>
+              </div>
             </div>
           </DialogContent>
         </Dialog>

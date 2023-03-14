@@ -9,7 +9,7 @@ import { memo, useEffect, useState } from "react";
 import { appAuthWeb } from "../../firebase";
 import { database } from "../../firebase/db";
 import { setNodes, appendNode, NodePayload } from "../../store/slices/nodesSlice";
-import { removeRoom, addRoom, updateDeviceRoom } from "../../store/slices/roomsSlice";
+import { removeRoom, addRoom, updateDeviceRoom, resetDeviceRoom } from "../../store/slices/roomsSlice";
 
 import detechOS from "detectos.js";
 import { transferNodes, TransferNodeType } from "../../ConfigGlobal";
@@ -63,6 +63,9 @@ const WrapOnNode = ({ children }: Props) => {
     if (Object.entries(nodes).length > 0) {
       const devices = getDevicesFromNodes(nodes);
       setDevices(devices);
+    }
+    return () => {
+      setDevices([]);
     }
   }, [nodes]);
 
@@ -132,6 +135,8 @@ const WrapOnNode = ({ children }: Props) => {
         });
         UnRemove = onChildRemoved(roomsRef, async (snapshot) => {
           const idRoom = snapshot.key?.split("room-")[1];
+          console.log('room remove');
+          
           if (idRoom) {
             await dispatch(removeRoom(idRoom));
           }

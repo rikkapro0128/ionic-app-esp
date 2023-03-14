@@ -55,8 +55,24 @@ function Devices() {
   // const [nodes, setNodes] = useState<Map>({});
   const statusFB = useAppSelector((state) => state.commons.fbConnection);
   const nodes = useAppSelector((state) => state.nodes.value);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [idUser, setIDUser] = useState<string | undefined>();
+
+  useEffect(() => {
+    let idTimeout: NodeJS.Timeout;
+    setLoading(true);
+    if(Object.entries(nodes).length > 0) {
+      setLoading(false);
+    }
+    idTimeout = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+    return () => {
+      if(idTimeout) {
+        clearTimeout(idTimeout);
+      }
+    }
+  }, [nodes])
 
   return (
     <WrapOnNode>

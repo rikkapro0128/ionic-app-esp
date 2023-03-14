@@ -61,15 +61,18 @@ export const roomsSlice = createSlice({
     },
     removeDeviceRoom: (state: RoomsType, action) => {
       const { idRoom, idDevice }: { idRoom: string, idDevice: string } = action.payload;
-      console.log('remove => ', idRoom, idDevice);
+      // console.log('remove => ', idRoom, idDevice);
       const indexRoom = state.value.findIndex(room => room.id === idRoom);
       
       if (indexRoom >= 0) {
-        // console.log(state.value[indexRoom].devicesOwn?.filter(dv => dv.id !== idDevice));
         const filterDevice = state.value[indexRoom].devicesOwn?.filter(dv => dv.id !== idDevice) || [];
         state.value[indexRoom].devicesOwn = filterDevice;
-        // console.log(state.value[indexRoom].devicesOwn?.length);
       }
+    },
+    resetDeviceRoom: (state: RoomsType, action) => {
+      state.value.forEach((room, index) => {
+        state.value[index].devicesOwn = [];
+      })
     },
     removeRoom: (state: RoomsType, action) => {
       state.value = state.value.filter(room => room.id !== action.payload);
@@ -78,6 +81,6 @@ export const roomsSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setRooms, addRoom, removeRoom, updateDeviceRoom, removeDeviceRoom } = roomsSlice.actions;
+export const { setRooms, addRoom, removeRoom, updateDeviceRoom, removeDeviceRoom, resetDeviceRoom } = roomsSlice.actions;
 
 export default roomsSlice.reducer;

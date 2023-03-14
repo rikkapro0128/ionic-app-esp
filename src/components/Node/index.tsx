@@ -223,6 +223,11 @@ function Node({ devices, node, idUser }: PropsType) {
   >([]);
   const openMenu = Boolean(anchorElMenuSetting);
 
+  useEffect(() => {
+    console.log(node);
+    
+  }, [node])
+
   const handleClickSetting = (
     event: React.MouseEvent<HTMLElement>,
     device: DeviceType

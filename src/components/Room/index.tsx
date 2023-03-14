@@ -18,11 +18,6 @@ interface PropType {
 
 const Room = ({ room, className }: PropType) => {
 
-  useEffect(() => {
-    console.log(room.devicesOwn);
-    
-  }, [room])
-
   return (
     <div
       className={`border-2 active:scale-[99%] transition-transform rounded-md text-sm bg-gradient-to-r from-indigo-400 to-indigo-500 text-slate-50 shadow-md shadow-indigo-400 ${className}`}
@@ -61,7 +56,7 @@ const Room = ({ room, className }: PropType) => {
             <span>{room.createAt ? room.createAt : "không xác định."}</span>
           </p>
         </div>
-          <p>{ room.id }</p>
+          {/* <p>{ room.id }</p> */}
       </div>
     </div>
   );
