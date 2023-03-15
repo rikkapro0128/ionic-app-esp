@@ -1,5 +1,7 @@
 import { memo, useState, useEffect } from "react";
 
+import { useTheme } from '@mui/material/styles';
+
 import Box from "@mui/material/Box";
 import Grow from "@mui/material/Grow";
 import Typography from "@mui/material/Typography";
@@ -23,7 +25,7 @@ import { appAuthWeb } from "../../firebase";
 
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { setNodes } from "../../store/slices/nodesSlice";
-import { transferNodes } from "../../ConfigGlobal";
+import { transferNodes, ColorMode } from "../../ConfigGlobal";
 
 import WrapOnNode from "../../components/Room/watch";
 import { WidgetType, DeviceType } from "../../components/Widget/type";
@@ -52,6 +54,7 @@ interface TransferNodeType {
 
 function Devices() {
   const dispatch = useAppDispatch();
+  const theme = useTheme();
   // const [nodes, setNodes] = useState<Map>({});
   const statusFB = useAppSelector((state) => state.commons.fbConnection);
   const nodes = useAppSelector((state) => state.nodes.value);
@@ -101,7 +104,8 @@ function Devices() {
             maxHeight: window.innerHeight - 72,
             height: window.innerHeight - 72,
           }}
-          className={`overflow-y-scroll bg-[#edf1f5]`}
+          bgcolor={ theme.palette.mode === ColorMode.LIGHT ? '#f1f5f9' : '#212121' }
+          className={`overflow-y-scroll`}
         >
           {Object.entries(nodes).map(([key, node]) => {
             return (
@@ -109,7 +113,6 @@ function Devices() {
                 <Node
                   devices={node.devices}
                   node={{ id: key, name: node.name, sub: node.sub }}
-                  idUser={idUser}
                 />
               </div>
             );

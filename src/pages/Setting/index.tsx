@@ -24,8 +24,16 @@ import { Android12Switch } from "../../components/Switch/Ant12Designer";
 import { useState } from "react";
 
 import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
+import {
+  setColorMode,
+  toggleColorMode
+} from "../../store/slices/commonSlice";
+import { useAppSelector, useAppDispatch } from "../../store/hooks";
+import { ColorMode } from "../../ConfigGlobal";
 
 function Setting() {
+  const dispatch = useAppDispatch();
+  const colorMode = useAppSelector(state => state.commons.colorMode);
   const [activeSnack, closeSnack] = useSnackbar();
   const [notifyOpened, setNotifyOpened] = useState(false);
 
@@ -36,6 +44,10 @@ function Setting() {
   const handleClick = () => {
     const key = activeSnack({ message: 'Hello mọi người' } as PropsSnack & string);
   };
+
+  const switchColorMode = () => {
+    dispatch(toggleColorMode({}));
+  }
 
   return (
     <div className="bg-slate-50 h-screen text-slate-600 pt-1">
@@ -55,10 +67,10 @@ function Setting() {
                 <NightsStayOutlinedIcon className="text-slate-50 text-lg" />
               </div>
               <Typography variant="h6" component="div">
-                Chế độ tối
+                Chế độ { colorMode === ColorMode.LIGHT ? ' sáng' : ' tối' }
               </Typography>
             </div>
-            <MaterialUISwitch size="small" />
+            <MaterialUISwitch checked={ colorMode === ColorMode.LIGHT ? false : true } onClick={switchColorMode} size="small" />
           </div>
         </div>
       </div>

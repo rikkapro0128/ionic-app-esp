@@ -1,3 +1,5 @@
+import { memo, useEffect, useLayoutEffect, useState } from "react";
+
 import {
   GetCurrentUserResult,
   User,
@@ -5,7 +7,6 @@ import {
 } from "@capacitor-firebase/authentication";
 import { getAuth } from "firebase/auth";
 import { ref, onChildAdded, onChildRemoved } from "firebase/database";
-import { memo, useEffect, useState } from "react";
 import { appAuthWeb } from "../../firebase";
 import { database } from "../../firebase/db";
 import { setNodes, appendNode, NodePayload } from "../../store/slices/nodesSlice";
@@ -69,7 +70,7 @@ const WrapOnNode = ({ children }: Props) => {
     }
   }, [nodes]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if(devices.length > 0) {
       devices.forEach(async (device) => {
         if (device.room?.id) {

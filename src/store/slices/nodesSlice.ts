@@ -6,6 +6,8 @@ import { WidgetType, DeviceType } from '../../components/Widget/type';
 export interface NodePayload {
   [key: string]: {
     devices: DeviceType[],
+    name?: string,
+    sub?: string,
     [key: string]: any,
   }
 }

@@ -20,6 +20,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
+import CircularProgress from "@mui/material/CircularProgress";
 import DialogContentText from "@mui/material/DialogContentText";
 import IconButton from "@mui/material/IconButton";
 
@@ -31,6 +32,7 @@ import NoMeetingRoomIcon from "@mui/icons-material/NoMeetingRoom";
 import RemoveCircleOutlineRoundedIcon from "@mui/icons-material/RemoveCircleOutlineRounded";
 
 import Room from "../../components/Room";
+import Node from "../../components/Node";
 import WrapOnNode from "../../components/Room/watch";
 
 import { IconRoom } from "../../icons";
@@ -64,7 +66,7 @@ import Transition from "../../components/Transition/index";
 
 import { v1 as genIDByTimeStamp } from "uuid";
 
-import { getUserIDByPlaform } from "../../ConfigGlobal";
+import { getUserIDByPlaform, Map } from "../../ConfigGlobal";
 import { RouterIcon } from "../../icons";
 
 import detechOS from "detectos.js";
@@ -125,14 +127,55 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
 
 const Rooms = () => {
   const dispatch = useAppDispatch();
+  const nodes = useAppSelector((state) => state.nodes.value);
   const rooms = useAppSelector((state) => state.rooms.value);
   const [activeSnack, closeSnack] = useSnackbar();
   const [userIDCtx, setUserIDCtx] = useState<string | undefined>();
   const [dialog, setDialog] = useState<boolean>(false);
   const [pickViewRoom, setPickViewRoom] = useState<RoomType | undefined>();
+  const [devicesViewRoom, setDevicesViewRoom] = useState<
+    NodePayload | undefined
+  >();
   const [createRoom, setCreateRoom] = useState(false);
   const [openSucessCreateRoom, setOpenSucessCreateRoom] = useState(false);
   const [loadingCreateRoom, setLoadingCreateRoom] = useState(false);
+  const [loadingViewRoom, setLoadingViewRoom] = useState(true);
+
+  useEffect(() => {
+    
+    setLoadingViewRoom(true);
+    if (pickViewRoom?.devicesOwn?.length) {
+      const tempDevicesByNode: NodePayload = {};
+      pickViewRoom.devicesOwn.forEach((preDevice: DeviceType) => {
+        if (typeof tempDevicesByNode[preDevice.node_id] !== "object") {
+          tempDevicesByNode[preDevice.node_id] = {
+            devices: [],
+            name: "",
+            sub: "",
+          };
+        }
+
+        tempDevicesByNode[preDevice.node_id].name =
+          nodes[preDevice.node_id]?.name ?? "";
+        tempDevicesByNode[preDevice.node_id].sub =
+          nodes[preDevice.node_id]?.sub ?? "";
+        tempDevicesByNode[preDevice.node_id].devices.push(preDevice);
+      });
+      setDevicesViewRoom(tempDevicesByNode);
+    } else {
+      setDevicesViewRoom(undefined);
+    }
+    setLoadingViewRoom(false);
+  }, [pickViewRoom]);
+
+  useEffect(() => {
+    if(pickViewRoom) {
+      const reUpdateRoom = rooms.find(room => room.id === pickViewRoom.id);
+      if(reUpdateRoom) {
+        setPickViewRoom(reUpdateRoom);
+      }
+    }
+  }, [rooms])
 
   useEffect(() => {
     const runNow = async () => {
@@ -229,22 +272,23 @@ const Rooms = () => {
   const removeRoomDialog = async () => {
     // console.log(pickViewRoom);
     try {
-      if(userIDCtx && pickViewRoom) {
-        await set(ref(database, `user-${userIDCtx}/rooms/room-${pickViewRoom.id}`), null);
+      if (userIDCtx && pickViewRoom) {
+        await set(
+          ref(database, `user-${userIDCtx}/rooms/room-${pickViewRoom.id}`),
+          null
+        );
         activeSnack({
-          message:
-            `Đã xoá phòng ${pickViewRoom.name}!`,
+          message: `Đã xoá phòng ${pickViewRoom.name}!`,
         } as PropsSnack & string);
         setPickViewRoom(undefined);
       }
     } catch (error) {
       activeSnack({
-        message:
-          "Không thể xoá phòng, vui lòng thử lại!",
+        message: "Không thể xoá phòng, vui lòng thử lại!",
       } as PropsSnack & string);
     }
     setDialog(false);
-  }
+  };
 
   return (
     <WrapOnNode>
@@ -260,7 +304,8 @@ const Rooms = () => {
           </DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-description">
-              Hành động này của bạn sẽ xoá phòng "{pickViewRoom?.name}" ra khỏi ứng dụng bạn chắc chứ?
+              Hành động này của bạn sẽ xoá phòng "{pickViewRoom?.name}" ra khỏi
+              ứng dụng bạn chắc chứ?
             </DialogContentText>
           </DialogContent>
           <DialogActions>
@@ -293,7 +338,9 @@ const Rooms = () => {
             <div className="h-full flex flex-col items-center">
               <div className="w-full flex justify-end">
                 <Button
-                  onClick={() => { setDialog(true) }}
+                  onClick={() => {
+                    setDialog(true);
+                  }}
                   variant="contained"
                   endIcon={<RemoveCircleOutlineRoundedIcon />}
                 >
@@ -301,13 +348,39 @@ const Rooms = () => {
                 </Button>
               </div>
               <div className="flex flex-1 w-full">
-                
-                <div className="w-full flex flex-col justify-center items-center">
-                  <RouterIcon className="w-20 h-20 pb-2" />
-                  <Typography variant="subtitle2">
-                    không tìm thấy thiết bị nào trong phòng này.
-                  </Typography>
-                </div>
+                {loadingViewRoom ? (
+                  <Box className="text-indigo-600 w-full flex flex-col justify-center items-center">
+                    <CircularProgress
+                      sx={{ color: "inherit", margin: "0 auto" }}
+                    />
+                    <Typography
+                      className="text-slate-600 pt-5"
+                      variant="subtitle1"
+                      gutterBottom
+                    >
+                      Đang tải thiết bị.
+                    </Typography>
+                  </Box>
+                ) : devicesViewRoom &&
+                  Object.entries(devicesViewRoom).length > 0 ? (
+                  Object.entries(devicesViewRoom).map(([key, node]) => {
+                    return (
+                      <div key={key} className="h-fit grid grid-cols-2 gap-3">
+                        <Node
+                          devices={node.devices}
+                          node={{ id: key, name: node.name, sub: node.sub }}
+                        />
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="w-full flex flex-col justify-center items-center">
+                    <RouterIcon className="w-20 h-20 pb-2" />
+                    <Typography variant="subtitle2">
+                      không tìm thấy thiết bị nào trong phòng này.
+                    </Typography>
+                  </div>
+                )}
               </div>
             </div>
           </DialogContent>

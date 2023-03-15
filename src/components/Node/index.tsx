@@ -92,18 +92,11 @@ import Transition from '../Transition/index';
 import { WidgetType } from "../Widget/type";
 import { TypeSelect, TypeLogicControl } from "../Timer/OptionType/Logic";
 import { getUserIDByPlaform } from "../../ConfigGlobal";
-import { DeviceType } from "../Widget/type";
+import { DeviceType, NodeType } from "../Widget/type";
 
 interface PropsType {
   devices: DeviceType[] | [];
   node: NodeType;
-  idUser: string | undefined;
-}
-
-interface NodeType {
-  id: string;
-  name: string;
-  sub: string;
 }
 
 enum EditType {
@@ -196,7 +189,7 @@ const getTypeWidget = (device: DeviceType, idUser: string | undefined) => {
   }
 };
 
-function Node({ devices, node, idUser }: PropsType) {
+function Node({ devices, node }: PropsType) {
   const [activeSnack, closeSnack] = useSnackbar();
   const dispatch = useAppDispatch();
   const rooms = useAppSelector((state) => state.rooms.value);
@@ -223,11 +216,6 @@ function Node({ devices, node, idUser }: PropsType) {
   >([]);
   const openMenu = Boolean(anchorElMenuSetting);
 
-  useEffect(() => {
-    console.log(node);
-    
-  }, [node])
-
   const handleClickSetting = (
     event: React.MouseEvent<HTMLElement>,
     device: DeviceType
@@ -247,8 +235,11 @@ function Node({ devices, node, idUser }: PropsType) {
   useEffect(() => {
     if(infoSetting && userIDCtx) {
       const run = async () => {
-        const room = await (await get(child(dbRef, `user-${userIDCtx}/nodes/${node.id}/devices/device-${infoSetting.id}/room`))).val();
+        const room = await (await get(child(dbRef, `user-${userIDCtx}/nodes/node-${infoSetting.node_id}/devices/device-${infoSetting.id}/room`))).val();
+        // console.log(room);
+        
         if(room) {
+          
           setRoomPresent(room);
         }
       }
@@ -258,8 +249,8 @@ function Node({ devices, node, idUser }: PropsType) {
 
   useEffect(() => {
     const run = () => {
-      if (infoSetting?.id) {
-        const pathTimestampNode = `user-${idUser}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer`;
+      if (infoSetting?.id && userIDCtx) {
+        const pathTimestampNode = `user-${userIDCtx}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer`;
         const dbRef = ref(database, pathTimestampNode);
         return onValue(dbRef, (snapshot) => {
           if (snapshot.exists()) {
@@ -295,8 +286,8 @@ function Node({ devices, node, idUser }: PropsType) {
 
   useEffect(() => {
     const syncTime = async () => {
-      if (node.id && idUser) {
-        const pathTimestampNode = `user-${idUser}/nodes/node-${node.id}/info/timestamp`;
+      if (node.id && userIDCtx) {
+        const pathTimestampNode = `user-${userIDCtx}/nodes/node-${node.id}/info/timestamp`;
         const val = await get(child(dbRef, pathTimestampNode));
         const timeDevice = Math.round(new Date().getTime() / 1000);
         if (timeDevice - val.val() > 20) {
@@ -311,7 +302,7 @@ function Node({ devices, node, idUser }: PropsType) {
     return () => {
       clearInterval(id);
     };
-  }, []);
+  }, [userIDCtx]);
 
   const onChangeControllTimer = useCallback(
     (value: any) => {
@@ -378,8 +369,8 @@ function Node({ devices, node, idUser }: PropsType) {
     setLoadingUpdate(true);
     try {
       if (infoEdit?.type === EditType.DEVICE) {
-        if (idUser && infoEdit) {
-          const pathRef = `user-${idUser}/nodes/node-${infoEdit.payload.node_id}/devices/device-${infoEdit.payload.id}`;
+        if (userIDCtx && infoEdit) {
+          const pathRef = `user-${userIDCtx}/nodes/node-${infoEdit.payload.node_id}/devices/device-${infoEdit.payload.id}`;
           const payload: UpdateField[] = [
             { key: "name", value: board?.name },
             { key: "sub", value: board?.sub },
@@ -396,8 +387,8 @@ function Node({ devices, node, idUser }: PropsType) {
           throw new Error("Missing field to update.");
         }
       } else {
-        if (idUser && infoEdit) {
-          const pathRef = `user-${idUser}/nodes/node-${infoEdit.payload.node_id}`;
+        if (userIDCtx && infoEdit) {
+          const pathRef = `user-${userIDCtx}/nodes/node-${infoEdit.payload.node_id}`;
           const payload: UpdateField[] = [
             { key: "name", value: board?.name },
             { key: "sub", value: board?.sub },
@@ -437,9 +428,9 @@ function Node({ devices, node, idUser }: PropsType) {
           }
         }
 
-        if (node.id && idUser && infoSetting?.id) {
+        if (node.id && userIDCtx && infoSetting?.id) {
           try {
-            const pathTimestampNode = `user-${idUser}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer`;
+            const pathTimestampNode = `user-${userIDCtx}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer`;
             const dbRef = ref(database, pathTimestampNode);
             await push(dbRef, {
               unix: datePick,
@@ -491,10 +482,10 @@ function Node({ devices, node, idUser }: PropsType) {
         const dbRef = ref(database, buildPath);
         if(pickRoom === null) {
           await set(dbRef, null);
-          setRoomPresent(undefined);
           if(roomPresent) {
             await dispatch(removeDeviceRoom({ idRoom: roomPresent?.id, idDevice: infoSetting.id }));
           }
+          setRoomPresent(undefined);
         }else {
           const fixRoom = { name: pickRoom.name, id: pickRoom.id, pickAt: Date.now() };
           await set(dbRef, fixRoom);
@@ -714,7 +705,7 @@ function Node({ devices, node, idUser }: PropsType) {
                     key={time.unix}
                     pathUpdate={
                       infoSetting?.id && openSettingTimer
-                        ? `user-${idUser}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer/${time.key}`
+                        ? `user-${userIDCtx}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer/${time.key}`
                         : ""
                     }
                     className={`${index !== 0 ? "mt-3" : ""}`}
@@ -869,7 +860,7 @@ function Node({ devices, node, idUser }: PropsType) {
                   Chỉnh sửa <EditIcon className="ml-1" />
                 </IconButton>
               </div>
-              {getTypeWidget(device, idUser)}
+              {getTypeWidget(device, userIDCtx)}
             </Box>
           ) : (
             <Box key={index} className="col-span-2 grid grid-cols-2 relative">
@@ -910,7 +901,7 @@ function Node({ devices, node, idUser }: PropsType) {
                     : grids["none"]
                 } col-auto p-3 rounded-2xl border-indigo-600 border-2 shadow-md relative z-20 bg-[#edf1f5]`}
               >
-                {getTypeWidget(device, idUser)}
+                {getTypeWidget(device, userIDCtx)}
               </Box>
             </Box>
           )

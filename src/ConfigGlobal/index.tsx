@@ -11,7 +11,12 @@ import { database } from "../firebase/db";
 
 import { WidgetType, DeviceType } from "../components/Widget/type";
 
-interface Map {
+export enum ColorMode {
+  DARK = 'dark',
+  LIGHT = 'light',
+}
+
+export interface Map {
   [key: string]: any;
 }
 export interface TransferNodeType {

@@ -11,6 +11,12 @@ export interface ColorType {
   contrast: number;
 }
 
+export interface NodeType {
+  id: string;
+  name?: string;
+  sub?: string;
+}
+
 export interface DeviceType {
   id: string;
   name?: string;
