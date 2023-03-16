@@ -112,7 +112,7 @@ function Devices() {
               <div key={key} className="grid grid-cols-2 gap-3 p-3">
                 <Node
                   devices={node.devices}
-                  node={{ id: key, name: node.name, sub: node.sub }}
+                  node={{ id: key.includes('node') ? key.split('node-')[1] : key, name: node.name, sub: node.sub }}
                 />
               </div>
             );

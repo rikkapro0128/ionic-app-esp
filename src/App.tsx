@@ -72,13 +72,26 @@ const App: React.FC = () => {
     const connectedRef = ref(database, ".info/connected");
     onValue(connectedRef, (snap) => {
       if (snap.val() === true) {
-        goOnline(database);
         dispatch(setFbConnection(true));
       } else {
         dispatch(setFbConnection(false));
       }
     });
   }, []);
+
+  useEffect(() => {
+    let idTimeOut: NodeJS.Timeout;
+    if(!FBConnection) {
+      idTimeOut = setInterval(() => {
+        goOnline(database);
+      }, 2000);
+    }
+    return () => {
+      if(idTimeOut) {
+        clearInterval(idTimeOut);
+      }
+    }
+  }, [FBConnection])
 
   return (
     <ThemeProvider theme={theme}>

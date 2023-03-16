@@ -143,6 +143,7 @@ const Rooms = () => {
 
   useEffect(() => {
     
+    
     setLoadingViewRoom(true);
     if (pickViewRoom?.devicesOwn?.length) {
       const tempDevicesByNode: NodePayload = {};
@@ -169,6 +170,7 @@ const Rooms = () => {
   }, [pickViewRoom]);
 
   useEffect(() => {
+    // console.log(rooms);
     if(pickViewRoom) {
       const reUpdateRoom = rooms.find(room => room.id === pickViewRoom.id);
       if(reUpdateRoom) {

@@ -49,7 +49,8 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import AlarmOnOutlinedIcon from "@mui/icons-material/AlarmOnOutlined";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
-import MeetingRoomRoundedIcon from '@mui/icons-material/MeetingRoomRounded';
+import MeetingRoomRoundedIcon from "@mui/icons-material/MeetingRoomRounded";
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/vi"; // import locale
@@ -82,12 +83,20 @@ import {
 import { database } from "../../firebase/db";
 
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
-import { setNodes, updateDevice } from "../../store/slices/nodesSlice";
-import { addRoom, removeRoom, setRooms, RoomType, RoomFirebase, removeDeviceRoom, updateDeviceRoom } from "../../store/slices/roomsSlice";
+import { setNodes, updateDevice, removeNode } from "../../store/slices/nodesSlice";
+import {
+  addRoom,
+  removeRoom,
+  setRooms,
+  RoomType,
+  RoomFirebase,
+  removeDeviceRoom,
+  updateDeviceRoom,
+} from "../../store/slices/roomsSlice";
 
 import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 
-import Transition from '../Transition/index';
+import Transition from "../Transition/index";
 
 import { WidgetType } from "../Widget/type";
 import { TypeSelect, TypeLogicControl } from "../Timer/OptionType/Logic";
@@ -194,6 +203,7 @@ function Node({ devices, node }: PropsType) {
   const dispatch = useAppDispatch();
   const rooms = useAppSelector((state) => state.rooms.value);
   const [userIDCtx, setUserIDCtx] = useState<string | undefined>();
+  const [promtRemoveNode, setPromtRemoveNode] = useState<boolean>(false);
   const [nodeOnline, setNodeOnline] = useState<boolean>(false);
   const [pickRoom, setPickRoom] = useState<RoomType | undefined | null>();
   const [roomPresent, setRoomPresent] = useState<RoomFirebase | undefined>();
@@ -233,24 +243,30 @@ function Node({ devices, node }: PropsType) {
   }, []);
 
   useEffect(() => {
-    if(infoSetting && userIDCtx) {
+    if (infoSetting && userIDCtx) {
       const run = async () => {
-        const room = await (await get(child(dbRef, `user-${userIDCtx}/nodes/node-${infoSetting.node_id}/devices/device-${infoSetting.id}/room`))).val();
+        const room = await (
+          await get(
+            child(
+              dbRef,
+              `user-${userIDCtx}/nodes/node-${infoSetting.node_id}/devices/device-${infoSetting.id}/room`
+            )
+          )
+        ).val();
         // console.log(room);
-        
-        if(room) {
-          
+
+        if (room) {
           setRoomPresent(room);
         }
-      }
+      };
       run();
     }
-  }, [infoSetting, userIDCtx])
+  }, [infoSetting, userIDCtx]);
 
   useEffect(() => {
     const run = () => {
       if (infoSetting?.id && userIDCtx) {
-        const pathTimestampNode = `user-${userIDCtx}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer`;
+        const pathTimestampNode = `user-${userIDCtx}/nodes/node-${infoSetting.node_id}/devices/device-${infoSetting?.id}/timer`;
         const dbRef = ref(database, pathTimestampNode);
         return onValue(dbRef, (snapshot) => {
           if (snapshot.exists()) {
@@ -430,7 +446,7 @@ function Node({ devices, node }: PropsType) {
 
         if (node.id && userIDCtx && infoSetting?.id) {
           try {
-            const pathTimestampNode = `user-${userIDCtx}/nodes/node-${node.id}/devices/device-${infoSetting?.id}/timer`;
+            const pathTimestampNode = `user-${userIDCtx}/nodes/node-${infoSetting.node_id}/devices/device-${infoSetting?.id}/timer`;
             const dbRef = ref(database, pathTimestampNode);
             await push(dbRef, {
               unix: datePick,
@@ -475,40 +491,109 @@ function Node({ devices, node }: PropsType) {
     setLoadingUpdate(true);
     // console.log('Pick room = ', pickRoom);
     // console.log('Node Info = ', infoSetting);
-    if(userIDCtx && pickRoom !== undefined && infoSetting) {
+    if (userIDCtx && pickRoom !== undefined && infoSetting) {
       try {
         const buildPath = `user-${userIDCtx}/nodes/node-${infoSetting.node_id}/devices/device-${infoSetting.id}/room`;
         // console.log("🚀 ~ file: index.tsx:521 ~ handleAcceptPickRoom ~ buildPath:", buildPath)
         const dbRef = ref(database, buildPath);
-        if(pickRoom === null) {
+        if (pickRoom === null) {
           await set(dbRef, null);
-          if(roomPresent) {
-            await dispatch(removeDeviceRoom({ idRoom: roomPresent?.id, idDevice: infoSetting.id }));
+          if (roomPresent) {
+            await dispatch(
+              removeDeviceRoom({
+                idRoom: roomPresent?.id,
+                idDevice: infoSetting.id,
+              })
+            );
           }
           setRoomPresent(undefined);
-        }else {
-          const fixRoom = { name: pickRoom.name, id: pickRoom.id, pickAt: Date.now() };
+        } else {
+          const fixRoom = {
+            name: pickRoom.name,
+            id: pickRoom.id,
+            pickAt: Date.now(),
+          };
           await set(dbRef, fixRoom);
-          if(roomPresent) {
-            await dispatch(removeDeviceRoom({ idRoom: roomPresent?.id, idDevice: infoSetting.id }));
-            await dispatch(updateDeviceRoom({ idRoom: fixRoom.id, device: devices.find(device => device.id === infoSetting.id) }));
+          if (roomPresent) {
+            await dispatch(
+              removeDeviceRoom({
+                idRoom: roomPresent?.id,
+                idDevice: infoSetting.id,
+              })
+            );
+            await dispatch(
+              updateDeviceRoom({
+                idRoom: fixRoom.id,
+                device: devices.find((device) => device.id === infoSetting.id),
+              })
+            );
           }
           setRoomPresent(fixRoom);
         }
       } catch (error) {
         activeSnack({
           title: "Lỗi rồi",
-          message:
-            "Có lỗi xảy ra khi thay đổi phòng vui lòng thử lại.",
+          message: "Có lỗi xảy ra khi thay đổi phòng vui lòng thử lại.",
         } as PropsSnack & string);
       }
     }
     setLoadingUpdate(false);
     closeModalPickRooms();
+  };
+
+  const hanldeOpenPromtRemoveNode = () => {
+    setPromtRemoveNode(true);
+  }
+
+  const hanldeClosePromtRemoveNode = () => {
+    setPromtRemoveNode(false);
+  }
+
+  const handleRemoveNode = async () => {
+    if(userIDCtx) {
+      try {
+        await set(ref(database, `user-${userIDCtx}/nodes/node-${node.id}`), null);
+        await dispatch(removeNode(node.id));
+        activeSnack({
+          message:
+            `bạn đã xoá node ${node.name || node.id}.`,
+        } as PropsSnack & string);
+      } catch (error) {
+        activeSnack({
+          title: "Lỗi rồi",
+          message:
+            "Đã có lỗi xảy ra khi xoá node này vui lòng thử lại bạn nhé.",
+        } as PropsSnack & string);
+      }
+    }
+    hanldeClosePromtRemoveNode();
   }
 
   return (
     <>
+      {/* Accept remove node */}
+      <Dialog
+        open={promtRemoveNode}
+        onClose={hanldeClosePromtRemoveNode}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Bạn muốn xoá phòng?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Hành động này của bạn sẽ xoá node "{node.name || node.id}" ra khỏi ứng
+            dụng bạn chắc chứ?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={hanldeClosePromtRemoveNode}>Huỷ</Button>
+          <Button onClick={handleRemoveNode} autoFocus>
+            Đồng ý
+          </Button>
+        </DialogActions>
+      </Dialog>
       {/* dialog for pick room */}
       <Dialog
         open={openListRoom}
@@ -521,24 +606,47 @@ function Node({ devices, node }: PropsType) {
         <DialogTitle>
           chọn phòng {infoSetting?.id || infoSetting?.name}
         </DialogTitle>
-        <DialogContent sx={{
-          overflow: 'hidden'
-        }}>
+        <DialogContent
+          sx={{
+            overflow: "hidden",
+          }}
+        >
           <List
             sx={{
               maxHeight: 400,
-              overflowY: 'scroll'
+              overflowY: "scroll",
             }}
             className="border rounded-md"
           >
-            <ListItemButton selected={ pickRoom ? false : roomPresent === undefined || pickRoom === null } onClick={() => { setPickRoom(null) }}>
+            <ListItemButton
+              selected={
+                pickRoom
+                  ? false
+                  : roomPresent === undefined || pickRoom === null
+              }
+              onClick={() => {
+                setPickRoom(null);
+              }}
+            >
               <ListItemIcon>
                 <HighlightOffRoundedIcon />
               </ListItemIcon>
               <ListItemText primary="Bỏ chọn" />
             </ListItemButton>
             {rooms.map((room) => (
-              <ListItemButton selected={ pickRoom ? pickRoom.id === room.id : pickRoom === null ? false : roomPresent?.id === room.id } onClick={() => { setPickRoom(room) }} key={room.id}>
+              <ListItemButton
+                selected={
+                  pickRoom
+                    ? pickRoom.id === room.id
+                    : pickRoom === null
+                    ? false
+                    : roomPresent?.id === room.id
+                }
+                onClick={() => {
+                  setPickRoom(room);
+                }}
+                key={room.id}
+              >
                 <ListItemIcon>
                   <MeetingRoomRoundedIcon />
                 </ListItemIcon>
@@ -809,6 +917,9 @@ function Node({ devices, node }: PropsType) {
             </IconButton>
             <IconButton aria-label="setting">
               <SettingsIcon />
+            </IconButton>
+            <IconButton onClick={hanldeOpenPromtRemoveNode} aria-label="remove">
+              <DeleteRoundedIcon />
             </IconButton>
             <IconButton onClick={onExpand} aria-label="expand">
               {expand ? <UnfoldLessIcon /> : <UnfoldMoreIcon />}

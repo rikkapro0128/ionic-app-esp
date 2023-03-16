@@ -28,6 +28,17 @@ export const counterSlice = createSlice({
       const { nodeId, node } = payload;
       state.value[nodeId] = node;
     },
+    removeNode: (state, { payload }) => {
+      const initNewNodes: NodePayload = {};
+      Object.entries(state.value).forEach(([key, node], index, ls) => {
+        if(key.split('node-')[1] !== payload) {
+          initNewNodes[key] = node;
+        }
+        if(index === ls.length - 1) {
+          state.value = initNewNodes;
+        }
+      });
+    },
     setNodes: (state, action) => {
       state.value = action.payload;
     },
@@ -64,7 +75,7 @@ export const counterSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setNodes, updateDevice, updateValueDevice, appendNode } = counterSlice.actions
+export const { setNodes, updateDevice, updateValueDevice, appendNode, removeNode } = counterSlice.actions
 
 export const selectCount = (state: RootState) => state.nodes.value
 

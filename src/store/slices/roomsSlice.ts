@@ -42,7 +42,12 @@ export const roomsSlice = createSlice({
       state.value = action.payload;
     },
     addRoom: (state: RoomsType, action) => {
-      state.value = [...state.value, action.payload]
+      const indexRoom = state.value.findIndex(room => room.id === action.payload.id);
+      if(indexRoom >= 0) {
+        state.value[indexRoom] = action.payload;
+      }else {
+        state.value = [...state.value, action.payload]
+      }
     },
     updateDeviceRoom: (state: RoomsType, action) => {
       const { idRoom, device }: { idRoom: string, device: DeviceType } = action.payload;

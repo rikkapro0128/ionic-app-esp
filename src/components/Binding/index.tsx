@@ -126,7 +126,7 @@ const CreateBinding = ({ id, name, type }: PropsType) => {
                   onClick={() => {
                     pickControllDevice(device);
                   }}
-                  key={device.id}
+                  key={`${device.node_id}-${device.id}`}
                   disablePadding
                 >
                   <ListItemButton selected={controllDevice?.id === device.id}>
