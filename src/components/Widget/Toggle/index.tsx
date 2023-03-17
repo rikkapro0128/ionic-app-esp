@@ -1,15 +1,9 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import Grow from '@mui/material/Grow';
-import Switch from '@mui/material/Switch';
 
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-
-import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { ref, get, set, child, onValue } from "firebase/database";
+import { ref, set, onValue } from "firebase/database";
 import { database } from "../../../firebase/db";
 
 import { updateValueDevice } from '../../../store/slices/nodesSlice';
@@ -21,7 +15,6 @@ import AntSwitch from '../../../components/Switch';
 import icon from '../index';
 
 import { DeviceType } from '../type';
-import { getUserIDByPlaform } from '../../../ConfigGlobal';
 
 interface PayloadType {
   device: DeviceType,
@@ -30,20 +23,11 @@ interface PayloadType {
 
 function Toggle({ device, idUser }: PayloadType) {
   const dispatch = useAppDispatch();
+  const userID = useAppSelector(state => state.commons.userId);
   const [toggle, setToggle] = useState(device.state ? true : false);
-  const [userID, setidUser] = useState<string | undefined>(idUser);
   const [block, setBlock] = useState<boolean>(false);
 
   useEffect(() => {
-    const runNow = async () => {
-      const idUser = await getUserIDByPlaform();
-      setidUser(idUser);
-    };
-    runNow();
-  }, []);
-
-  useEffect(() => {
-    // console.log(device);
     const run = () => {
       if(userID) {
         const refDBState = `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/state`;
@@ -64,7 +48,8 @@ function Toggle({ device, idUser }: PayloadType) {
     return Unsubscribe;
   }, [userID])
 
-  const handleClick = async () => {
+  const handleClick = useCallback(async () => {
+    
     if(userID && device.id && !block) {
       setBlock(() => true);
       
@@ -73,10 +58,10 @@ function Toggle({ device, idUser }: PayloadType) {
       } catch (error) {
         console.log(error);
       }
-      // setToggle(state => !state);
+      
       setBlock(() => false);
     }
-  }
+  }, [userID, toggle, block]);
 
   return (
     <Box onClick={handleClick} className="flex flex-nowrap mx-auto max-w-full overflow-hidden">

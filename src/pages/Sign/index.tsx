@@ -7,6 +7,9 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   UserCredential,
+  GoogleAuthProvider,
+  signInWithPopup,
+  User,
 } from "firebase/auth";
 
 import {
@@ -47,6 +50,7 @@ const theme = createTheme();
 const defaultRouteEnter = "devices";
 
 const OSType = new detechOS();
+const provider = new GoogleAuthProvider();
 
 function Copyright(props: any) {
   return (
@@ -78,6 +82,16 @@ function Sign() {
   const [tab, setTab] = useState("sign-in");
   const [state, setState] = useState(false);
   const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    // load option login in website enviroment
+    if(OSType.OS === "Windows") {
+      const auth = getAuth(appAuthWeb);
+      provider.addScope("https://www.googleapis.com/auth/contacts.readonly");
+      auth.languageCode = 'it';
+      auth.useDeviceLanguage();
+    }
+  }, []);
 
   useEffect(() => {
     if (sign.email) {
@@ -116,8 +130,21 @@ function Sign() {
 
   const signInWithGoogle = async () => {
     try {
-      const result = await FirebaseAuthentication.signInWithGoogle();
-      if (result.user) {
+      let result: SignInResult | User | undefined;
+      if (OSType.OS === "Android") {
+        result = await FirebaseAuthentication.signInWithGoogle();
+      } else if (OSType.OS === "Windows") {
+        const auth = getAuth(appAuthWeb);
+        const resultWeb = await signInWithPopup(auth, provider);
+        result = resultWeb.user; 
+      } else {
+        activeSnack({
+          title: "Không hợp lệ",
+          message: `Ứng dụng không hỗ trợ đăng nhập trên ${OSType.OS}!`,
+        } as PropsSnack & string);
+        return;
+      }
+      if(result) {
         activeSnack({
           message: "Bạn đã đăng nhập thành công!",
         } as PropsSnack & string);

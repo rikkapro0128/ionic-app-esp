@@ -31,7 +31,6 @@ import "./index.css";
 
 import Box from "@mui/material/Box";
 import Grow from "@mui/material/Grow";
-import Typography from "@mui/material/Typography";
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { routes } from "./routes";
@@ -39,13 +38,13 @@ import { routes } from "./routes";
 import { getDatabase, ref, onValue, goOnline } from "firebase/database";
 import { database } from "./firebase/db";
 
-import { setFbConnection } from "./store/slices/commonSlice";
+import { setFbConnection, setUserID } from "./store/slices/commonSlice";
 import { useAppSelector, useAppDispatch } from "./store/hooks";
 
 import Header from "./components/Header";
 import Auth from "./components/Auth";
 
-import { ColorMode } from "./ConfigGlobal";
+import { getUserIDByPlaform } from "./ConfigGlobal";
 
 setupIonicReact();
 
@@ -67,6 +66,14 @@ const App: React.FC = () => {
   );
   const FBConnection = useAppSelector((state) => state.commons.fbConnection);
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    getUserIDByPlaform().then((userId) => {
+      console.log(userId);
+      
+      dispatch(setUserID({ userId }));
+    })
+  }, [])
 
   useEffect(() => {
     const connectedRef = ref(database, ".info/connected");

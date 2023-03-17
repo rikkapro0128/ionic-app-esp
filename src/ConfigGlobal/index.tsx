@@ -1,7 +1,7 @@
 
 
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged, Unsubscribe } from "firebase/auth";
 
 import { appAuthWeb } from "../firebase";
 
@@ -35,17 +35,34 @@ export const routes = {
   afterAuthFailure: '/sign',
 }
 
-export const getUserIDByPlaform = async () => {
-  let userId: string | undefined;
-  if (OSType.OS === "Android") {
-    userId = await (
-      await FirebaseAuthentication.getCurrentUser()
-    ).user?.uid;
-  } else if (OSType.OS === "Windows") {
-    const auth = getAuth(appAuthWeb);
-    userId = auth.currentUser?.uid;
-  }
-  return userId;
+export const getUserIDByPlaform = (): Promise<string | undefined> => {
+  return new Promise(async (res) => {
+    if (OSType.OS === "Android") {
+      res(await (
+        await FirebaseAuthentication.getCurrentUser()
+      ).user?.uid);
+    } else if (OSType.OS === "Windows") {
+      let clearUnAuth: Unsubscribe;
+      let clearTimeoutNum: NodeJS.Timeout;
+
+      const auth = getAuth(appAuthWeb);
+      clearTimeoutNum = setTimeout(() => {
+        if(typeof clearUnAuth === 'function') {
+          clearUnAuth();
+        }
+        if(typeof clearTimeoutNum === 'number') {
+          clearTimeout(clearTimeoutNum);
+        }
+        res(undefined);
+      }, 5000);
+      clearUnAuth = onAuthStateChanged(auth, (user) => {
+        res(user?.uid);
+        if(typeof clearUnAuth === 'function') {
+          clearUnAuth();
+        }
+      });
+    }
+  })
 }
 
 export const transferNodes = (nodes: TransferNodeType) => {

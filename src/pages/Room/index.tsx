@@ -28,7 +28,6 @@ import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 
 import AddIcon from "@mui/icons-material/Add";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import NoMeetingRoomIcon from "@mui/icons-material/NoMeetingRoom";
 import RemoveCircleOutlineRoundedIcon from "@mui/icons-material/RemoveCircleOutlineRounded";
 
 import Room from "../../components/Room";
@@ -36,26 +35,13 @@ import Node from "../../components/Node";
 import WrapOnNode from "../../components/Room/watch";
 
 import { IconRoom } from "../../icons";
-
-import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { getAuth } from "firebase/auth";
-
-import { appAuthWeb } from "../../firebase";
 import {
   ref,
-  get,
   set,
-  child,
-  onChildAdded,
-  onChildRemoved,
 } from "firebase/database";
 import { database } from "../../firebase/db";
 
 import {
-  addRoom,
-  removeRoom,
-  setRooms,
-  updateDeviceRoom,
   RoomType,
 } from "../../store/slices/roomsSlice";
 import { NodePayload } from "../../store/slices/nodesSlice";
@@ -66,12 +52,7 @@ import Transition from "../../components/Transition/index";
 
 import { v1 as genIDByTimeStamp } from "uuid";
 
-import { getUserIDByPlaform, Map } from "../../ConfigGlobal";
 import { RouterIcon } from "../../icons";
-
-import detechOS from "detectos.js";
-
-const OSType = new detechOS();
 
 const styleTransition = {
   position: "absolute" as "absolute",
@@ -90,34 +71,6 @@ const defaultRoomEmpty = {
   sub: "",
 };
 
-const roomFake = [
-  {
-    idRoom: "121awda214qad",
-    name: "Nhà bếp",
-    sub: "",
-  },
-  {
-    idRoom: "121vc214qad",
-    name: "Phòng khách",
-    sub: "Nơi đón tiếp khách quý",
-  },
-  {
-    idRoom: "121wdaw214qad",
-    name: "Phòng thờ, cúng",
-    sub: "Phòng thờ cúng vái ông bà tổ tiên",
-  },
-  {
-    idRoom: "121s21as4qad",
-    name: "Phòng ngủ",
-    sub: "Dĩ nhiên là để ngủ",
-  },
-  {
-    idRoom: "1212dak14qad",
-    name: "Phòng ăn",
-    sub: "Nơi ăn uống, tụ tập sum vầy.",
-  },
-];
-
 const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
   ref
@@ -129,8 +82,8 @@ const Rooms = () => {
   const dispatch = useAppDispatch();
   const nodes = useAppSelector((state) => state.nodes.value);
   const rooms = useAppSelector((state) => state.rooms.value);
+  const userIDCtx = useAppSelector((state) => state.commons.userId);
   const [activeSnack, closeSnack] = useSnackbar();
-  const [userIDCtx, setUserIDCtx] = useState<string | undefined>();
   const [dialog, setDialog] = useState<boolean>(false);
   const [pickViewRoom, setPickViewRoom] = useState<RoomType | undefined>();
   const [devicesViewRoom, setDevicesViewRoom] = useState<
@@ -178,14 +131,6 @@ const Rooms = () => {
       }
     }
   }, [rooms])
-
-  useEffect(() => {
-    const runNow = async () => {
-      const idUser = await getUserIDByPlaform();
-      setUserIDCtx(idUser);
-    };
-    runNow();
-  }, []);
 
   const [infoCreateRoom, setInfoCreateRoom] = useState<RoomType>(
     () => defaultRoomEmpty

@@ -4,11 +4,20 @@ import { ColorMode } from '../../ConfigGlobal';
 
 interface CommonType {
   fbConnection: boolean,
+  userId: string | undefined,
   colorMode: ColorMode,
+}
+
+interface ActionSetUserId {
+  payload: {
+    userId: string | undefined,
+  },
+  type: string,
 }
 
 const initialState: CommonType = {
   fbConnection: true,
+  userId: undefined,
   colorMode: localStorage.getItem('color-mode') as ColorMode ?? ColorMode.LIGHT,
 }
 
@@ -16,6 +25,10 @@ export const commonSlice = createSlice({
   name: 'commons',
   initialState,
   reducers: {
+    setUserID: (state: CommonType, action: ActionSetUserId) => {
+      const { userId } = action.payload;
+      state.userId = userId;
+    },
     setFbConnection: (state: CommonType, action) => {
       state.fbConnection = action.payload;
     },
@@ -35,6 +48,6 @@ export const commonSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setFbConnection, setColorMode, toggleColorMode } = commonSlice.actions
+export const { setFbConnection, setColorMode, toggleColorMode, setUserID } = commonSlice.actions
 
 export default commonSlice.reducer;

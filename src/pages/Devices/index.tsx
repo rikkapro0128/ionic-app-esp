@@ -3,7 +3,6 @@ import { memo, useState, useEffect } from "react";
 import { useTheme } from '@mui/material/styles';
 
 import Box from "@mui/material/Box";
-import Grow from "@mui/material/Grow";
 import Typography from "@mui/material/Typography";
 import Dialog from "@mui/material/Dialog";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -12,54 +11,15 @@ import Node from "../../components/Node";
 
 import { IconNotFound } from "../../icons";
 
-import DetachOS from "detectos.js";
-
-import {
-  FirebaseAuthentication,
-  GetCurrentUserResult,
-} from "@capacitor-firebase/authentication";
-import { getAuth, User } from "firebase/auth";
-import { ref, onValue } from "firebase/database";
-import { database } from "../../firebase/db";
-import { appAuthWeb } from "../../firebase";
-
-import { useAppSelector, useAppDispatch } from "../../store/hooks";
-import { setNodes } from "../../store/slices/nodesSlice";
-import { transferNodes, ColorMode } from "../../ConfigGlobal";
+import { useAppSelector } from "../../store/hooks";
+import { ColorMode } from "../../ConfigGlobal";
 
 import WrapOnNode from "../../components/Room/watch";
-import { WidgetType, DeviceType } from "../../components/Widget/type";
-
-const TypeOS = new DetachOS();
-
-const transferTypeModel = {
-  LOGIC: "toggle",
-  TRANSFORM: "slider",
-  COLOR: "color",
-  PROGRESS: "progress",
-  none: "none",
-};
-interface Map {
-  [key: string]: any;
-}
-
-interface TransferNodeType {
-  nodes: {
-    [node: string]: {
-      type: WidgetType;
-      value: any;
-    };
-  };
-}
 
 function Devices() {
-  const dispatch = useAppDispatch();
   const theme = useTheme();
-  // const [nodes, setNodes] = useState<Map>({});
-  const statusFB = useAppSelector((state) => state.commons.fbConnection);
   const nodes = useAppSelector((state) => state.nodes.value);
   const [loading, setLoading] = useState<boolean>(true);
-  const [idUser, setIDUser] = useState<string | undefined>();
 
   useEffect(() => {
     let idTimeout: NodeJS.Timeout;

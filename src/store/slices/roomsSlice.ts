@@ -1,12 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-import { ref, onValue } from 'firebase/database';
-
-import { database } from '../../firebase/db';
-
-import { getUserIDByPlaform } from '../../ConfigGlobal';
-
-import { WidgetType, DeviceType } from '../../components/Widget/type';
+import { DeviceType } from '../../components/Widget/type';
 
 export interface RoomFirebase {
   id: string,

@@ -2,15 +2,12 @@ import {
   memo,
   useState,
   useEffect,
-  forwardRef,
   useCallback,
-  useRef,
 } from "react";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
-import Grow from "@mui/material/Grow";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import Chip from "@mui/material/Chip";
@@ -23,17 +20,11 @@ import Menu, { MenuProps } from "@mui/material/Menu";
 import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import CircularProgress from "@mui/material/CircularProgress";
-import Slide from "@mui/material/Slide";
 import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import { TransitionProps } from "@mui/material/transitions";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
 
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 import RoomPreferencesRoundedIcon from "@mui/icons-material/RoomPreferencesRounded";
@@ -43,12 +34,9 @@ import AccountTreeRoundedIcon from "@mui/icons-material/AccountTreeRounded";
 import SettingsIcon from "@mui/icons-material/Settings";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import AcUnitIcon from "@mui/icons-material/AcUnit";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import AlarmOnOutlinedIcon from "@mui/icons-material/AlarmOnOutlined";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
-import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import MeetingRoomRoundedIcon from "@mui/icons-material/MeetingRoomRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 
@@ -60,7 +48,6 @@ import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 import WidgetToggle from "../Widget/Toggle";
-import WidgetProgress from "../Widget/Progress";
 import WidgetSlider from "../Widget/Slider";
 import WidgetColor from "../Widget/Rgb";
 import WidgetNotFound from "../Widget/NotFound";
@@ -77,17 +64,12 @@ import {
   push,
   update,
   onValue,
-  onChildRemoved,
-  onChildAdded,
 } from "firebase/database";
 import { database } from "../../firebase/db";
 
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
-import { setNodes, updateDevice, removeNode } from "../../store/slices/nodesSlice";
+import { updateDevice, removeNode } from "../../store/slices/nodesSlice";
 import {
-  addRoom,
-  removeRoom,
-  setRooms,
   RoomType,
   RoomFirebase,
   removeDeviceRoom,
@@ -99,8 +81,7 @@ import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 import Transition from "../Transition/index";
 
 import { WidgetType } from "../Widget/type";
-import { TypeSelect, TypeLogicControl } from "../Timer/OptionType/Logic";
-import { getUserIDByPlaform } from "../../ConfigGlobal";
+import { TypeSelect } from "../Timer/OptionType/Logic";
 import { DeviceType, NodeType } from "../Widget/type";
 
 interface PropsType {
@@ -201,8 +182,8 @@ const getTypeWidget = (device: DeviceType, idUser: string | undefined) => {
 function Node({ devices, node }: PropsType) {
   const [activeSnack, closeSnack] = useSnackbar();
   const dispatch = useAppDispatch();
+  const userIDCtx = useAppSelector((state) => state.commons.userId);
   const rooms = useAppSelector((state) => state.rooms.value);
-  const [userIDCtx, setUserIDCtx] = useState<string | undefined>();
   const [promtRemoveNode, setPromtRemoveNode] = useState<boolean>(false);
   const [nodeOnline, setNodeOnline] = useState<boolean>(false);
   const [pickRoom, setPickRoom] = useState<RoomType | undefined | null>();
@@ -233,14 +214,6 @@ function Node({ devices, node }: PropsType) {
     setAnchorElMenuSetting(event.currentTarget);
     setInfoSetting(device);
   };
-
-  useEffect(() => {
-    const runNow = async () => {
-      const idUser = await getUserIDByPlaform();
-      setUserIDCtx(idUser);
-    };
-    runNow();
-  }, []);
 
   useEffect(() => {
     if (infoSetting && userIDCtx) {

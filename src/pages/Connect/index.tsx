@@ -1,15 +1,10 @@
-import React, { memo, useState, useEffect, useCallback, useMemo } from "react";
+import { memo, useState, useEffect, useCallback } from "react";
 import { CapacitorHttp, HttpResponse } from "@capacitor/core";
-import { useNavigate } from "react-router-dom";
-
-import { IconEmptyWifi } from "../../icons";
 
 import { WifiWizard2 } from "@awesome-cordova-plugins/wifi-wizard-2";
-import SwipeableViews from "react-swipeable-views";
 import { v1 as genIDByTimeStamp } from "uuid";
 import {
   FirebaseAuthentication,
-  User,
 } from "@capacitor-firebase/authentication";
 
 import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
@@ -23,7 +18,6 @@ import IconButton from "@mui/material/IconButton";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 import Drawer from "@mui/material/Drawer";

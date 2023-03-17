@@ -11,17 +11,25 @@ import Chip from '@mui/material/Chip';
 import AndroidIcon from '@mui/icons-material/Android';
 import EmailIcon from '@mui/icons-material/Email';
 import Button from '@mui/material/Button';
+
 import LogoutIcon from '@mui/icons-material/Logout';
 import IconButton from '@mui/material/IconButton';
+import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
+
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
+import DetachOS from 'detectos.js';
+
 import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 
 import { FirebaseAuthentication, GetCurrentUserResult } from '@capacitor-firebase/authentication';
+import { getAuth, signOut, onAuthStateChanged, User, Unsubscribe } from "firebase/auth";
+
+import { appAuthWeb } from '../../firebase';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -52,25 +60,45 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   },
 }));
 
+const TypeOS = new DetachOS();
+
+interface GeneralUser extends User, GetCurrentUserResult {}
+
 function Profile() {
   const [activeSnack, closeSnack] = useSnackbar();
   const navigate = useNavigate();
-  const [info, setInfo] = useState<GetCurrentUserResult>();
+  const [info, setInfo] = useState<GeneralUser | null>(null);
   const [dialog, setDialog] = useState(false);
 
   useEffect(() => {
-    FirebaseAuthentication.getCurrentUser()
-    .then((result) => {
-      setInfo(result);
-    })
-    .catch((error) => {
-      console.log('Something error =>', error);
-    });
+    let unAuthStateChange: Unsubscribe | undefined;
+    if(TypeOS.OS === 'Android') {
+      FirebaseAuthentication.getCurrentUser()
+      .then((result) => {
+        setInfo(result as GeneralUser);
+      })
+      .catch((error) => {
+        console.log('Something error =>', error);
+      });
+    }else if(TypeOS.OS === 'Windows') {
+      const auth = getAuth(appAuthWeb);
+      unAuthStateChange = onAuthStateChanged(auth, (user) => {
+        setInfo(user as GeneralUser);
+      })
+    }
+    return () => {
+      if(typeof unAuthStateChange === 'function') { unAuthStateChange() }
+    }
   }, [])
 
   const logout = async () => {
     try {
-      await FirebaseAuthentication.signOut();
+      if(TypeOS.OS === 'Android') {
+        await FirebaseAuthentication.signOut();
+      }else if(TypeOS.OS === 'Windows') {
+        const auth = getAuth(appAuthWeb);
+        await signOut(auth);
+      }
       activeSnack({
         message: 'Bạn đã đăng xuất tài khoản khỏi ứng dụng!',
       } as PropsSnack & string);
@@ -118,18 +146,18 @@ function Profile() {
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
               variant="dot"
             >
-              <Avatar sx={{ width: 80, height: 80 }} alt={info?.user?.displayName || undefined} src={info?.user?.photoUrl || undefined} />
+              <Avatar sx={{ width: 80, height: 80 }} alt={ info?.user?.displayName || info?.displayName || '' } src={ info?.user?.photoUrl || info?.photoURL || '' } />
             </StyledBadge>
           </Box>
           <Typography className='text-center py-5 font-semibold text-slate-900' variant="h5" gutterBottom>
-            { info?.user?.displayName || null }
+            { info?.user?.displayName || info?.displayName || '' }
           </Typography>
           <Box>
             <Divider textAlign="left">
               <Chip icon={<AndroidIcon />} label="ID" />
             </Divider>
             <Typography className='text-left py-3 pl-10 font-semibold text-slate-900' variant="subtitle1" gutterBottom>
-              { info?.user?.uid || null }
+              { info?.user?.uid || info?.uid || '' }
             </Typography>
           </Box>
           <Box>
@@ -137,7 +165,15 @@ function Profile() {
               <Chip icon={<EmailIcon />} label="Email" />
             </Divider>
             <Typography className='text-left py-3 pl-10 font-semibold text-slate-900' variant="subtitle1" gutterBottom>
-              { info?.user?.email || null }
+              { info?.user?.email || info?.email || '' }
+            </Typography>
+          </Box>
+          <Box>
+            <Divider textAlign="left">
+              <Chip icon={<PhoneAndroidIcon />} label="Số điện thoại" />
+            </Divider>
+            <Typography className='text-left py-3 pl-10 font-semibold text-slate-900' variant="subtitle1" gutterBottom>
+              { /\(?([0-9]{3})\)?([ .-]?)([0-9]{3})\2([0-9]{4})/.test(info?.user?.email || info?.email || '') ? info?.user?.email || info?.email || '' : 'Số điện thoại không hợp lệ.' }
             </Typography>
           </Box>
         </Box>
