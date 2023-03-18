@@ -46,7 +46,7 @@ import LoginIcon from "@mui/icons-material/Login";
 
 import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 
-import { setUserID } from '../../store/slices/commonSlice';
+import { setUserID } from "../../store/slices/commonSlice";
 import { useAppDispatch } from "../../store/hooks";
 
 const theme = createTheme();
@@ -64,8 +64,8 @@ function Copyright(props: any) {
       {...props}
     >
       {"Copyright © "}
-      <Link color="inherit" href="https://mui.com/">
-        miru
+      <Link color="inherit" href="https://github.com/rikkapro0128">
+        by miru
       </Link>{" "}
       {new Date().getFullYear()}
       {"."}
@@ -89,31 +89,33 @@ function Sign() {
 
   useEffect(() => {
     let UnAuthState: Unsubscribe | undefined;
-    if(OSType.OS === "Windows") { 
+    if (OSType.OS === "Windows") {
       const auth = getAuth(appAuthWeb);
       UnAuthState = onAuthStateChanged(auth, (result) => {
         dispatch(setUserID({ userId: result?.uid }));
       });
-    }else if(OSType.OS === "Android") {
-      FirebaseAuthentication.addListener('authStateChange', (result) => {
+    } else if (OSType.OS === "Android") {
+      FirebaseAuthentication.addListener("authStateChange", (result) => {
         dispatch(setUserID({ userId: result.user?.uid }));
-      })
+      });
     }
     return () => {
-      if(OSType.OS === "Windows") {
-        if(typeof UnAuthState === 'function') { UnAuthState() }
-      }else if(OSType.OS === "Android") {
+      if (OSType.OS === "Windows") {
+        if (typeof UnAuthState === "function") {
+          UnAuthState();
+        }
+      } else if (OSType.OS === "Android") {
         FirebaseAuthentication.removeAllListeners();
       }
-    }
-  }, [])
+    };
+  }, []);
 
   useEffect(() => {
     // load option login in website enviroment
-    if(OSType.OS === "Windows") {
+    if (OSType.OS === "Windows") {
       const auth = getAuth(appAuthWeb);
       provider.addScope("https://www.googleapis.com/auth/contacts.readonly");
-      auth.languageCode = 'it';
+      auth.languageCode = "it";
       auth.useDeviceLanguage();
     }
   }, []);
@@ -161,7 +163,7 @@ function Sign() {
       } else if (OSType.OS === "Windows") {
         const auth = getAuth(appAuthWeb);
         const resultWeb = await signInWithPopup(auth, provider);
-        result = resultWeb.user; 
+        result = resultWeb.user;
       } else {
         activeSnack({
           title: "Không hợp lệ",
@@ -169,7 +171,7 @@ function Sign() {
         } as PropsSnack & string);
         return;
       }
-      if(result) {
+      if (result) {
         activeSnack({
           message: "Bạn đã đăng nhập thành công!",
         } as PropsSnack & string);
@@ -285,7 +287,7 @@ function Sign() {
         sx={{
           "& .MuiPaper-root": {
             backgroundColor: "transparent",
-            backgroundImage: 'none'
+            backgroundImage: "none",
           },
         }}
         open={state}
@@ -300,122 +302,120 @@ function Sign() {
           xíu!
         </Typography>
       </Dialog>
-      <ThemeProvider theme={theme}>
-        <Container component="main" maxWidth="xs">
-          <CssBaseline />
-          <Box
-            sx={{
-              marginTop: 8,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-              <LockOutlinedIcon />
-            </Avatar>
-            <Typography component="h1" variant="h5">
-              {tab === "sign-in" ? "Đăng nhập" : "Đăng ký"}
-            </Typography>
-            <Box className="mb-3 mt-5" sx={{ width: "100%" }}>
-              <Tabs
-                value={tab}
-                onChange={(event: React.SyntheticEvent, value: any) =>
-                  setTab(value)
-                }
-                textColor="secondary"
-                indicatorColor="secondary"
-                aria-label="secondary tabs example"
-                className="flex flex-nowrap"
-              >
-                <Tab className="flex-1" value={"sign-in"} label="Đăng nhập" />
-                <Tab className="flex-1" value={"sign-up"} label="Đăng ký" />
-              </Tabs>
-            </Box>
-            <Box
-              component="form"
-              onSubmit={handleSubmit}
-              noValidate
-              sx={{ mt: 1 }}
+      <Container component="main" maxWidth="xs">
+        <CssBaseline />
+        <Box
+          sx={{
+            marginTop: 8,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
+            <LockOutlinedIcon />
+          </Avatar>
+          <Typography component="h1" variant="h5">
+            {tab === "sign-in" ? "Đăng nhập" : "Đăng ký"}
+          </Typography>
+          <Box className="mb-3 mt-5" sx={{ width: "100%" }}>
+            <Tabs
+              value={tab}
+              onChange={(event: React.SyntheticEvent, value: any) =>
+                setTab(value)
+              }
+              textColor="secondary"
+              indicatorColor="secondary"
+              aria-label="secondary tabs example"
+              className="flex flex-nowrap"
             >
+              <Tab className="flex-1" value={"sign-in"} label="Đăng nhập" />
+              <Tab className="flex-1" value={"sign-up"} label="Đăng ký" />
+            </Tabs>
+          </Box>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            noValidate
+            sx={{ mt: 1 }}
+          >
+            <TextField
+              margin="normal"
+              error={validate.email ? true : false}
+              helperText={validate.email}
+              required
+              fullWidth
+              id="email"
+              label="Email"
+              name="email"
+              autoComplete="email"
+              onChange={changeEmail}
+              autoFocus
+            />
+            <TextField
+              margin="normal"
+              error={validate.password ? true : false}
+              helperText={validate.password}
+              required
+              fullWidth
+              name="password"
+              label="Mật khẩu"
+              type="password"
+              onChange={changePassword}
+              id="password"
+              autoComplete="current-password"
+            />
+            <Collapse in={tab === "sign-up" ? true : false}>
               <TextField
                 margin="normal"
-                error={validate.email ? true : false}
-                helperText={validate.email}
+                error={validate.confirm ? true : false}
+                helperText={validate.confirm}
                 required
                 fullWidth
-                id="email"
-                label="Email"
-                name="email"
-                autoComplete="email"
-                onChange={changeEmail}
-                autoFocus
-              />
-              <TextField
-                margin="normal"
-                error={validate.password ? true : false}
-                helperText={validate.password}
-                required
-                fullWidth
-                name="password"
-                label="Mật khẩu"
+                name="confirm"
+                label="Mật khẩu xác nhận"
                 type="password"
-                onChange={changePassword}
-                id="password"
+                onChange={changeConfirm}
+                id="password-confirm"
                 autoComplete="current-password"
               />
-              <Collapse in={tab === "sign-up" ? true : false}>
-                <TextField
-                  margin="normal"
-                  error={validate.confirm ? true : false}
-                  helperText={validate.confirm}
-                  required
-                  fullWidth
-                  name="confirm"
-                  label="Mật khẩu xác nhận"
-                  type="password"
-                  onChange={changeConfirm}
-                  id="password-confirm"
-                  autoComplete="current-password"
-                />
-              </Collapse>
-              {/* <FormControlLabel
-                control={<Checkbox value="remember" color="primary" />}
-                label="nhớ tài khoản"
-              /> */}
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                size="large"
-                onClick={signNormalize}
-                endIcon={<LoginIcon />}
-                sx={{ mt: 3, mb: 2 }}
-              >
-                {tab === "sign-in" ? "Đăng nhập" : "Đăng ký"}
-              </Button>
-              <Grid container>
-                <Grid item xs>
-                  <Link href="#" variant="body2">
-                    Bạn quên mật khẩu?
-                  </Link>
-                </Grid>
+            </Collapse>
+            {/* <FormControlLabel
+              control={<Checkbox value="remember" color="primary" />}
+              label="nhớ tài khoản"
+            /> */}
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              size="large"
+              onClick={signNormalize}
+              endIcon={<LoginIcon />}
+              sx={{ mt: 3, mb: 2 }}
+            >
+              {tab === "sign-in" ? "Đăng nhập" : "Đăng ký"}
+            </Button>
+            <Grid container>
+              <Grid item xs>
+                <Link href="#" variant="body2">
+                  Bạn quên mật khẩu?
+                </Link>
               </Grid>
-            </Box>
+            </Grid>
           </Box>
-          <Divider className="py-3">hoặc kết nối</Divider>
-          <Button
-            onClick={signInWithGoogle}
-            fullWidth
-            size="large"
-            variant="outlined"
-            endIcon={<IconGoogle className="w-5 h-5" />}
-          >
-            đăng nhập với google
-          </Button>
-          <Copyright sx={{ mt: 8, mb: 4 }} />
-        </Container>
-      </ThemeProvider>
+        </Box>
+        <Divider className="py-3">hoặc kết nối</Divider>
+        <Button
+          onClick={signInWithGoogle}
+          fullWidth
+          size="large"
+          variant="outlined"
+          endIcon={<IconGoogle className="w-5 h-5" />}
+        >
+          đăng nhập với google
+        </Button>
+        <Copyright sx={{ mt: 8, mb: 4 }} />
+      </Container>
     </>
   );
 }

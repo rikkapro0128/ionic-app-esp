@@ -2,9 +2,10 @@ import { memo, useState } from "react";
 import { WifiPresent, WifiInfo } from "../../pages/Connect";
 import { IconNode } from "../../icons/index";
 
+import { useTheme } from "@mui/material/styles";
+
 import Popover from "@mui/material/Popover";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -39,6 +40,7 @@ const StatusWifi = ({
   setAreaConnect,
   configWifiForEsp,
 }: PropsType) => {
+  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
@@ -157,16 +159,16 @@ const StatusWifi = ({
       </Popover>
       <div
         onClick={onCLick}
-        className={`py-4 active:bg-slate-200 transition-colors grid grid-cols-6 ${
+        className={`py-4 active:opacity-50 transition-opacity grid grid-cols-6 ${
           end ? "" : "border-t-[1px]"
         }`}
       >
-        <div className="col-span-3 flex mr-4">
-          <IconNode className="fill-slate-700 w-4 h-4 mr-4" />
-          <span className="flex-1 max-w-[150px] overflow-x-scroll whitespace-nowrap text-ellipsis">
+        <Box className="col-span-3 flex mr-4">
+          <IconNode className={`w-4 h-4 mr-4 fill-inherit`} style={{ fill: theme.palette.text.secondary }} />
+          <span className={`flex-1 max-w-[150px] overflow-x-scroll whitespace-nowrap text-ellipsis ${payload.SSID.includes('esp') ? 'text-indigo-600' : ''}`}>
             {payload.SSID || "NaN"}
           </span>
-        </div>
+        </Box>
         <div className="col-span-3 flex justify-between items-center">
           <span>
             {payload.frequency

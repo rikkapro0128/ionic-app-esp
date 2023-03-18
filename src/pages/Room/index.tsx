@@ -11,7 +11,6 @@ import Typography from "@mui/material/Typography";
 import Backdrop from "@mui/material/Backdrop";
 import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
-import Fade from "@mui/material/Fade";
 import Box from "@mui/material/Box";
 import Snackbar from "@mui/material/Snackbar";
 import TextField from "@mui/material/TextField";
@@ -23,6 +22,7 @@ import DialogContent from "@mui/material/DialogContent";
 import CircularProgress from "@mui/material/CircularProgress";
 import DialogContentText from "@mui/material/DialogContentText";
 import IconButton from "@mui/material/IconButton";
+import Fade from "@mui/material/Fade";
 
 import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 
@@ -35,15 +35,10 @@ import Node from "../../components/Node";
 import WrapOnNode from "../../components/Room/watch";
 
 import { IconRoom } from "../../icons";
-import {
-  ref,
-  set,
-} from "firebase/database";
+import { ref, set } from "firebase/database";
 import { database } from "../../firebase/db";
 
-import {
-  RoomType,
-} from "../../store/slices/roomsSlice";
+import { RoomType } from "../../store/slices/roomsSlice";
 import { NodePayload } from "../../store/slices/nodesSlice";
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { DeviceType } from "../../components/Widget/type";
@@ -95,12 +90,14 @@ const Rooms = () => {
   const [loadingViewRoom, setLoadingViewRoom] = useState(true);
 
   useEffect(() => {
-    
-    
+    let idTimeOut: NodeJS.Timeout;
     setLoadingViewRoom(true);
     if (pickViewRoom?.devicesOwn?.length) {
+      idTimeOut = setTimeout(() => {
+        setLoadingViewRoom(false);
+      }, 5000);
       const tempDevicesByNode: NodePayload = {};
-      pickViewRoom.devicesOwn.forEach((preDevice: DeviceType) => {
+      pickViewRoom.devicesOwn.forEach((preDevice: DeviceType, index: number, arr) => {
         if (typeof tempDevicesByNode[preDevice.node_id] !== "object") {
           tempDevicesByNode[preDevice.node_id] = {
             devices: [],
@@ -114,23 +111,34 @@ const Rooms = () => {
         tempDevicesByNode[preDevice.node_id].sub =
           nodes[preDevice.node_id]?.sub ?? "";
         tempDevicesByNode[preDevice.node_id].devices.push(preDevice);
+        if(index === arr.length - 1) {
+          setLoadingViewRoom(false);
+          if(idTimeOut) {
+            clearTimeout(idTimeOut);
+          }
+        }
       });
       setDevicesViewRoom(tempDevicesByNode);
     } else {
       setDevicesViewRoom(undefined);
+      setLoadingViewRoom(false);
     }
-    setLoadingViewRoom(false);
+    return () => {
+      if(idTimeOut) {
+        clearTimeout(idTimeOut);
+      }
+    }
   }, [pickViewRoom]);
 
   useEffect(() => {
     // console.log(rooms);
-    if(pickViewRoom) {
-      const reUpdateRoom = rooms.find(room => room.id === pickViewRoom.id);
-      if(reUpdateRoom) {
+    if (pickViewRoom) {
+      const reUpdateRoom = rooms.find((room) => room.id === pickViewRoom.id);
+      if (reUpdateRoom) {
         setPickViewRoom(reUpdateRoom);
       }
     }
-  }, [rooms])
+  }, [rooms]);
 
   const [infoCreateRoom, setInfoCreateRoom] = useState<RoomType>(
     () => defaultRoomEmpty
@@ -321,12 +329,14 @@ const Rooms = () => {
                     );
                   })
                 ) : (
-                  <div className="w-full flex flex-col justify-center items-center">
-                    <RouterIcon className="w-20 h-20 pb-2" />
-                    <Typography variant="subtitle2">
-                      không tìm thấy thiết bị nào trong phòng này.
-                    </Typography>
-                  </div>
+                  <Fade in={true} timeout={{ enter: 1000 }}>
+                    <div className="w-full flex flex-col justify-center items-center">
+                      <RouterIcon className="w-20 h-20 pb-2" />
+                      <Typography variant="subtitle2">
+                        không tìm thấy thiết bị nào trong phòng này.
+                      </Typography>
+                    </div>
+                  </Fade>
                 )}
               </div>
             </div>
@@ -413,7 +423,11 @@ const Rooms = () => {
         </Modal>
         <Box className="w-full h-screen p-4 flex flex-col">
           <Box className="flex justify-between items-center mb-5">
-            <Typography color={(theme) => theme.palette.text.primary} className="capitalize " variant="h6">
+            <Typography
+              color={(theme) => theme.palette.text.primary}
+              className="capitalize "
+              variant="h6"
+            >
               Số phòng hiện có: {rooms.length}
             </Typography>
             <Button
@@ -428,27 +442,34 @@ const Rooms = () => {
             {rooms.length > 0 ? (
               <div className="flex flex-col pb-[4.8rem]">
                 {rooms.map((room, index) => (
-                  <div
+                  <Fade
                     key={`${room.id}-${index}`}
-                    onClick={() => {
-                      setPickViewRoom(room);
-                    }}
+                    in={true}
+                    timeout={{ enter: 1000 * (index + 1) }}
                   >
-                    <Room
-                      className={`${index !== 0 ? "mt-2" : ""} mx-1`}
-                      room={room}
-                    />
-                  </div>
+                    <div
+                      onClick={() => {
+                        setPickViewRoom(room);
+                      }}
+                    >
+                      <Room
+                        className={`${index !== 0 ? "mt-2" : ""} mx-1`}
+                        room={room}
+                      />
+                    </div>
+                  </Fade>
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col justify-center items-center h-full">
-                <div className="relative">
-                  <div className="absolute -top-1 w-full h-full scale-125 rounded-full bg-slate-200"></div>
-                  <IconRoom className="relative w-20 h-20" />
+              <Fade in={true}>
+                <div className="flex flex-col justify-center items-center h-full">
+                  <div className="relative">
+                    <div className="absolute -top-1 w-full h-full scale-125 rounded-full bg-slate-200"></div>
+                    <IconRoom className="relative w-20 h-20" />
+                  </div>
+                  <span className="mt-2">chưa có phòng nào được tạo.</span>
                 </div>
-                <span className="mt-2">chưa có phòng nào được tạo.</span>
-              </div>
+              </Fade>
             )}
           </div>
         </Box>

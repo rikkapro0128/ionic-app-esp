@@ -3,6 +3,7 @@ import { memo, useState, useEffect, useCallback } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
+import Fade from "@mui/material/Fade";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import Chip from "@mui/material/Chip";
@@ -842,12 +843,20 @@ function Node({ devices, node }: PropsType) {
         open={openMenu}
         onClose={handleCloseMenu}
       >
-        <MenuItem disabled={infoSetting?.type !== WidgetType.LOGIC } onClick={handleClickOpenSettingTimer} disableRipple>
+        <MenuItem
+          disabled={infoSetting?.type !== WidgetType.LOGIC}
+          onClick={handleClickOpenSettingTimer}
+          disableRipple
+        >
           <AvTimerIcon />
           Hẹn giờ
         </MenuItem>
         {/* <Divider sx={{ my: 0.5 }} /> */}
-        <MenuItem disabled={infoSetting?.type !== WidgetType.LOGIC } onClick={handleClickOpenSettingBind} disableRipple>
+        <MenuItem
+          disabled={infoSetting?.type !== WidgetType.LOGIC}
+          onClick={handleClickOpenSettingBind}
+          disableRipple
+        >
           <AccountTreeRoundedIcon />
           Ràng buộc
         </MenuItem>
@@ -895,50 +904,51 @@ function Node({ devices, node }: PropsType) {
       <Box className={`col-span-2 grid grid-cols-2 gap-2`}>
         {devices.map((device, index) =>
           device.type === WidgetType.LOGIC ? (
-            <Box
-              key={index}
-              style={{
-                marginTop: `${expand ? 40 : 0}px`,
-              }}
-              bgcolor={(theme) => theme.palette.background.paper}
-              className={`flex h-24 flex-nowrap transition-all ${
-                device.type in grids
-                  ? grids[device.type as keyof typeof grids]
-                  : grids["none"]
-              } ${
-                device.type === WidgetType.LOGIC
-                  ? `col-start-${index + 1} col-end-${index + 2}`
-                  : ""
-              } relative col-auto p-3 rounded-2xl shadow-sm shadow-gray-900 z-20`}
-            >
-              <div
+            <Fade in={true} timeout={{ enter: 500 * (index + 1) }} key={index}>
+              <Box
                 style={{
-                  opacity: expand ? 1 : 0,
-                  pointerEvents: expand ? "unset" : "none",
+                  marginTop: `${expand ? 40 : 0}px`,
                 }}
-                className="absolute w-full right-0 -top-[40px] transition-opacity flex flex-nowrap"
+                bgcolor={(theme) => theme.palette.background.paper}
+                className={`flex h-24 flex-nowrap transition-all ${
+                  device.type in grids
+                    ? grids[device.type as keyof typeof grids]
+                    : grids["none"]
+                } ${
+                  device.type === WidgetType.LOGIC
+                    ? `col-start-${index + 1} col-end-${index + 2}`
+                    : ""
+                } relative col-auto p-3 rounded-2xl shadow-sm shadow-gray-900 z-20`}
               >
-                <IconButton
-                  onClick={(event: React.MouseEvent<HTMLElement>) =>
-                    handleClickSetting(event, device)
-                  }
-                  style={{ fontSize: "0.9rem" }}
-                  size={"small"}
-                  aria-label="setting"
+                <div
+                  style={{
+                    opacity: expand ? 1 : 0,
+                    pointerEvents: expand ? "unset" : "none",
+                  }}
+                  className="absolute w-full right-0 -top-[40px] transition-opacity flex flex-nowrap"
                 >
-                  Cài đặt <SettingsIcon className="ml-1" />
-                </IconButton>
-                <IconButton
-                  onClick={() => activeEditDevice(device)}
-                  style={{ fontSize: "0.9rem" }}
-                  size={"small"}
-                  aria-label="edit"
-                >
-                  Chỉnh sửa <EditIcon className="ml-1" />
-                </IconButton>
-              </div>
-              {getTypeWidget(device, userIDCtx)}
-            </Box>
+                  <IconButton
+                    onClick={(event: React.MouseEvent<HTMLElement>) =>
+                      handleClickSetting(event, device)
+                    }
+                    style={{ fontSize: "0.9rem" }}
+                    size={"small"}
+                    aria-label="setting"
+                  >
+                    Cài đặt <SettingsIcon className="ml-1" />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => activeEditDevice(device)}
+                    style={{ fontSize: "0.9rem" }}
+                    size={"small"}
+                    aria-label="edit"
+                  >
+                    Chỉnh sửa <EditIcon className="ml-1" />
+                  </IconButton>
+                </div>
+                {getTypeWidget(device, userIDCtx)}
+              </Box>
+            </Fade>
           ) : (
             <Box key={index} className="col-span-2 grid grid-cols-2 relative">
               <div

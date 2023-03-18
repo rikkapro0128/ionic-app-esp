@@ -1,5 +1,7 @@
 import { memo, useEffect } from "react";
 
+import { useTheme } from "@mui/material/styles";
+
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import RouterIcon from "@mui/icons-material/Router";
 
@@ -7,9 +9,8 @@ import { IconRoom } from "../../icons";
 import WaveBall from "../../assets/gif/wave-ball.gif";
 import StarMuti from "../../assets/gif/star-1.gif";
 
-import { get }  from 'firebase/database';
-
 import { RoomType } from '../../store/slices/roomsSlice';
+import { ColorMode } from '../../ConfigGlobal';
 
 interface PropType {
   room: RoomType;
@@ -17,10 +18,11 @@ interface PropType {
 }
 
 const Room = ({ room, className }: PropType) => {
+  const theme = useTheme();
 
   return (
     <div
-      className={`border-2 active:scale-[99%] transition-transform rounded-md text-sm bg-gradient-to-r from-indigo-400 to-indigo-500  shadow-md shadow-indigo-400 ${className}`}
+      className={`active:scale-[99%] transition-transform rounded-md text-sm bg-gradient-to-r shadow-md ${ theme.palette.mode === ColorMode.LIGHT ? 'from-indigo-400 to-indigo-500 shadow-indigo-400' : `from-slate-700 to-slate-900` } ${className}`}
     >
       <div className="relative overflow-hidden p-4">
         <img
@@ -56,7 +58,6 @@ const Room = ({ room, className }: PropType) => {
             <span>{room.createAt ? room.createAt : "không xác định."}</span>
           </p>
         </div>
-          {/* <p>{ room.id }</p> */}
       </div>
     </div>
   );
