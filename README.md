@@ -5,7 +5,14 @@ Dự án này mình làm đồ án, bạn nào clone cũng được, có public 
 
 # Giao diện đăng nhập
 Hiện tại ứng dụng có khả năng đăng nhập, đăng ký tài khoản hoặc đăng nhập thông qua google,... Tương lai sẽ  có đăng nhập qua tài khoản github ^^
-![page sign]()
+
+<p align="center">
+  <img style="height: 500px;" src="media/interface-sign.jpg" alt="interface sign" />
+</p>
+
 # Demo giao diện
 Này là bản xem thử, một số tính năng cơ bản
-![interface app]()
+
+<p align="center">
+  <img style="height: 500px;" src="media/interface-app-v1.gif" alt="interface app" />
+</p>
