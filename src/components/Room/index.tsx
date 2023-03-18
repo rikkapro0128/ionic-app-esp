@@ -20,7 +20,7 @@ const Room = ({ room, className }: PropType) => {
 
   return (
     <div
-      className={`border-2 active:scale-[99%] transition-transform rounded-md text-sm bg-gradient-to-r from-indigo-400 to-indigo-500 text-slate-50 shadow-md shadow-indigo-400 ${className}`}
+      className={`border-2 active:scale-[99%] transition-transform rounded-md text-sm bg-gradient-to-r from-indigo-400 to-indigo-500  shadow-md shadow-indigo-400 ${className}`}
     >
       <div className="relative overflow-hidden p-4">
         <img

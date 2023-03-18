@@ -10,6 +10,8 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   User,
+  onAuthStateChanged,
+  Unsubscribe,
 } from "firebase/auth";
 
 import {
@@ -29,8 +31,6 @@ import Collapse from "@mui/material/Collapse";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
 import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
@@ -45,6 +45,9 @@ import CircularProgress from "@mui/material/CircularProgress";
 import LoginIcon from "@mui/icons-material/Login";
 
 import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
+
+import { setUserID } from '../../store/slices/commonSlice';
+import { useAppDispatch } from "../../store/hooks";
 
 const theme = createTheme();
 const defaultRouteEnter = "devices";
@@ -71,6 +74,7 @@ function Copyright(props: any) {
 }
 
 function Sign() {
+  const dispatch = useAppDispatch();
   const [activeSnack, closeSnack] = useSnackbar();
   const navigate = useNavigate();
   const [sign, setSign] = useState({ email: "", password: "", confirm: "" });
@@ -82,6 +86,27 @@ function Sign() {
   const [tab, setTab] = useState("sign-in");
   const [state, setState] = useState(false);
   const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    let UnAuthState: Unsubscribe | undefined;
+    if(OSType.OS === "Windows") { 
+      const auth = getAuth(appAuthWeb);
+      UnAuthState = onAuthStateChanged(auth, (result) => {
+        dispatch(setUserID({ userId: result?.uid }));
+      });
+    }else if(OSType.OS === "Android") {
+      FirebaseAuthentication.addListener('authStateChange', (result) => {
+        dispatch(setUserID({ userId: result.user?.uid }));
+      })
+    }
+    return () => {
+      if(OSType.OS === "Windows") {
+        if(typeof UnAuthState === 'function') { UnAuthState() }
+      }else if(OSType.OS === "Android") {
+        FirebaseAuthentication.removeAllListeners();
+      }
+    }
+  }, [])
 
   useEffect(() => {
     // load option login in website enviroment
@@ -260,7 +285,7 @@ function Sign() {
         sx={{
           "& .MuiPaper-root": {
             backgroundColor: "transparent",
-            boxShadow: "none",
+            backgroundImage: 'none'
           },
         }}
         open={state}

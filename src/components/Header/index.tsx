@@ -162,10 +162,8 @@ function Header() {
           ))}
         </List>
       </SwipeableDrawer>
-      <Box className="w-full bg-indigo-600 relative">
-        <AppBar position="static" sx={{
-          backgroundColor: 'inherit'
-        }}>
+      <Box className="w-full relative">
+        <AppBar position="static">
           <StyledToolbar>
             <IconButton
               size="large"

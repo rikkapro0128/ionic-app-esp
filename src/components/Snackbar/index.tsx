@@ -1,6 +1,8 @@
 import { SnackbarContent } from "notistack";
 import { forwardRef } from "react";
 
+import Box from "@mui/material/Box";
+
 import { IconLogoThisApp } from "../../icons";
 
 interface SnackProps {
@@ -10,22 +12,24 @@ interface SnackProps {
   onClose: () => void;
 }
 
-export const SnackBar = forwardRef<HTMLDivElement, SnackProps>(
-  (props, ref) => {
-    const {
-      // You have access to notistack props and options 👇🏼
-      id,
-      message,
-      title = 'Thông báo',
-      // as well as your own custom props
-      onClose,
-      ...other
-    } = props;
+export const SnackBar = forwardRef<HTMLDivElement, SnackProps>((props, ref) => {
 
-    return (
-      <SnackbarContent ref={ref} role="alert" {...other}>
-        <div
-          className={`max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+  const {
+    // You have access to notistack props and options 👇🏼
+    id,
+    message,
+    title = "Thông báo",
+    // as well as your own custom props
+    onClose,
+    ...other
+  } = props;
+
+  return (
+    <SnackbarContent ref={ref} role="alert" {...other}>
+      <div className="w-full">
+        <Box
+          className={`max-w-md w-full shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+          bgcolor={(theme) => theme.palette.background.paper}
         >
           <div className="flex-1 w-0 p-4">
             <div className="flex items-start">
@@ -46,8 +50,8 @@ export const SnackBar = forwardRef<HTMLDivElement, SnackProps>(
               Đóng
             </button>
           </div>
-        </div>
-      </SnackbarContent>
-    );
-  }
-);
+        </Box>
+      </div>
+    </SnackbarContent>
+  );
+});

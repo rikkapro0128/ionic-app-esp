@@ -42,20 +42,20 @@ function Progress({ device }: PayloadType) {
             <Box className='flex flex-col items-center'>
               <Typography
                 variant="caption"
-                className='text-slate-600 text-lg'
+                className=' text-lg'
                 sx={{ fontSize: '1.5rem' }}
                 component="div"
               >{`${Math.round(device.value as number)}%`}</Typography>
               <Typography
                 variant="caption"
-                className='text-slate-600 text-lg capitalize'
+                className=' text-lg capitalize'
               >{ device.name }</Typography>
             </Box>
           </Box>
         </Box>
         <Typography
           variant="subtitle1"
-          className='text-slate-600 capitalize pt-3'
+          className=' capitalize pt-3'
         >{ device.sub }</Typography>
       </Box>
     </Box>

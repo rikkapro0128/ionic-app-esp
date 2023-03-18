@@ -8,23 +8,23 @@ import { useTheme, ThemeProvider, createTheme } from "@mui/material/styles";
 import { Toaster } from "react-hot-toast";
 
 /* Core CSS required for Ionic components to work properly */
-import "@ionic/react/css/core.css";
+// import "@ionic/react/css/core.css";
 
 /* Basic CSS for apps built with Ionic */
-import "@ionic/react/css/normalize.css";
-import "@ionic/react/css/structure.css";
-import "@ionic/react/css/typography.css";
+// import "@ionic/react/css/normalize.css";
+// import "@ionic/react/css/structure.css";
+// import "@ionic/react/css/typography.css";
 
 /* Optional CSS utils that can be commented out */
-import "@ionic/react/css/padding.css";
-import "@ionic/react/css/float-elements.css";
-import "@ionic/react/css/text-alignment.css";
-import "@ionic/react/css/text-transformation.css";
-import "@ionic/react/css/flex-utils.css";
-import "@ionic/react/css/display.css";
+// import "@ionic/react/css/padding.css";
+// import "@ionic/react/css/float-elements.css";
+// import "@ionic/react/css/text-alignment.css";
+// import "@ionic/react/css/text-transformation.css";
+// import "@ionic/react/css/flex-utils.css";
+// import "@ionic/react/css/display.css";
 
 /* Theme variables */
-import "./theme/variables.css";
+// import "./theme/variables.css";
 
 /* TailwindCSS */
 import "./index.css";
@@ -44,7 +44,7 @@ import { useAppSelector, useAppDispatch } from "./store/hooks";
 import Header from "./components/Header";
 import Auth from "./components/Auth";
 
-import { getUserIDByPlaform } from "./ConfigGlobal";
+import { getUserIDByPlaform, ColorMode } from "./ConfigGlobal";
 
 setupIonicReact();
 
@@ -56,9 +56,17 @@ const App: React.FC = () => {
         palette: {
           mode: colorMode,
           primary: {
-            main: '#651fff',
-            light: '#651fff',
-            dark: '#651fff',
+            main: '#4F46E5',
+            light: '#6366F1',
+            dark: '#4339CA',
+          },
+          background: {
+            default: colorMode === ColorMode.LIGHT ? '#F1F5F9' : '#121212',
+            paper: colorMode === ColorMode.LIGHT ? '#F1F5F9' : '#2a2828'
+          },
+          text: {
+            primary: colorMode === ColorMode.LIGHT ? 'rgb(51, 65, 85)' : '#fff',
+            secondary: colorMode === ColorMode.LIGHT ? 'rgb(71, 85, 105)' : '#fff',
           }
         },
       }),
@@ -69,8 +77,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     getUserIDByPlaform().then((userId) => {
-      console.log(userId);
-      
       dispatch(setUserID({ userId }));
     })
   }, [])
@@ -103,14 +109,14 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <Toaster />
-      <IonApp>
+      <Box>
         <Grow in={true}>
-          <Box className="w-full h-full">
+          <Box bgcolor={(theme) => theme.palette.background.default} className="w-full h-full">
             <Router>
               <Box className="flex flex-col h-full">
                 <Header />
                 {FBConnection ? null : (
-                  <p className="py-2 pl-2 bg-slate-300 text-slate-700 text-center italic">
+                  <p className="py-2 pl-2 text-center italic">
                     Chú ý: ứng dụng của bạn đang ở chế độ offline
                   </p>
                 )}
@@ -129,7 +135,7 @@ const App: React.FC = () => {
             </Router>
           </Box>
         </Grow>
-      </IonApp>
+      </Box>
     </ThemeProvider>
   );
 };

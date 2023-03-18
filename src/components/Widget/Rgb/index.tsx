@@ -71,10 +71,10 @@ function Rgb({ device, idUser }: PayloadType) {
           <Hue radius={16} hue={hsva.h} onChange={(newHue) => { setHsva({ ...hsva, h: Math.round(newHue.h) }); }} />
           <Alpha radius={16} hsva={hsva} onChange={(newAlpha) => { setHsva({ ...hsva, ...newAlpha }); }} />
         </Box>
-        <Typography variant="subtitle1" className='text-slate-600 capitalize' gutterBottom>
+        <Typography variant="subtitle1" className=' capitalize' gutterBottom>
           { device.name || device.id }
         </Typography>
-        <Typography variant="subtitle1" className='text-slate-600' gutterBottom>
+        <Typography variant="subtitle1" className='' gutterBottom>
           { device.sub || 'chưa có mô tả' }
         </Typography>
       </Box>

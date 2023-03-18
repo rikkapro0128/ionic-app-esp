@@ -133,7 +133,7 @@ function Profile() {
           </Button>
         </DialogActions>
       </Dialog>
-      <Box className='p-4 relative bg-slate-100 h-full'> 
+      <Box className='p-4 relative h-screen'> 
         <Box className='flex flex-col m-auto w-full my-3'>
           <Box className='absolute top-0 right-0 mr-10 mt-5'>
             <IconButton onClick={() => setDialog(true)} aria-label="logout" size="large">
@@ -149,14 +149,14 @@ function Profile() {
               <Avatar sx={{ width: 80, height: 80 }} alt={ info?.user?.displayName || info?.displayName || '' } src={ info?.user?.photoUrl || info?.photoURL || '' } />
             </StyledBadge>
           </Box>
-          <Typography className='text-center py-5 font-semibold text-slate-900' variant="h5" gutterBottom>
+          <Typography color={(theme) => theme.palette.text.primary} className='text-center py-5 font-semibold ' variant="h5" gutterBottom>
             { info?.user?.displayName || info?.displayName || '' }
           </Typography>
           <Box>
             <Divider textAlign="left">
               <Chip icon={<AndroidIcon />} label="ID" />
             </Divider>
-            <Typography className='text-left py-3 pl-10 font-semibold text-slate-900' variant="subtitle1" gutterBottom>
+            <Typography color={(theme) => theme.palette.text.secondary} className='text-left py-3 pl-10 font-semibold ' variant="subtitle1" gutterBottom>
               { info?.user?.uid || info?.uid || '' }
             </Typography>
           </Box>
@@ -164,7 +164,7 @@ function Profile() {
             <Divider textAlign="left">
               <Chip icon={<EmailIcon />} label="Email" />
             </Divider>
-            <Typography className='text-left py-3 pl-10 font-semibold text-slate-900' variant="subtitle1" gutterBottom>
+            <Typography color={(theme) => theme.palette.text.secondary} className='text-left py-3 pl-10 font-semibold ' variant="subtitle1" gutterBottom>
               { info?.user?.email || info?.email || '' }
             </Typography>
           </Box>
@@ -172,7 +172,7 @@ function Profile() {
             <Divider textAlign="left">
               <Chip icon={<PhoneAndroidIcon />} label="Số điện thoại" />
             </Divider>
-            <Typography className='text-left py-3 pl-10 font-semibold text-slate-900' variant="subtitle1" gutterBottom>
+            <Typography color={(theme) => theme.palette.text.secondary} className='text-left py-3 pl-10 font-semibold ' variant="subtitle1" gutterBottom>
               { /\(?([0-9]{3})\)?([ .-]?)([0-9]{3})\2([0-9]{4})/.test(info?.user?.email || info?.email || '') ? info?.user?.email || info?.email || '' : 'Số điện thoại không hợp lệ.' }
             </Typography>
           </Box>

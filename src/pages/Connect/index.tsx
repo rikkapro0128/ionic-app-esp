@@ -374,9 +374,9 @@ function Connect() {
                   <Typography
                     sx={{ fontSize: "1.2rem" }}
                     variant="subtitle1"
-                    className="py-3 text-slate-800"
+                    className="py-3 "
                   >
-                    <LabelIcon className="mr-2 text-slate-700" />
+                    <LabelIcon className="mr-2 " />
                     {wifiViewConfig?.ssid || "không tìm thấy."}
                   </Typography>
                 </Box>
@@ -388,9 +388,9 @@ function Connect() {
                   <Typography
                     sx={{ fontSize: "1.2rem" }}
                     variant="subtitle1"
-                    className="py-3 text-slate-800"
+                    className="py-3 "
                   >
-                    <LabelIcon className="mr-2 text-slate-700" />
+                    <LabelIcon className="mr-2 " />
                     {wifiViewConfig?.password || "không tìm thấy."}
                   </Typography>
                 </Box>
@@ -402,9 +402,9 @@ function Connect() {
                   <Typography
                     sx={{ fontSize: "1.2rem" }}
                     variant="subtitle1"
-                    className="py-3 text-slate-800"
+                    className="py-3 "
                   >
-                    <LabelIcon className="mr-2 text-slate-700" />
+                    <LabelIcon className="mr-2 " />
                     {wifiViewConfig?.["ip-station"] || "không được cấp phát."}
                   </Typography>
                 </Box>
@@ -416,9 +416,9 @@ function Connect() {
                   <Typography
                     sx={{ fontSize: "1.2rem" }}
                     variant="subtitle1"
-                    className="py-3 text-slate-800"
+                    className="py-3 "
                   >
-                    <LabelIcon className="mr-2 text-slate-700" />
+                    <LabelIcon className="mr-2 " />
                     {wifiViewConfig &&
                     wifiViewConfig?.["status-station"] in StatusConnectWifiESP
                       ? StatusConnectWifiESP[
@@ -498,17 +498,17 @@ function Connect() {
         style={{
           height: "100vh",
         }}
-        className="bg-slate-100 flex flex-col"
+        className=" flex flex-col"
       >
         <Box className="overflow-hidden">
           <BtnScan isScan={loading} onCLick={clickScan} />
         </Box>
-        <Box className="bg-white w-full flex-1 rounded-t-3xl shadow-lg px-8 pt-8 shadow-slate-900">
+        <Box bgcolor={(theme) => theme.palette.background.paper} color={(theme) => theme.palette.text.primary} className=" w-full flex-1 rounded-t-3xl shadow-lg px-8 pt-8 shadow-slate-900">
           <div className="mb-3 flex justify-between">
-            <h2 className="text-slate-700 text-lg uppercase font-bold">
+            <h2 className=" text-lg uppercase font-bold">
               wifi có sẵn
             </h2>
-            <h2 className="text-slate-700 text-md uppercase font-bold">
+            <h2 className=" text-md uppercase font-bold">
               thiết lập cho:
               <span style={{ textTransform: "none" }} className="font-normal">
                 {" " + wifiTarget || "chưa thiết lập"}
@@ -517,7 +517,7 @@ function Connect() {
           </div>
           <div
             style={{ maxHeight: wifis.length ? 8 * 53.58 + "px" : "100%" }}
-            className="text-slate-600 h-full overflow-y-scroll"
+            className=" h-full overflow-y-scroll"
           >
             {/* render list wifi */}
             {loading ? (

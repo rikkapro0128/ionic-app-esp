@@ -13,7 +13,7 @@ const root = createRoot(container!);
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <SnackbarProvider >
+      <SnackbarProvider>
         <App />
       </SnackbarProvider>
     </Provider>

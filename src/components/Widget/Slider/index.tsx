@@ -51,14 +51,14 @@ function Slider({ device, idUser }: PayloadType) {
     <Box className='flex flex-nowrap w-full'>
       <Box className='mr-3'>
         { device.icon in icon ? icon[device.icon as keyof typeof icon] : icon['light'] }
-        <Typography variant="subtitle1" className='text-slate-600 text-center pt-3'>{ percent }%</Typography>
+        <Typography variant="subtitle1" className=' text-center pt-3'>{ percent }%</Typography>
       </Box>
       <Box className='flex flex-col flex-1 px-3'>
         <SD sx={{ color: 'rgb(99, 102, 241)' }} defaultValue={percent} onChange={changePercent} aria-label="Default" valueLabelDisplay="auto" />
-        <Typography variant="subtitle1" className='text-slate-600 capitalize' gutterBottom>
+        <Typography variant="subtitle1" className=' capitalize' gutterBottom>
           { device.name || device.id }
         </Typography>
-        <Typography variant="subtitle1" className='text-slate-600' gutterBottom>
+        <Typography variant="subtitle1" className='' gutterBottom>
           { device.sub || 'không có mô tả nào' }
         </Typography>
       </Box>

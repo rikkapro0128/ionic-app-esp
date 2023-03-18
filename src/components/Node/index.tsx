@@ -1,9 +1,4 @@
-import {
-  memo,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import { memo, useState, useEffect, useCallback } from "react";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -25,6 +20,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import MenuItem from "@mui/material/MenuItem";
+import Collapse from "@mui/material/Collapse";
 
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 import RoomPreferencesRoundedIcon from "@mui/icons-material/RoomPreferencesRounded";
@@ -56,15 +52,7 @@ import TimerControllOption from "../Timer/OptionType/Logic";
 import TimerView from "../Timer/Widget/index";
 import CreateBindingDevice from "../Binding";
 
-import {
-  ref,
-  set,
-  get,
-  child,
-  push,
-  update,
-  onValue,
-} from "firebase/database";
+import { ref, set, get, child, push, update, onValue } from "firebase/database";
 import { database } from "../../firebase/db";
 
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
@@ -516,20 +504,22 @@ function Node({ devices, node }: PropsType) {
 
   const hanldeOpenPromtRemoveNode = () => {
     setPromtRemoveNode(true);
-  }
+  };
 
   const hanldeClosePromtRemoveNode = () => {
     setPromtRemoveNode(false);
-  }
+  };
 
   const handleRemoveNode = async () => {
-    if(userIDCtx) {
+    if (userIDCtx) {
       try {
-        await set(ref(database, `user-${userIDCtx}/nodes/node-${node.id}`), null);
+        await set(
+          ref(database, `user-${userIDCtx}/nodes/node-${node.id}`),
+          null
+        );
         await dispatch(removeNode(node.id));
         activeSnack({
-          message:
-            `bạn đã xoá node ${node.name || node.id}.`,
+          message: `bạn đã xoá node ${node.name || node.id}.`,
         } as PropsSnack & string);
       } catch (error) {
         activeSnack({
@@ -540,7 +530,7 @@ function Node({ devices, node }: PropsType) {
       }
     }
     hanldeClosePromtRemoveNode();
-  }
+  };
 
   return (
     <>
@@ -556,8 +546,8 @@ function Node({ devices, node }: PropsType) {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Hành động này của bạn sẽ xoá node "{node.name || node.id}" ra khỏi ứng
-            dụng bạn chắc chứ?
+            Hành động này của bạn sẽ xoá node "{node.name || node.id}" ra khỏi
+            ứng dụng bạn chắc chứ?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -653,7 +643,7 @@ function Node({ devices, node }: PropsType) {
         </DialogTitle>
         <DialogContent>
           <Typography
-            className="pb-2 text-slate-700 whitespace-nowrap overflow-x-scroll"
+            className="pb-2  whitespace-nowrap overflow-x-scroll"
             variant="subtitle2"
             gutterBottom
           >
@@ -798,7 +788,7 @@ function Node({ devices, node }: PropsType) {
                 );
               })
             ) : (
-              <div className="text-slate-600 flex flex-col items-center mt-8">
+              <div className=" flex flex-col items-center mt-8">
                 <AlarmOnOutlinedIcon style={{ fontSize: "5rem" }} />
                 <span className="mt-4">không có bộ hẹn giờ nào được chạy.</span>
               </div>
@@ -847,16 +837,17 @@ function Node({ devices, node }: PropsType) {
         MenuListProps={{
           "aria-labelledby": "demo-customized-button",
         }}
+        className="shadow-sm shadow-black"
         anchorEl={anchorElMenuSetting}
         open={openMenu}
         onClose={handleCloseMenu}
       >
-        <MenuItem onClick={handleClickOpenSettingTimer} disableRipple>
+        <MenuItem disabled={infoSetting?.type !== WidgetType.LOGIC } onClick={handleClickOpenSettingTimer} disableRipple>
           <AvTimerIcon />
           Hẹn giờ
         </MenuItem>
         {/* <Divider sx={{ my: 0.5 }} /> */}
-        <MenuItem onClick={handleClickOpenSettingBind} disableRipple>
+        <MenuItem disabled={infoSetting?.type !== WidgetType.LOGIC } onClick={handleClickOpenSettingBind} disableRipple>
           <AccountTreeRoundedIcon />
           Ràng buộc
         </MenuItem>
@@ -868,7 +859,8 @@ function Node({ devices, node }: PropsType) {
 
       <Box className="grid grid-cols-2 col-span-full flex-nowrap items-center">
         <Typography
-          className="col-span-1 text-slate-700 pt-4 whitespace-nowrap overflow-x-scroll"
+          color={(theme) => theme.palette.text.primary}
+          className="col-span-1 pt-4 whitespace-nowrap overflow-x-scroll"
           variant="h6"
           gutterBottom
         >
@@ -879,12 +871,12 @@ function Node({ devices, node }: PropsType) {
             className={`px-2 py-1 text-xs border-[1px]  rounded-full ${
               nodeOnline
                 ? "border-green-500 text-green-500"
-                : "border-slate-500 text-slate-700"
+                : "border-slate-500 "
             }`}
           >
             {nodeOnline ? "online" : "offline"}
           </span> */}
-          <div>
+          <Box>
             <IconButton aria-label="edit">
               <EditIcon />
             </IconButton>
@@ -897,7 +889,7 @@ function Node({ devices, node }: PropsType) {
             <IconButton onClick={onExpand} aria-label="expand">
               {expand ? <UnfoldLessIcon /> : <UnfoldMoreIcon />}
             </IconButton>
-          </div>
+          </Box>
         </Box>
       </Box>
       <Box className={`col-span-2 grid grid-cols-2 gap-2`}>
@@ -908,6 +900,7 @@ function Node({ devices, node }: PropsType) {
               style={{
                 marginTop: `${expand ? 40 : 0}px`,
               }}
+              bgcolor={(theme) => theme.palette.background.paper}
               className={`flex h-24 flex-nowrap transition-all ${
                 device.type in grids
                   ? grids[device.type as keyof typeof grids]
@@ -916,7 +909,7 @@ function Node({ devices, node }: PropsType) {
                 device.type === WidgetType.LOGIC
                   ? `col-start-${index + 1} col-end-${index + 2}`
                   : ""
-              } relative col-auto p-3 rounded-2xl border-indigo-600 border-2 shadow-md z-20 bg-white`}
+              } relative col-auto p-3 rounded-2xl shadow-sm shadow-gray-900 z-20`}
             >
               <div
                 style={{
@@ -979,11 +972,11 @@ function Node({ devices, node }: PropsType) {
                   marginTop: expand ? 40 : 0,
                   transition: "margin 200ms ease-in-out",
                 }}
-                className={`flex flex-nowrap ${
+                className={`flex flex-nowrap  ${
                   device.type in grids
                     ? grids[device.type as keyof typeof grids]
                     : grids["none"]
-                } col-auto p-3 rounded-2xl border-indigo-600 border-2 shadow-md relative z-20 bg-[#edf1f5]`}
+                } col-auto p-3 rounded-2xl border-indigo-600 border-2 shadow-md relative z-20`}
               >
                 {getTypeWidget(device, userIDCtx)}
               </Box>

@@ -44,14 +44,14 @@ function Devices() {
           sx={{
             "& .MuiPaper-root": {
               backgroundColor: "transparent",
-              boxShadow: "none",
+              backgroundImage: 'none'
             },
           }}
           open={true}
         >
           <CircularProgress sx={{ color: "white", margin: "0 auto" }} />
           <Typography
-            className="text-white pt-5"
+            className="pt-5 text-white"
             variant="subtitle1"
             gutterBottom
           >
@@ -64,17 +64,16 @@ function Devices() {
             maxHeight: window.innerHeight - 72,
             height: window.innerHeight - 72,
           }}
-          bgcolor={ theme.palette.mode === ColorMode.LIGHT ? '#f1f5f9' : '#212121' }
           className={`overflow-y-scroll`}
         >
           {Object.entries(nodes).map(([key, node]) => {
             return (
-              <div key={key} className="grid grid-cols-2 gap-3 p-3">
+              <Box key={key} className="grid grid-cols-2 gap-3 p-3">
                 <Node
                   devices={node.devices}
                   node={{ id: key.includes('node') ? key.split('node-')[1] : key, name: node.name, sub: node.sub }}
                 />
-              </div>
+              </Box>
             );
           })}
         </Box>
@@ -84,7 +83,7 @@ function Devices() {
             <IconNotFound className="w-48 h-48 m-auto" />
             <Typography
               sx={{ fontSize: "1.2rem", fontWeight: 600 }}
-              className="pt-3 text-slate-700"
+              className="pt-3 "
             >
               Không tìm thấy thiết bị nào.
             </Typography>

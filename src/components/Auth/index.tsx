@@ -105,7 +105,7 @@ function Dashboard() {
       sx={{
         "& .MuiPaper-root": {
           backgroundColor: "transparent",
-          boxShadow: "none",
+          backgroundImage: "none",
         },
       }}
       open={true}

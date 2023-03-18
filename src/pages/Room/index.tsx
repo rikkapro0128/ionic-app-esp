@@ -301,7 +301,7 @@ const Rooms = () => {
                       sx={{ color: "inherit", margin: "0 auto" }}
                     />
                     <Typography
-                      className="text-slate-600 pt-5"
+                      className=" pt-5"
                       variant="subtitle1"
                       gutterBottom
                     >
@@ -358,7 +358,7 @@ const Rooms = () => {
             <Box
               component="form"
               sx={styleTransition}
-              className="bg-slate-100 text-slate-700 rounded-md"
+              className="rounded-md"
               maxWidth={"90%"}
               onSubmit={handleCreateRoom}
             >
@@ -411,9 +411,9 @@ const Rooms = () => {
             </Box>
           </Fade>
         </Modal>
-        <div className="w-full h-screen bg-slate-100 text-slate-700 p-4 flex flex-col">
-          <div className="flex justify-between items-center mb-5">
-            <Typography className="capitalize text-slate-600" variant="h6">
+        <Box className="w-full h-screen p-4 flex flex-col">
+          <Box className="flex justify-between items-center mb-5">
+            <Typography color={(theme) => theme.palette.text.primary} className="capitalize " variant="h6">
               Số phòng hiện có: {rooms.length}
             </Typography>
             <Button
@@ -423,7 +423,7 @@ const Rooms = () => {
             >
               Tạo phòng
             </Button>
-          </div>
+          </Box>
           <div className="flex-1 overflow-y-scroll">
             {rooms.length > 0 ? (
               <div className="flex flex-col pb-[4.8rem]">
@@ -451,7 +451,7 @@ const Rooms = () => {
               </div>
             )}
           </div>
-        </div>
+        </Box>
       </Box>
     </WrapOnNode>
   );

@@ -100,7 +100,7 @@ const TimerView = ({
       >
         <button
           onClick={onClickRemove}
-          className="flex-1 px-5 bg-red-400 text-slate-50 active:opacity-50"
+          className="flex-1 px-5 active:opacity-50"
         >
           Xoá
         </button>
