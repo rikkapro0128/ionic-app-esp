@@ -1,5 +1,7 @@
 import { memo, useState, useEffect, useCallback } from "react";
 
+import { useTheme } from "@mui/material/styles";
+
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
@@ -21,7 +23,6 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import MenuItem from "@mui/material/MenuItem";
-import Collapse from "@mui/material/Collapse";
 
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 import RoomPreferencesRoundedIcon from "@mui/icons-material/RoomPreferencesRounded";
@@ -102,7 +103,7 @@ interface UpdateField {
 const grids = {
   LOGIC: "col-span-1",
   TRANSFORM: "col-span-2",
-  COLOR: "col-span-2",
+  COLOR: "col-span-full",
   PROGRESS: "col-span-1 row-span-2",
   none: "col-span-1",
 };
@@ -169,6 +170,7 @@ const getTypeWidget = (device: DeviceType, idUser: string | undefined) => {
 };
 
 function Node({ devices, node }: PropsType) {
+  const theme = useTheme();
   const [activeSnack, closeSnack] = useSnackbar();
   const dispatch = useAppDispatch();
   const userIDCtx = useAppSelector((state) => state.commons.userId);
@@ -908,9 +910,10 @@ function Node({ devices, node }: PropsType) {
               <Box
                 style={{
                   marginTop: `${expand ? 40 : 0}px`,
+                  transition: 'all 200ms ease'
                 }}
                 bgcolor={(theme) => theme.palette.background.paper}
-                className={`flex h-24 flex-nowrap transition-all ${
+                className={`flex h-24 flex-nowrap ${
                   device.type in grids
                     ? grids[device.type as keyof typeof grids]
                     : grids["none"]
@@ -951,12 +954,12 @@ function Node({ devices, node }: PropsType) {
             </Fade>
           ) : (
             <Box key={index} className="col-span-2 grid grid-cols-2 relative">
-              <div
+              <Box
                 className="absolute w-full transition-opacity"
                 style={{ opacity: expand ? 1 : 0 }}
               >
                 <Box className="flex">
-                  <Box className="flex-1 border-indigo-700 border-t-2 border-l-2 rounded-tl-lg mr-4 ml-10 translate-y-1/2"></Box>
+                  <Box className={`flex-1 border-t-2 border-l-2 rounded-tl-lg mr-4 ml-10 translate-y-1/2 border-[${theme.palette.text.primary}]`}></Box>
                   <Box className="flex flex-nowrap">
                     <IconButton
                       onClick={(event: React.MouseEvent<HTMLElement>) =>
@@ -976,17 +979,14 @@ function Node({ devices, node }: PropsType) {
                     </IconButton>
                   </Box>
                 </Box>
-              </div>
+              </Box>
               <Box
                 style={{
                   marginTop: expand ? 40 : 0,
                   transition: "margin 200ms ease-in-out",
                 }}
-                className={`flex flex-nowrap  ${
-                  device.type in grids
-                    ? grids[device.type as keyof typeof grids]
-                    : grids["none"]
-                } col-auto p-3 rounded-2xl border-indigo-600 border-2 shadow-md relative z-20`}
+                bgcolor={(theme) => theme.palette.background.paper}
+                className={`flex flex-nowrap col-span-2 p-3 rounded-2xl shadow-md relative shadow-gray-900 z-20`}
               >
                 {getTypeWidget(device, userIDCtx)}
               </Box>
