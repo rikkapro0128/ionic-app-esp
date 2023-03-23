@@ -50,7 +50,7 @@ function Slider({ device, idUser }: PayloadType) {
   return (
     <Box className='flex flex-nowrap w-full'>
       <Box className='mr-3'>
-        { device.icon in icon ? icon[device.icon as keyof typeof icon] : icon['light'] }
+        { device.icon in icon ? icon[device.icon as keyof typeof icon] : icon['TOGGLE'] }
         <Typography variant="subtitle1" className=' text-center pt-3'>{ percent }%</Typography>
       </Box>
       <Box className='flex flex-col flex-1 px-3'>

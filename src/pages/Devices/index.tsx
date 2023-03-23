@@ -60,10 +60,6 @@ function Devices() {
         </Dialog>
       ) : Object.entries(nodes).length > 0 ? (
         <Box
-          sx={{
-            maxHeight: window.innerHeight - 72,
-            height: window.innerHeight - 72,
-          }}
           className={`overflow-y-scroll`}
         >
           {Object.entries(nodes).map(([key, node]) => {

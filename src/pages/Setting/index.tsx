@@ -50,7 +50,7 @@ function Setting() {
   return (
     <Box
       color={(theme) => theme.palette.text.primary}
-      className="h-screen pt-1"
+      className="  pt-1"
     >
       <Box>
         <Typography

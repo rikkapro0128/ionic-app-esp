@@ -11,6 +11,11 @@ export interface ColorType {
   contrast: number;
 }
 
+export enum ModeColor {
+  SINGLE = 0,
+  AUTO = 1,
+}
+
 export interface NodeType {
   id: string;
   name?: string;
@@ -29,6 +34,7 @@ export interface DeviceType {
   type: WidgetType;
   uint?: string;
   node_id: string;
+  mode?: ModeColor,
   room?: {
     id: string,
     name: string,

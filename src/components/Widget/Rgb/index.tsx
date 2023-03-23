@@ -1,4 +1,6 @@
-import { memo, useState, useEffect, useMemo, useCallback } from "react";
+import { memo, useState, useEffect } from "react";
+
+import { useTheme } from "@mui/material/styles";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -10,21 +12,35 @@ import {
   hsvaToHexa,
   rgbaToHsva,
   rgbaToHex,
+  HsvaColor,
 } from "@uiw/color-convert";
 
-import { ref, get, set, child, onValue, DataSnapshot, Unsubscribe } from "firebase/database";
+import {
+  ref,
+  get,
+  set,
+  child,
+  onValue,
+  DataSnapshot,
+  Unsubscribe,
+} from "firebase/database";
 import { database } from "../../../firebase/db";
 
 import icon from "../index";
 
-import { DeviceType, ColorType } from "../type";
+import { ReMapValue } from "../../../ConfigGlobal";
+
+import { DeviceType, ColorType, ModeColor } from "../type";
 
 interface PayloadType {
   device: DeviceType;
   idUser: string | undefined;
 }
 
+let blockUpdate = false;
+
 function Rgb({ device, idUser }: PayloadType) {
+  const theme = useTheme();
   const [hsva, setHsva] = useState(() =>
     device.value && typeof device.value === "object"
       ? rgbaToHsva({
@@ -35,7 +51,6 @@ function Rgb({ device, idUser }: PayloadType) {
         })
       : { h: 0, s: 0, v: 68, a: 1 }
   );
-  const [hsvaRemote, setHsvaRemote] = useState({ h: 0, s: 0, v: 68, a: 1 });
   const [rgba, setRgba] = useState({ r: 0, g: 0, b: 0, a: 0 });
   const [userID, setUser] = useState<string | undefined>(idUser);
   const [timeBounce, setTimeBounce] = useState<number>(200);
@@ -43,8 +58,6 @@ function Rgb({ device, idUser }: PayloadType) {
   const [idBounce, setIdBounce] = useState<undefined | NodeJS.Timeout>(
     undefined
   );
-  const [block, setBlock] = useState(true);
-  const blockUpdate = useMemo(() => block, [block]);
 
   useEffect(() => {
     let unOn: Unsubscribe | undefined;
@@ -54,16 +67,38 @@ function Rgb({ device, idUser }: PayloadType) {
           database,
           `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/value`
         ),
-        onUpdate
-      )
+        (snapshot: DataSnapshot) => {
+          const color: ColorType | undefined = snapshot.val();
+          if (color !== undefined) {
+            if (
+              color.r !== rgba.r ||
+              color.g !== rgba.g ||
+              color.b !== rgba.b ||
+              color.contrast !== rgba.a
+            ) {
+              if (!blockUpdate) {
+                blockUpdate = true;
+                setHsva(
+                  rgbaToHsva({
+                    r: color.r,
+                    g: color.g,
+                    b: color.b,
+                    a: Number((color.contrast / 100).toFixed(1)),
+                  })
+                );
+                blockUpdate = false;
+              }
+            }
+          }
+        }
+      );
     }
     return () => {
-      if(typeof unOn === 'function') {
+      if (typeof unOn === "function") {
         unOn();
       }
-    }
-  }, [userID, device]);
-  
+    };
+  }, [userID]);
 
   useEffect(() => {
     if (startBounce) {
@@ -76,38 +111,15 @@ function Rgb({ device, idUser }: PayloadType) {
     };
   }, [hsva]);
 
-  const onUpdate = useCallback((snapshot: DataSnapshot) => {
-    const color: ColorType | undefined = snapshot.val();
-    
-    if (color !== undefined && !blockUpdate) {
-      if (
-        color.r !== rgba.r ||
-        color.g !== rgba.g ||
-        color.b !== rgba.b ||
-        color.contrast !== rgba.a
-      ) {
-        console.log('update state', blockUpdate);
-        
-        setHsva(rgbaToHsva({ r: color.r, g: color.g, b: color.b, a: color.contrast }));
-      }
-    }
-  }, [blockUpdate])
-
   useEffect(() => {
     if (startBounce) {
       clearTimeout(idBounce);
-      console.log(block);
-      
-      if(!block) {
-        setIdBounce(setTimeout(handleValueRgb, timeBounce));
-      }else {
-        setBlock(false);
-      }
+      setIdBounce(setTimeout(handleValueRgb, timeBounce));
     }
   }, [rgba]);
 
   async function handleValueRgb() {
-    if (userID) {
+    if (userID && !blockUpdate) {
       try {
         const color = {
           r: rgba.r,
@@ -115,8 +127,8 @@ function Rgb({ device, idUser }: PayloadType) {
           b: rgba.b,
           contrast: Math.round(rgba.a * 100),
         };
-        
-        setBlock(true);
+
+        blockUpdate = true;
 
         await set(
           ref(
@@ -128,24 +140,42 @@ function Rgb({ device, idUser }: PayloadType) {
       } catch (error) {
         console.log(error);
       }
+
+      blockUpdate = false;
     }
   }
 
-  function changeColor() {}
-
   return (
-    <Box className="flex flex-nowrap w-full">
-      <Box className="mr-3 flex flex-col">
-        {device.icon in icon
-          ? icon[device.icon as keyof typeof icon]
-          : icon["light"]}
+    <Box className={`flex flex-nowrap w-full relative`}>
+      <Box
+        className="mr-3 flex flex-col"
+        sx={{
+          "& svg": {
+            fill: theme.palette.text.primary,
+            filter: `drop-shadow(-1px 1px 2px ${theme.palette.text.primary})`,
+          },
+        }}
+      >
+        {device.type in icon
+          ? icon[device.type as keyof typeof icon]
+          : icon["TOGGLE"]}
         <Box
           className="flex-1 w-full mt-3 rounded-md"
-          sx={{ backgroundColor: hsvaToHexa(hsva) }}
+          sx={{
+            backgroundColor: hsvaToHexa(hsva),
+            boxShadow: `0px 0px 4px ${hsvaToHexa(hsva)}`,
+          }}
         ></Box>
       </Box>
       <Box className="flex flex-col flex-1 px-3">
-        <Box className="grid grid-rows-2 gap-6 my-3">
+        <Box
+          sx={{
+            transition: "filter 200ms ease",
+          }}
+          className={`grid grid-rows-2 gap-6 my-3 ${
+            device.mode === ModeColor.AUTO ? "blur-sm pointer-events-none" : ""
+          }`}
+        >
           <Hue
             radius={16}
             hue={hsva.h}
@@ -161,12 +191,27 @@ function Rgb({ device, idUser }: PayloadType) {
             }}
           />
         </Box>
-        <Typography variant="subtitle1" className=" capitalize" gutterBottom>
-          {device.name || device.id}
-        </Typography>
-        <Typography variant="subtitle1" className="" gutterBottom>
-          {device.sub || "chưa có mô tả"}
-        </Typography>
+        <Box className="grid grid-cols-2">
+          <Box className="col-span-1">
+            <Typography
+              color={(theme) => theme.palette.text.primary}
+              variant="subtitle1"
+              className=" capitalize"
+              gutterBottom
+            >
+              {device.name || device.id}
+            </Typography>
+            <Typography
+              color={(theme) => theme.palette.text.secondary}
+              variant="subtitle1"
+              className=""
+              gutterBottom
+            >
+              {device.sub || "chưa có mô tả"}
+            </Typography>
+          </Box>
+          <Typography className="col-span-1">Chế độ - { device.mode === ModeColor.SINGLE ? 'Đơn sắc' : 'Đa sắc' }</Typography>
+        </Box>
       </Box>
     </Box>
   );

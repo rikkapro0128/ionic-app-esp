@@ -44,7 +44,9 @@ export const counterSlice = createSlice({
     },
     updateDevice: (state, { payload }) => {
       const { nodeId, device } = payload;
+      
       if (nodeId && device) {
+        
         if (state.value[nodeId]?.devices && state.value[nodeId].devices.length > 0) {
           state.value[nodeId].devices.find((dv, index) => {
             if (dv.id === device.id) {

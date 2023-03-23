@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
 
-
 import { IonApp, setupIonicReact } from "@ionic/react";
 
 import { useTheme, ThemeProvider, createTheme } from "@mui/material/styles";
@@ -56,18 +55,19 @@ const App: React.FC = () => {
         palette: {
           mode: colorMode,
           primary: {
-            main: '#4F46E5',
-            light: '#6366F1',
-            dark: '#4339CA',
+            main: "#4F46E5",
+            light: "#6366F1",
+            dark: "#4339CA",
           },
           background: {
-            default: colorMode === ColorMode.LIGHT ? '#F1F5F9' : '#121212',
-            paper: colorMode === ColorMode.LIGHT ? '#F1F5F9' : '#2a2828'
+            default: colorMode === ColorMode.LIGHT ? "#F1F5F9" : "#121212",
+            paper: colorMode === ColorMode.LIGHT ? "#F1F5F9" : "#2a2828",
           },
           text: {
-            primary: colorMode === ColorMode.LIGHT ? 'rgb(51, 65, 85)' : '#fff',
-            secondary: colorMode === ColorMode.LIGHT ? 'rgb(71, 85, 105)' : '#fff',
-          }
+            primary: colorMode === ColorMode.LIGHT ? "rgb(51, 65, 85)" : "#fff",
+            secondary:
+              colorMode === ColorMode.LIGHT ? "rgb(71, 85, 105)" : "#fff",
+          },
         },
       }),
     [colorMode]
@@ -78,8 +78,8 @@ const App: React.FC = () => {
   useEffect(() => {
     getUserIDByPlaform().then((userId) => {
       dispatch(setUserID({ userId }));
-    })
-  }, [])
+    });
+  }, []);
 
   useEffect(() => {
     const connectedRef = ref(database, ".info/connected");
@@ -94,24 +94,27 @@ const App: React.FC = () => {
 
   useEffect(() => {
     let idTimeOut: NodeJS.Timeout;
-    if(!FBConnection) {
+    if (!FBConnection) {
       idTimeOut = setInterval(() => {
         goOnline(database);
       }, 2000);
     }
     return () => {
-      if(idTimeOut) {
+      if (idTimeOut) {
         clearInterval(idTimeOut);
       }
-    }
-  }, [FBConnection])
+    };
+  }, [FBConnection]);
 
   return (
     <ThemeProvider theme={theme}>
       <Toaster />
       <Box>
         <Grow in={true}>
-          <Box bgcolor={(theme) => theme.palette.background.default} className="w-full h-full">
+          <Box
+            bgcolor={(theme) => theme.palette.background.default}
+            className="w-full h-full"
+          >
             <Router>
               <Box className="flex flex-col h-full">
                 <Header />
@@ -126,7 +129,16 @@ const App: React.FC = () => {
                       <Route
                         key={index}
                         path={route.path}
-                        element={<route.element />}
+                        element={
+                          <Box
+                            sx={{
+                              maxHeight: window.innerHeight - 72,
+                              height: window.innerHeight - 72,
+                            }}
+                          >
+                            <route.element />
+                          </Box>
+                        }
                       />
                     ))}
                   </Route>

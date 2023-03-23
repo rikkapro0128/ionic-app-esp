@@ -302,7 +302,7 @@ const Rooms = () => {
                   xoá phòng
                 </Button>
               </div>
-              <div className="flex flex-1 w-full">
+              <div className="flex flex-1 w-full flex-col">
                 {loadingViewRoom ? (
                   <Box className="text-indigo-600 w-full flex flex-col justify-center items-center">
                     <CircularProgress
@@ -421,7 +421,7 @@ const Rooms = () => {
             </Box>
           </Fade>
         </Modal>
-        <Box className="w-full h-screen p-4 flex flex-col">
+        <Box className="w-full p-4 flex flex-col">
           <Box className="flex justify-between items-center mb-5">
             <Typography
               color={(theme) => theme.palette.text.primary}

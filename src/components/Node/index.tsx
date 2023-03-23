@@ -72,7 +72,7 @@ import Transition from "../Transition/index";
 
 import { WidgetType } from "../Widget/type";
 import { TypeSelect } from "../Timer/OptionType/Logic";
-import { DeviceType, NodeType } from "../Widget/type";
+import { DeviceType, NodeType, ModeColor } from "../Widget/type";
 
 interface PropsType {
   devices: DeviceType[] | [];
@@ -182,12 +182,16 @@ function Node({ devices, node }: PropsType) {
   const [expand, setExpand] = useState<boolean>(false);
   const [openSettingTimer, setOpenSettingTimer] = useState<boolean>(false);
   const [openSettingbind, setOpenSettingbind] = useState<boolean>(false);
+  const [openPickModeColor, setOpenPickModeColor] = useState<boolean>(false);
   const [openListRoom, setOpenListRoom] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [loadingUpdate, setLoadingUpdate] = useState<boolean>(false);
   const [infoEdit, setInfoEdit] = useState<InfoEditType>();
   const [infoSetting, setInfoSetting] = useState<DeviceType>();
   const [board, setBoard] = useState<BoardType>();
+  const [selectModeColor, setSelectModeColor] = useState<ModeColor>(
+    ModeColor.SINGLE
+  );
   const [valueControlTimerLogic, setValueControlTimerLogic] =
     useState<TypeSelect>(TypeSelect.TURN_ON);
   const [anchorElMenuSetting, setAnchorElMenuSetting] =
@@ -535,6 +539,44 @@ function Node({ devices, node }: PropsType) {
     hanldeClosePromtRemoveNode();
   };
 
+  const openModalPickModeColor = () => {
+    handleCloseMenu();
+    if (infoSetting && infoSetting.mode) {
+      setSelectModeColor(infoSetting.mode);
+    }
+    setOpenPickModeColor(true);
+  };
+
+  const closeModalPickModeColor = () => {
+    setOpenPickModeColor(false);
+    setInfoSetting(undefined);
+  };
+
+  const pickModeColor = async () => {
+    if (infoSetting && userIDCtx) {
+      const mode = infoSetting.mode as ModeColor;
+      const nodeId = infoSetting.node_id;
+      const deviceId = infoSetting.id;
+
+      if (mode !== selectModeColor) {
+        await set(
+          ref(
+            database,
+            `user-${userIDCtx}/nodes/node-${nodeId}/devices/device-${deviceId}/mode`
+          ),
+          selectModeColor
+        );
+        dispatch(
+          updateDevice({
+            nodeId: `node-${nodeId}`,
+            device: { ...infoSetting, mode: selectModeColor },
+          })
+        );
+      }
+      closeModalPickModeColor();
+    }
+  };
+
   return (
     <>
       {/* Accept remove node */}
@@ -557,6 +599,65 @@ function Node({ devices, node }: PropsType) {
           <Button onClick={hanldeClosePromtRemoveNode}>Huỷ</Button>
           <Button onClick={handleRemoveNode} autoFocus>
             Đồng ý
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* dialog for pick mode color */}
+      <Dialog
+        open={openPickModeColor}
+        TransitionComponent={Transition}
+        keepMounted
+        onClose={closeModalPickModeColor}
+        aria-describedby="alert-dialog-slide-description"
+        fullWidth
+      >
+        <DialogTitle>
+          chọn chế độ màu cho {infoSetting?.id || infoSetting?.name}
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            overflow: "hidden",
+          }}
+        >
+          <List
+            sx={{
+              maxHeight: 400,
+              overflowY: "scroll",
+            }}
+            className="border rounded-md"
+          >
+            <ListItemButton
+              onClick={() => {
+                setSelectModeColor(ModeColor.SINGLE);
+              }}
+              selected={selectModeColor === ModeColor.SINGLE}
+            >
+              <ListItemIcon>
+                <HighlightOffRoundedIcon />
+              </ListItemIcon>
+              <ListItemText primary="Đơn sắc" />
+            </ListItemButton>
+            <ListItemButton
+              onClick={() => {
+                setSelectModeColor(ModeColor.AUTO);
+              }}
+              selected={selectModeColor === ModeColor.AUTO}
+            >
+              <ListItemIcon>
+                <HighlightOffRoundedIcon />
+              </ListItemIcon>
+              <ListItemText primary="Đa sắc" />
+            </ListItemButton>
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeModalPickModeColor}>Huỷ</Button>
+          <Button
+            variant="contained"
+            endIcon={loadingUpdate ? <CircularProgress size={20} /> : null}
+            onClick={pickModeColor}
+          >
+            Cập nhật
           </Button>
         </DialogActions>
       </Dialog>
@@ -866,6 +967,12 @@ function Node({ devices, node }: PropsType) {
           <RoomPreferencesRoundedIcon />
           chọn phòng
         </MenuItem>
+        {infoSetting?.type === WidgetType.COLOR ? (
+          <MenuItem onClick={openModalPickModeColor} disableRipple>
+            <RoomPreferencesRoundedIcon />
+            chọn chế độ
+          </MenuItem>
+        ) : null}
       </StyledMenu>
 
       <Box className="grid grid-cols-2 col-span-full flex-nowrap items-center">
@@ -887,70 +994,70 @@ function Node({ devices, node }: PropsType) {
           >
             {nodeOnline ? "online" : "offline"}
           </span> */}
-          <Box>
-            <IconButton aria-label="edit">
-              <EditIcon />
-            </IconButton>
-            <IconButton aria-label="setting">
-              <SettingsIcon />
-            </IconButton>
-            <IconButton onClick={hanldeOpenPromtRemoveNode} aria-label="remove">
-              <DeleteRoundedIcon />
-            </IconButton>
-            <IconButton onClick={onExpand} aria-label="expand">
-              {expand ? <UnfoldLessIcon /> : <UnfoldMoreIcon />}
-            </IconButton>
-          </Box>
+          <IconButton aria-label="edit">
+            <EditIcon />
+          </IconButton>
+          <IconButton aria-label="setting">
+            <SettingsIcon />
+          </IconButton>
+          <IconButton onClick={hanldeOpenPromtRemoveNode} aria-label="remove">
+            <DeleteRoundedIcon />
+          </IconButton>
+          <IconButton onClick={onExpand} aria-label="expand">
+            {expand ? <UnfoldLessIcon /> : <UnfoldMoreIcon />}
+          </IconButton>
         </Box>
       </Box>
       <Box className={`col-span-2 grid grid-cols-2 gap-2`}>
         {devices.map((device, index) =>
           device.type === WidgetType.LOGIC ? (
             <Fade in={true} timeout={{ enter: 500 * (index + 1) }} key={index}>
-              <Box
-                style={{
-                  marginTop: `${expand ? 40 : 0}px`,
-                  transition: 'all 200ms ease'
-                }}
-                bgcolor={(theme) => theme.palette.background.paper}
-                className={`flex h-24 flex-nowrap ${
-                  device.type in grids
-                    ? grids[device.type as keyof typeof grids]
-                    : grids["none"]
-                } ${
-                  device.type === WidgetType.LOGIC
-                    ? `col-start-${index + 1} col-end-${index + 2}`
-                    : ""
-                } relative col-auto p-3 rounded-2xl shadow-sm shadow-gray-900 z-20`}
-              >
-                <div
-                  style={{
-                    opacity: expand ? 1 : 0,
-                    pointerEvents: expand ? "unset" : "none",
+              <div>
+                <Box
+                  sx={{
+                    marginTop: `${expand ? 40 : 0}px`,
+                    transition: "margin 200ms ease-in-out",
                   }}
-                  className="absolute w-full right-0 -top-[40px] transition-opacity flex flex-nowrap"
+                  bgcolor={(theme) => theme.palette.background.paper}
+                  className={`flex h-24 flex-nowrap ${
+                    device.type in grids
+                      ? grids[device.type as keyof typeof grids]
+                      : grids["none"]
+                  } ${
+                    device.type === WidgetType.LOGIC
+                      ? `col-start-${index + 1} col-end-${index + 2}`
+                      : ""
+                  } relative col-auto p-3 rounded-2xl shadow-sm shadow-gray-900 z-20`}
                 >
-                  <IconButton
-                    onClick={(event: React.MouseEvent<HTMLElement>) =>
-                      handleClickSetting(event, device)
-                    }
-                    style={{ fontSize: "0.9rem" }}
-                    size={"small"}
-                    aria-label="setting"
+                  <div
+                    style={{
+                      opacity: expand ? 1 : 0,
+                      pointerEvents: expand ? "unset" : "none",
+                    }}
+                    className="absolute w-full right-0 -top-[40px] transition-opacity flex flex-nowrap"
                   >
-                    Cài đặt <SettingsIcon className="ml-1" />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => activeEditDevice(device)}
-                    style={{ fontSize: "0.9rem" }}
-                    size={"small"}
-                    aria-label="edit"
-                  >
-                    Chỉnh sửa <EditIcon className="ml-1" />
-                  </IconButton>
-                </div>
-                {getTypeWidget(device, userIDCtx)}
-              </Box>
+                    <IconButton
+                      onClick={(event: React.MouseEvent<HTMLElement>) =>
+                        handleClickSetting(event, device)
+                      }
+                      style={{ fontSize: "0.9rem" }}
+                      size={"small"}
+                      aria-label="setting"
+                    >
+                      Cài đặt <SettingsIcon className="ml-1" />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => activeEditDevice(device)}
+                      style={{ fontSize: "0.9rem" }}
+                      size={"small"}
+                      aria-label="edit"
+                    >
+                      Chỉnh sửa <EditIcon className="ml-1" />
+                    </IconButton>
+                  </div>
+                  {getTypeWidget(device, userIDCtx)}
+                </Box>
+              </div>
             </Fade>
           ) : (
             <Box key={index} className="col-span-2 grid grid-cols-2 relative">
@@ -959,7 +1066,9 @@ function Node({ devices, node }: PropsType) {
                 style={{ opacity: expand ? 1 : 0 }}
               >
                 <Box className="flex">
-                  <Box className={`flex-1 border-t-2 border-l-2 rounded-tl-lg mr-4 ml-10 translate-y-1/2 border-[${theme.palette.text.primary}]`}></Box>
+                  <Box
+                    className={`flex-1 border-t-2 border-l-2 rounded-tl-lg mr-4 ml-10 translate-y-1/2 border-[${theme.palette.text.primary}]`}
+                  ></Box>
                   <Box className="flex flex-nowrap">
                     <IconButton
                       onClick={(event: React.MouseEvent<HTMLElement>) =>
@@ -986,7 +1095,7 @@ function Node({ devices, node }: PropsType) {
                   transition: "margin 200ms ease-in-out",
                 }}
                 bgcolor={(theme) => theme.palette.background.paper}
-                className={`flex flex-nowrap col-span-2 p-3 rounded-2xl shadow-md relative shadow-gray-900 z-20`}
+                className={`flex flex-nowrap col-span-2 p-3 rounded-2xl shadow-sm relative shadow-gray-900 z-20`}
               >
                 {getTypeWidget(device, userIDCtx)}
               </Box>

@@ -20,7 +20,7 @@ function Progress({ device }: PayloadType) {
   return (
     <Box className='flex flex-nowrap'>
       <Box className=''>
-        { device.icon in icon ? icon[device.icon as keyof typeof icon] : icon['light'] }
+        { device.icon in icon ? icon[device.icon as keyof typeof icon] : icon['TOGGLE'] }
       </Box>
       <Box className="flex flex-col items-center ">
         <Box className='w-36 h-36' sx={{ position: 'relative', display: 'inline-flex' }}>

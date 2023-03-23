@@ -85,9 +85,9 @@ function Toggle({ device, idUser }: PayloadType) {
             toggle ? "fill-slate-50" : "fill-indigo-400"
           } bg-indigo-500`}
         >
-          {device.icon in icon
-            ? icon[device.icon as keyof typeof icon]
-            : icon["light"]}
+          {device.type in icon
+            ? icon[device.type as keyof typeof icon]
+            : icon["TOGGLE"]}
         </Box>
         <AntSwitch
           className="mt-2 "
