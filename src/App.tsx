@@ -116,7 +116,7 @@ const App: React.FC = () => {
             className="w-full h-full"
           >
             <Router>
-              <Box className="flex flex-col h-full">
+              <Box className="flex flex-col h-full overflow-hidden">
                 <Header />
                 {FBConnection ? null : (
                   <p className="py-2 pl-2 text-center italic">
@@ -131,6 +131,7 @@ const App: React.FC = () => {
                         path={route.path}
                         element={
                           <Box
+                            className="overflow-hidden"
                             sx={{
                               maxHeight: window.innerHeight - 72,
                               height: window.innerHeight - 72,

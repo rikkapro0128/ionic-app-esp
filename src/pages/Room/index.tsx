@@ -247,7 +247,7 @@ const Rooms = () => {
 
   return (
     <WrapOnNode>
-      <Box>
+      <Box className="h-full">
         <Dialog
           open={dialog}
           onClose={() => setDialog(false)}
@@ -290,8 +290,8 @@ const Rooms = () => {
             </IconButton>
           </DialogTitle>
           <DialogContent>
-            <div className="h-full flex flex-col items-center">
-              <div className="w-full flex justify-end">
+            <div className="h-full flex flex-col items-center overflow-hidden">
+              <div className="w-full flex justify-end mb-5">
                 <Button
                   onClick={() => {
                     setDialog(true);
@@ -302,7 +302,7 @@ const Rooms = () => {
                   xoá phòng
                 </Button>
               </div>
-              <div className="flex flex-1 w-full flex-col">
+              <div className="flex h-full w-full flex-col overflow-y-scroll overflow-x-hidden p-1">
                 {loadingViewRoom ? (
                   <Box className="text-indigo-600 w-full flex flex-col justify-center items-center">
                     <CircularProgress
@@ -330,7 +330,7 @@ const Rooms = () => {
                   })
                 ) : (
                   <Fade in={true} timeout={{ enter: 1000 }}>
-                    <div className="w-full flex flex-col justify-center items-center">
+                    <div className="relative top-1/2 -translate-y-1/2 w-full flex flex-col justify-center items-center">
                       <RouterIcon className="w-20 h-20 pb-2" />
                       <Typography variant="subtitle2">
                         không tìm thấy thiết bị nào trong phòng này.
@@ -421,7 +421,7 @@ const Rooms = () => {
             </Box>
           </Fade>
         </Modal>
-        <Box className="w-full p-4 flex flex-col">
+        <Box className="w-full h-full p-4 flex flex-col">
           <Box className="flex justify-between items-center mb-5">
             <Typography
               color={(theme) => theme.palette.text.primary}
@@ -440,7 +440,7 @@ const Rooms = () => {
           </Box>
           <div className="flex-1 overflow-y-scroll">
             {rooms.length > 0 ? (
-              <div className="flex flex-col pb-[4.8rem]">
+              <div className="flex flex-col ">
                 {rooms.map((room, index) => (
                   <Fade
                     key={`${room.id}-${index}`}

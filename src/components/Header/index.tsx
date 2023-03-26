@@ -24,6 +24,7 @@ import RouterIcon from "@mui/icons-material/Router";
 import SettingsEthernetIcon from "@mui/icons-material/SettingsEthernet";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SettingsIcon from "@mui/icons-material/Settings";
+import WifiOffIcon from '@mui/icons-material/WifiOff';
 
 // Import Swiper styles
 import "swiper/css";
@@ -48,24 +49,30 @@ const menu = [
   },
   {
     id: 2,
+    field: "điều khiển offline",
+    icon: <WifiOffIcon />,
+    path: "/controll-offline",
+  },
+  {
+    id: 3,
     field: 'danh sách phòng',
     icon: <RoomPreferencesRoundedIcon />,
     path: '/rooms'
   },
   {
-    id: 3,
+    id: 4,
     field: "kết nối node",
     icon: <SettingsEthernetIcon />,
     path: "/connect",
   },
   {
-    id: 4,
+    id: 5,
     field: "Thông tin người dùng",
     icon: <AccountCircleIcon />,
     path: "/profile",
   },
   {
-    id: 5,
+    id: 6,
     field: "Cài đặt",
     icon: <SettingsIcon />,
     path: "/setting",

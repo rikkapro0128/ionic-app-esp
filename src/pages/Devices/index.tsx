@@ -44,7 +44,8 @@ function Devices() {
           sx={{
             "& .MuiPaper-root": {
               backgroundColor: "transparent",
-              backgroundImage: 'none'
+              backgroundImage: 'none',
+              boxShadow: 'none'
             },
           }}
           open={true}
@@ -60,7 +61,7 @@ function Devices() {
         </Dialog>
       ) : Object.entries(nodes).length > 0 ? (
         <Box
-          className={`overflow-y-scroll`}
+          className={`overflow-y-scroll max-h-full`}
         >
           {Object.entries(nodes).map(([key, node]) => {
             return (

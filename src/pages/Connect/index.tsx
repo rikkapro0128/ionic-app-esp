@@ -495,10 +495,7 @@ function Connect() {
         </DialogActions>
       </Dialog>
       <div
-        style={{
-          height: "100vh",
-        }}
-        className=" flex flex-col"
+        className="h-full flex flex-col"
       >
         <Box className="overflow-hidden">
           <BtnScan isScan={loading} onCLick={clickScan} />
