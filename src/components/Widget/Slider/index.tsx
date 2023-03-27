@@ -13,7 +13,9 @@ import { DeviceType } from '../type';
 
 interface PayloadType {
   device: DeviceType,
-  idUser: string | undefined;
+  idUser?: string | undefined;
+  isOffline?: boolean;
+  hostOffline?: string;
 }
 
 function Slider({ device, idUser }: PayloadType) {

@@ -34,6 +34,7 @@ export interface DeviceType {
   type: WidgetType;
   uint?: string;
   node_id: string;
+  host?: string,
   mode?: ModeColor,
   room?: {
     id: string,

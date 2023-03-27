@@ -2,6 +2,7 @@ import { memo } from "react";
 
 interface PropsType {
   title?: string,
+  second?: string,
   isScan: boolean,
   size?: number,
   fontSizePrimary?: number,
@@ -9,7 +10,7 @@ interface PropsType {
   onCLick?: React.MouseEventHandler | undefined,
 }
 
-const BtnScan = ({ onCLick, isScan, title, size, fontSizePrimary, fontSizeSecond }: PropsType) => {
+const BtnScan = ({ onCLick, isScan, title, second, size, fontSizePrimary, fontSizeSecond }: PropsType) => {
   return (
     <div style={{
       height: size + 'px',
@@ -30,7 +31,7 @@ const BtnScan = ({ onCLick, isScan, title, size, fontSizePrimary, fontSizeSecond
         className={`absolute w-3/4 h-3/4 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#494d5f] m-auto rounded-full shadow-md flex justify-center items-center flex-col`}
       >
         <span style={{ fontSize: fontSizePrimary + 'px' ?? 'auto' }} className="uppercase text-2xl">{ title || 'quét wifi'}</span>
-        <span style={{ fontSize: fontSizeSecond + 'px' ?? 'auto' }} className="uppercase text-xs mt-1">(chạm là quét)</span>
+        <span style={{ fontSize: fontSizeSecond + 'px' ?? 'auto' }} className="uppercase text-xs mt-1">{ second ? second : '(chạm là quét)' }</span>
       </div>
     </div>
   );

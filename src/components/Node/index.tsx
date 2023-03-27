@@ -45,10 +45,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
-import WidgetToggle from "../Widget/Toggle";
-import WidgetSlider from "../Widget/Slider";
-import WidgetColor from "../Widget/Rgb";
-import WidgetNotFound from "../Widget/NotFound";
+import { getTypeWidget } from '../Widget';
 
 import TimerControllOption from "../Timer/OptionType/Logic";
 import TimerView from "../Timer/Widget/index";
@@ -152,22 +149,6 @@ const StyledMenu = styled((props: MenuProps) => (
     },
   },
 }));
-
-const getTypeWidget = (device: DeviceType, idUser: string | undefined) => {
-  if (device.type === WidgetType.LOGIC) {
-    return <WidgetToggle device={device} idUser={idUser} />;
-  }
-  // else if (device.type === "progress") {
-  //   return <WidgetProgress device={device} idUser={idUser} />;
-  // }
-  else if (device.type === WidgetType.TRANSFORM) {
-    return <WidgetSlider device={device} idUser={idUser} />;
-  } else if (device.type === WidgetType.COLOR) {
-    return <WidgetColor device={device} idUser={idUser} />;
-  } else {
-    return <WidgetNotFound />;
-  }
-};
 
 function Node({ devices, node }: PropsType) {
   const theme = useTheme();

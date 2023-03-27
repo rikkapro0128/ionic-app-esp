@@ -18,61 +18,78 @@ import { DeviceType } from "../type";
 
 interface PayloadType {
   device: DeviceType;
-  idUser: string | undefined;
+  idUser?: string | undefined;
+  isOffline?: boolean;
+  hostOffline?: string;
 }
 
-function Toggle({ device, idUser }: PayloadType) {
+function Toggle({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
   const dispatch = useAppDispatch();
   const userID = useAppSelector((state) => state.commons.userId);
   const [toggle, setToggle] = useState(device.state ? true : false);
   const [block, setBlock] = useState<boolean>(false);
 
   useEffect(() => {
-    const run = () => {
-      if (userID) {
-        const refDBState = `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/state`;
-        const dbRef = ref(database, refDBState);
-        return onValue(dbRef, (snapshot) => {
-          const val = snapshot.val();
+    if (!isOffline) {
+      const run = () => {
+        if (userID) {
+          const refDBState = `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/state`;
+          const dbRef = ref(database, refDBState);
+          return onValue(dbRef, (snapshot) => {
+            const val = snapshot.val();
 
-          if (!block) {
-            setBlock(() => true);
-            setToggle(val);
-            dispatch(
-              updateValueDevice({
-                nodeId: device.node_id,
-                deviceId: device.id,
-                value: val,
-              })
-            );
-            setBlock(() => false);
-          }
-        });
-      }
-    };
-    const Unsubscribe = run();
-    return Unsubscribe;
-  }, [userID]);
+            if (!block) {
+              setBlock(() => true);
+              setToggle(val);
+              dispatch(
+                updateValueDevice({
+                  nodeId: device.node_id,
+                  deviceId: device.id,
+                  value: val,
+                })
+              );
+              setBlock(() => false);
+            }
+          });
+        }
+      };
+      const Unsubscribe = run();
+      return Unsubscribe;
+    }
+  }, [userID, isOffline]);
 
   const handleClick = useCallback(async () => {
     if (userID && device.id && !block) {
       setBlock(() => true);
 
       try {
-        await set(
-          ref(
-            database,
-            `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/state`
-          ),
-          !toggle
-        );
+        if (isOffline) {
+          const response = await fetch(`${hostOffline}/controll`, {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ uid: userID, did: device.id, state: !toggle }),
+          });
+          // const result = await response.json();
+          if(response.ok) {
+            setToggle(!toggle);
+          }
+          // console.log(result);
+        } else {
+          await set(
+            ref(
+              database,
+              `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/state`
+            ),
+            !toggle
+          );
+        }
       } catch (error) {
         console.log(error);
       }
 
       setBlock(() => false);
     }
-  }, [userID, toggle, block]);
+  }, [userID, toggle, block, isOffline, hostOffline]);
 
   return (
     <Box
@@ -112,13 +129,13 @@ function Toggle({ device, idUser }: PayloadType) {
           {device.sub || "không có mô tả nào"}
         </Typography>
         <Typography
-          color={(theme) => toggle ? theme.palette.success.light : theme.palette.text.primary}
+          color={(theme) =>
+            toggle ? theme.palette.success.light : theme.palette.text.primary
+          }
           className=" flex-1 flex items-end"
           variant="subtitle1"
         >
-          <span className="capitalize">
-            {toggle ? "bật" : "tắt"}
-          </span>
+          <span className="capitalize">{toggle ? "bật" : "tắt"}</span>
         </Typography>
       </Box>
     </Box>

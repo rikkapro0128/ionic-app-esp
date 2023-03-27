@@ -26,6 +26,8 @@ import {
 } from "firebase/database";
 import { database } from "../../../firebase/db";
 
+import { useAppSelector } from "../../../store/hooks";
+
 import icon from "../index";
 
 import { ReMapValue } from "../../../ConfigGlobal";
@@ -34,12 +36,14 @@ import { DeviceType, ColorType, ModeColor } from "../type";
 
 interface PayloadType {
   device: DeviceType;
-  idUser: string | undefined;
+  idUser?: string | undefined;
+  isOffline?: boolean;
+  hostOffline?: string;
 }
 
 let blockUpdate = false;
 
-function Rgb({ device, idUser }: PayloadType) {
+function Rgb({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
   const theme = useTheme();
   const [hsva, setHsva] = useState(() =>
     device.value && typeof device.value === "object"
@@ -52,7 +56,7 @@ function Rgb({ device, idUser }: PayloadType) {
       : { h: 0, s: 0, v: 68, a: 1 }
   );
   const [rgba, setRgba] = useState({ r: 0, g: 0, b: 0, a: 0 });
-  const [userID, setUser] = useState<string | undefined>(idUser);
+  const userID = useAppSelector(state => state.commons.userId);
   const [timeBounce, setTimeBounce] = useState<number>(200);
   const [startBounce, setStartBounce] = useState<boolean>(false);
   const [idBounce, setIdBounce] = useState<undefined | NodeJS.Timeout>(
@@ -62,43 +66,45 @@ function Rgb({ device, idUser }: PayloadType) {
   useEffect(() => {
     let unOn: Unsubscribe | undefined;
     if (userID) {
-      unOn = onValue(
-        ref(
-          database,
-          `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/value`
-        ),
-        (snapshot: DataSnapshot) => {
-          const color: ColorType | undefined = snapshot.val();
-          if (color !== undefined) {
-            if (
-              color.r !== rgba.r ||
-              color.g !== rgba.g ||
-              color.b !== rgba.b ||
-              color.contrast !== rgba.a
-            ) {
-              if (!blockUpdate) {
-                blockUpdate = true;
-                setHsva(
-                  rgbaToHsva({
-                    r: color.r,
-                    g: color.g,
-                    b: color.b,
-                    a: Number((color.contrast / 100).toFixed(1)),
-                  })
-                );
-                blockUpdate = false;
+      if (!isOffline) {
+        unOn = onValue(
+          ref(
+            database,
+            `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/value`
+          ),
+          (snapshot: DataSnapshot) => {
+            const color: ColorType | undefined = snapshot.val();
+            if (color !== undefined) {
+              if (
+                color.r !== rgba.r ||
+                color.g !== rgba.g ||
+                color.b !== rgba.b ||
+                color.contrast !== rgba.a
+              ) {
+                if (!blockUpdate) {
+                  blockUpdate = true;
+                  setHsva(
+                    rgbaToHsva({
+                      r: color.r,
+                      g: color.g,
+                      b: color.b,
+                      a: Number((color.contrast / 100).toFixed(1)),
+                    })
+                  );
+                  blockUpdate = false;
+                }
               }
             }
           }
-        }
-      );
+        );
+      }
     }
     return () => {
       if (typeof unOn === "function") {
         unOn();
       }
     };
-  }, [userID]);
+  }, [userID, isOffline]);
 
   useEffect(() => {
     if (startBounce) {
@@ -129,14 +135,35 @@ function Rgb({ device, idUser }: PayloadType) {
         };
 
         blockUpdate = true;
-
-        await set(
-          ref(
-            database,
-            `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/value`
-          ),
-          color
-        );
+        if (!isOffline) {
+          await set(
+            ref(
+              database,
+              `user-${userID}/nodes/node-${device.node_id}/devices/device-${device.id}/value`
+            ),
+            color
+          );
+        } else {
+          if (hostOffline) {
+            const response = await fetch(`${hostOffline}/controll`, {
+              method: 'POST',
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                uid: userID,
+                did: device.id,
+                mode: 0,
+                value: {
+                  r: color.r,
+                  g: color.g,
+                  b: color.b,
+                  a: color.contrast,
+                },
+              }),
+            });
+            // const result = await response.json();
+            // console.log(result);
+          }
+        }
       } catch (error) {
         console.log(error);
       }
@@ -210,7 +237,9 @@ function Rgb({ device, idUser }: PayloadType) {
               {device.sub || "chưa có mô tả"}
             </Typography>
           </Box>
-          <Typography className="col-span-1">Chế độ - { device.mode === ModeColor.SINGLE ? 'Đơn sắc' : 'Đa sắc' }</Typography>
+          <Typography className="col-span-1">
+            Chế độ - {device.mode === ModeColor.SINGLE ? "Đơn sắc" : "Đa sắc"}
+          </Typography>
         </Box>
       </Box>
     </Box>

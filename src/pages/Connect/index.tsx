@@ -336,7 +336,7 @@ function Connect() {
         <div className="px-5">
           <div className="flex justify-between items-center pt-5">
             <span className="text-lg">
-              Cấu hình ${wifiPresent?.SSID || "ESP8266"}
+              Cấu hình {wifiPresent?.SSID || "ESP8266"}
             </span>
             <IconButton
               size="large"
