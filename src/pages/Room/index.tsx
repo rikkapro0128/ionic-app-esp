@@ -92,6 +92,7 @@ const Rooms = () => {
   useEffect(() => {
     let idTimeOut: NodeJS.Timeout;
     setLoadingViewRoom(true);
+    
     if (pickViewRoom?.devicesOwn?.length) {
       idTimeOut = setTimeout(() => {
         setLoadingViewRoom(false);
@@ -138,7 +139,7 @@ const Rooms = () => {
         setPickViewRoom(reUpdateRoom);
       }
     }
-  }, [rooms]);
+  }, [rooms, nodes]);
 
   const [infoCreateRoom, setInfoCreateRoom] = useState<RoomType>(
     () => defaultRoomEmpty

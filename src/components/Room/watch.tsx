@@ -63,6 +63,7 @@ const WrapOnNode = ({ children }: Props) => {
   useEffect(() => {
     if (Object.entries(nodes).length > 0) {
       const devices = getDevicesFromNodes(nodes);
+      // console.log(devices);
       setDevices(devices);
     }
     return () => {

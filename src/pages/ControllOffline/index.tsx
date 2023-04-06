@@ -9,6 +9,7 @@ import SensorsIcon from "@mui/icons-material/Sensors";
 import BtnScan from "../../components/Btn/Scan";
 
 import { useScanDevice } from "../../hooks/ScanDevice";
+import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 
 import {
   ColorType,
@@ -35,6 +36,7 @@ interface NodeType {
 }
 
 const ControllOffline = () => {
+  const [activeSnack, closeSnack] = useSnackbar();
   const theme = useTheme();
 
   const [scan, setScan] = useState(false);
@@ -73,13 +75,28 @@ const ControllOffline = () => {
   };
 
   useEffect(() => {
+    const deviceJson = localStorage.getItem('devices-offline');
+    if(deviceJson) {
+      const deviceParser = JSON.parse(deviceJson) as DeviceType[];
+      setDevices(deviceParser);
+    }
+    
+  }, [])
+
+  useEffect(() => {
     const run = async () => {
       if (scan) {
         const nodes: NodeType[] = (await scanDevices()).filter(
           (nodes) => nodes !== null
         );
         const device = parserDevice(nodes);
+        if(device.length === 0) {
+          activeSnack({
+            message: `Không tìm thấy thiết bị nào trong mạng.`,
+          } as PropsSnack & string);
+        }
         console.log(device);
+        localStorage.setItem('devices-offline', JSON.stringify(device));
         setDevices(device);
         setScan(false);
       } else {
@@ -95,7 +112,7 @@ const ControllOffline = () => {
         bgcolor={(theme) => theme.palette.background.paper}
         className="relative h-full flex flex-col flex-1 px-5 pt-5"
       >
-        <Box className="flex justify-between items-center pb-5">
+        <Box color={theme => theme.palette.text.primary} className="flex justify-between items-center pb-5">
           <Typography variant="subtitle1">
             Thiết bị có sẵn: {devices.length}
           </Typography>

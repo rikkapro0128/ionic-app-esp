@@ -52,10 +52,8 @@ export const roomsSlice = createSlice({
         if (typeof state.value[indexRoom].devicesOwn === 'undefined') {
           state.value[indexRoom].devicesOwn = [];
         }
-        const deviceExist = state.value[indexRoom].devicesOwn?.find(dv => dv.id === device.id) as DeviceType;
-        if (!deviceExist) {
-          state.value[indexRoom].devicesOwn?.push(device);
-        }
+        state.value[indexRoom].devicesOwn = state.value[indexRoom].devicesOwn?.filter(dv => dv.id !== device.id) as DeviceType[];
+        state.value[indexRoom].devicesOwn?.push(device);
       }
     },
     removeDeviceRoom: (state: RoomsType, action) => {

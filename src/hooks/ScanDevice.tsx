@@ -30,6 +30,7 @@ export const useScanDevice = (): [number, () => Promise<any[]>] => {
               } else {
                 const payload = await response.json();
                 res({ ...payload, host });
+                console.log(host);
               }
             } catch (error) {
               res(null);

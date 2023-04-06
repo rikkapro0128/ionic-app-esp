@@ -24,6 +24,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import MenuItem from "@mui/material/MenuItem";
 
+import LightModeIcon from '@mui/icons-material/LightMode';
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 import RoomPreferencesRoundedIcon from "@mui/icons-material/RoomPreferencesRounded";
 import UnfoldLessIcon from "@mui/icons-material/UnfoldLess";
@@ -45,7 +46,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
-import { getTypeWidget } from '../Widget';
+import { getTypeWidget } from "../Widget";
 
 import TimerControllOption from "../Timer/OptionType/Logic";
 import TimerView from "../Timer/Widget/index";
@@ -107,7 +108,7 @@ const grids = {
 
 const dbRef = ref(database);
 
-const StyledMenu = styled((props: MenuProps) => (
+export const StyledMenu = styled((props: MenuProps) => (
   <Menu
     elevation={0}
     anchorOrigin={{
@@ -190,6 +191,7 @@ function Node({ devices, node }: PropsType) {
     setAnchorElMenuSetting(event.currentTarget);
     setInfoSetting(device);
   };
+  
 
   useEffect(() => {
     if (infoSetting && userIDCtx) {
@@ -539,23 +541,21 @@ function Node({ devices, node }: PropsType) {
       const nodeId = infoSetting.node_id;
       const deviceId = infoSetting.id;
 
-      if (mode !== selectModeColor) {
-        await set(
-          ref(
-            database,
-            `user-${userIDCtx}/nodes/node-${nodeId}/devices/device-${deviceId}/mode`
-          ),
-          selectModeColor
-        );
-        dispatch(
-          updateDevice({
-            nodeId: `node-${nodeId}`,
-            device: { ...infoSetting, mode: selectModeColor },
-          })
-        );
-      }
-      closeModalPickModeColor();
+      await set(
+        ref(
+          database,
+          `user-${userIDCtx}/nodes/node-${nodeId}/devices/device-${deviceId}/mode`
+        ),
+        selectModeColor
+      );
+      dispatch(
+        updateDevice({
+          nodeId: `node-${nodeId}`,
+          device: { ...infoSetting, mode: selectModeColor },
+        })
+      );
     }
+    closeModalPickModeColor();
   };
 
   return (
@@ -950,7 +950,7 @@ function Node({ devices, node }: PropsType) {
         </MenuItem>
         {infoSetting?.type === WidgetType.COLOR ? (
           <MenuItem onClick={openModalPickModeColor} disableRipple>
-            <RoomPreferencesRoundedIcon />
+            <LightModeIcon />
             chọn chế độ
           </MenuItem>
         ) : null}

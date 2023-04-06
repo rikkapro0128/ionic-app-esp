@@ -4,6 +4,13 @@ import { useTheme } from "@mui/material/styles";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import MenuItem from "@mui/material/MenuItem";
+import IconButton from "@mui/material/IconButton";
+
+import AutorenewRoundedIcon from "@mui/icons-material/AutorenewRounded";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+
+import { StyledMenu } from "../../Node";
 
 // import Hue from '@uiw/react-color-hue';
 import { Alpha, Hue } from "@uiw/react-color";
@@ -31,6 +38,7 @@ import { useAppSelector } from "../../../store/hooks";
 import icon from "../index";
 
 import { ReMapValue } from "../../../ConfigGlobal";
+import { useSnackbar, PropsSnack } from "../../../hooks/SnackBar";
 
 import { DeviceType, ColorType, ModeColor } from "../type";
 
@@ -44,6 +52,7 @@ interface PayloadType {
 let blockUpdate = false;
 
 function Rgb({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
+  const [activeSnack, closeSnack] = useSnackbar();
   const theme = useTheme();
   const [hsva, setHsva] = useState(() =>
     device.value && typeof device.value === "object"
@@ -56,12 +65,26 @@ function Rgb({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
       : { h: 0, s: 0, v: 68, a: 1 }
   );
   const [rgba, setRgba] = useState({ r: 0, g: 0, b: 0, a: 0 });
-  const userID = useAppSelector(state => state.commons.userId);
+  const userID = useAppSelector((state) => state.commons.userId);
   const [timeBounce, setTimeBounce] = useState<number>(200);
   const [startBounce, setStartBounce] = useState<boolean>(false);
   const [idBounce, setIdBounce] = useState<undefined | NodeJS.Timeout>(
     undefined
   );
+  const [anchorElMenuSetting, setAnchorElMenuSetting] =
+    useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorElMenuSetting);
+  const [modeOffline, setModeOffline] = useState<ModeColor | undefined>(
+    device.mode
+  );
+
+  useEffect(() => {
+    if (device) {
+      console.log(device.mode);
+      
+      setModeOffline(device.mode);
+    }
+  }, [device]);
 
   useEffect(() => {
     let unOn: Unsubscribe | undefined;
@@ -146,7 +169,7 @@ function Rgb({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
         } else {
           if (hostOffline) {
             const response = await fetch(`${hostOffline}/controll`, {
-              method: 'POST',
+              method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 uid: userID,
@@ -160,89 +183,186 @@ function Rgb({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
                 },
               }),
             });
+            if (!response.ok) {
+              activeSnack({
+                message: `Thiết bị không phản hồi.`,
+              } as PropsSnack & string);
+            }
             // const result = await response.json();
             // console.log(result);
           }
         }
       } catch (error) {
-        console.log(error);
+        activeSnack({
+          message: `Đã có lỗi gì đó xảy ra khi đổi màu.`,
+        } as PropsSnack & string);
+        // console.log(error);
       }
 
       blockUpdate = false;
     }
   }
 
+  const changeColorModeOffline = async () => {
+    if (hostOffline) {
+      try {
+        const color = {
+          r: rgba.r,
+          g: rgba.g,
+          b: rgba.b,
+          contrast: Math.round(rgba.a * 100),
+        };
+        const response = await fetch(`${hostOffline}/controll`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            uid: userID,
+            did: device.id,
+            mode:
+              modeOffline === ModeColor.AUTO
+                ? ModeColor.SINGLE
+                : ModeColor.AUTO,
+            value: {
+              r: color.r,
+              g: color.g,
+              b: color.b,
+              a: color.contrast,
+            },
+          }),
+        });
+        if (response.ok) {
+          setModeOffline(
+            modeOffline === ModeColor.AUTO ? ModeColor.SINGLE : ModeColor.AUTO
+          );
+        } else {
+          activeSnack({
+            message: `Thiết bị không phản hồi.`,
+          } as PropsSnack & string);
+        }
+      } catch (error) {
+        activeSnack({
+          message: `Đã có lỗi gì đó xảy ra khi chuyển đổi chế độ màu.`,
+        } as PropsSnack & string);
+      }
+    }
+    handleCloseMenu();
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorElMenuSetting(null);
+  };
+
+  const handleClickSetting = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElMenuSetting(event.currentTarget);
+  };
+
   return (
-    <Box className={`flex flex-nowrap w-full relative`}>
-      <Box
-        className="mr-3 flex flex-col"
-        sx={{
-          "& svg": {
-            fill: theme.palette.text.primary,
-            filter: `drop-shadow(-1px 1px 2px ${theme.palette.text.primary})`,
-          },
-        }}
-      >
-        {device.type in icon
-          ? icon[device.type as keyof typeof icon]
-          : icon["TOGGLE"]}
-        <Box
-          className="flex-1 w-full mt-3 rounded-md"
-          sx={{
-            backgroundColor: hsvaToHexa(hsva),
-            boxShadow: `0px 0px 4px ${hsvaToHexa(hsva)}`,
-          }}
-        ></Box>
-      </Box>
-      <Box className="flex flex-col flex-1 px-3">
-        <Box
-          sx={{
-            transition: "filter 200ms ease",
-          }}
-          className={`grid grid-rows-2 gap-6 my-3 ${
-            device.mode === ModeColor.AUTO ? "blur-sm pointer-events-none" : ""
-          }`}
-        >
-          <Hue
-            radius={16}
-            hue={hsva.h}
-            onChange={(newHue) => {
-              setHsva({ ...hsva, h: Math.round(newHue.h), s: 100, v: 100 });
+    <>
+      {isOffline ? (
+        <>
+          <StyledMenu
+            id="demo-customized-menu"
+            MenuListProps={{
+              "aria-labelledby": "demo-customized-button",
             }}
-          />
-          <Alpha
-            radius={16}
-            hsva={hsva}
-            onChange={(newAlpha) => {
-              setHsva({ ...hsva, ...newAlpha });
-            }}
-          />
-        </Box>
-        <Box className="grid grid-cols-2">
-          <Box className="col-span-1">
-            <Typography
-              color={(theme) => theme.palette.text.primary}
-              variant="subtitle1"
-              className=" capitalize"
-              gutterBottom
-            >
-              {device.name || device.id}
-            </Typography>
-            <Typography
-              color={(theme) => theme.palette.text.secondary}
-              variant="subtitle1"
-              className=""
-              gutterBottom
-            >
-              {device.sub || "chưa có mô tả"}
-            </Typography>
+            className="shadow-sm shadow-black"
+            anchorEl={anchorElMenuSetting}
+            open={openMenu}
+            onClose={handleCloseMenu}
+          >
+            <MenuItem onClick={changeColorModeOffline} disableRipple>
+              <AutorenewRoundedIcon />
+              đổi chế độ
+            </MenuItem>
+          </StyledMenu>
+          <Box className="flex justify-end">
+            <IconButton onClick={handleClickSetting}>
+              <MoreHorizIcon />
+            </IconButton>
           </Box>
-          <Typography className="col-span-1">
-            Chế độ - {device.mode === ModeColor.SINGLE ? "Đơn sắc" : "Đa sắc"}
-          </Typography>
+        </>
+      ) : null}
+      <Box className={`flex flex-nowrap w-full relative`}>
+        <Box
+          className="mr-3 flex flex-col"
+          sx={{
+            "& svg": {
+              fill: theme.palette.text.primary,
+              filter: `drop-shadow(-1px 1px 2px ${theme.palette.text.primary})`,
+            },
+          }}
+        >
+          {device.type in icon
+            ? icon[device.type as keyof typeof icon]
+            : icon["TOGGLE"]}
+          <Box
+            className="flex-1 w-full mt-3 rounded-md"
+            sx={{
+              backgroundColor: hsvaToHexa(hsva),
+              boxShadow: `0px 0px 4px ${hsvaToHexa(hsva)}`,
+            }}
+          ></Box>
+        </Box>
+        <Box className="flex flex-col flex-1 px-3">
+          <Box
+            sx={{
+              transition: "filter 200ms ease",
+            }}
+            className={`grid grid-rows-2 gap-6 my-3 ${
+              device.mode === ModeColor.AUTO || modeOffline === ModeColor.AUTO && isOffline
+                ? "blur-sm pointer-events-none"
+                : ""
+            }`}
+          >
+            <Hue
+              radius={16}
+              hue={hsva.h}
+              onChange={(newHue) => {
+                setHsva({ ...hsva, h: Math.round(newHue.h), s: 100, v: 100 });
+              }}
+            />
+            <Alpha
+              radius={16}
+              hsva={hsva}
+              onChange={(newAlpha) => {
+                setHsva({ ...hsva, ...newAlpha });
+              }}
+            />
+          </Box>
+          <Box color={theme => theme.palette.text.primary} className="grid grid-cols-2">
+            <Box className="col-span-1">
+              <Typography
+                color={(theme) => theme.palette.text.primary}
+                variant="subtitle1"
+                className=" capitalize"
+                gutterBottom
+              >
+                {device.name || device.id}
+              </Typography>
+              <Typography
+                color={(theme) => theme.palette.text.secondary}
+                variant="subtitle1"
+                className=""
+                gutterBottom
+              >
+                {device.sub || "chưa có mô tả"}
+              </Typography>
+            </Box>
+            <Box className="col-span-1">
+              <Typography gutterBottom variant="subtitle1">
+                Chế độ -{" "}
+                {device.mode === ModeColor.SINGLE || modeOffline === ModeColor.SINGLE && isOffline ? "Đơn sắc" : "Đa sắc"}
+              </Typography>
+              {isOffline ? (
+                <Typography gutterBottom variant="subtitle1">
+                  IP: {hostOffline?.split("http://")[1] ?? "NaN"}
+                </Typography>
+              ) : null}
+            </Box>
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </>
   );
 }
 
