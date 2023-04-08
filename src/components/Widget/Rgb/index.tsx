@@ -6,6 +6,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import MenuItem from "@mui/material/MenuItem";
 import IconButton from "@mui/material/IconButton";
+import Slider from "@mui/material/Slider";
 
 import AutorenewRoundedIcon from "@mui/icons-material/AutorenewRounded";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
@@ -13,7 +14,7 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { StyledMenu } from "../../Node";
 
 // import Hue from '@uiw/react-color-hue';
-import { Alpha, Hue } from "@uiw/react-color";
+import { Alpha, Hue, Wheel } from "@uiw/react-color";
 import {
   hsvaToRgba,
   hsvaToHexa,
@@ -80,8 +81,6 @@ function Rgb({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
 
   useEffect(() => {
     if (device) {
-      console.log(device.mode);
-      
       setModeOffline(device.mode);
     }
   }, [device]);
@@ -284,7 +283,7 @@ function Rgb({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
       ) : null}
       <Box className={`flex flex-nowrap w-full relative`}>
         <Box
-          className="mr-3 flex flex-col"
+          className="flex flex-col items-center"
           sx={{
             "& svg": {
               fill: theme.palette.text.primary,
@@ -296,25 +295,56 @@ function Rgb({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
             ? icon[device.type as keyof typeof icon]
             : icon["TOGGLE"]}
           <Box
-            className="flex-1 w-full mt-3 rounded-md"
+            className="aspect-square rounded-full w-8 h-8 mt-3"
             sx={{
               backgroundColor: hsvaToHexa(hsva),
               boxShadow: `0px 0px 4px ${hsvaToHexa(hsva)}`,
             }}
           ></Box>
+          <Box
+            className={`flex-1 my-4 ${
+              device.mode === ModeColor.AUTO ||
+              (modeOffline === ModeColor.AUTO && isOffline)
+                ? "blur-sm pointer-events-none"
+                : ""
+            }`}
+          >
+            <Slider
+              sx={{
+                width: "10px",
+              }}
+              aria-label="Temperature"
+              orientation="vertical"
+              getAriaValueText={(val) => `${val}%`}
+              valueLabelFormat={(val) => `${val}%`}
+              valueLabelDisplay="auto"
+              value={hsva.a * 100}
+              onChange={(_, newSat) => {
+                setHsva({ ...hsva, a: (newSat as number) / 100 });
+              }}
+            />
+          </Box>
         </Box>
         <Box className="flex flex-col flex-1 px-3">
           <Box
             sx={{
               transition: "filter 200ms ease",
             }}
-            className={`grid grid-rows-2 gap-6 my-3 ${
-              device.mode === ModeColor.AUTO || modeOffline === ModeColor.AUTO && isOffline
+            className={`grid grid-rows-1 gap-6 my-3 ${
+              device.mode === ModeColor.AUTO ||
+              (modeOffline === ModeColor.AUTO && isOffline)
                 ? "blur-sm pointer-events-none"
                 : ""
             }`}
           >
-            <Hue
+            <Wheel
+              className="mx-auto"
+              color={hsva}
+              onChange={(color) => {
+                setHsva({ ...hsva, ...color.hsva });
+              }}
+            />
+            {/* <Hue
               radius={16}
               hue={hsva.h}
               onChange={(newHue) => {
@@ -327,9 +357,12 @@ function Rgb({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
               onChange={(newAlpha) => {
                 setHsva({ ...hsva, ...newAlpha });
               }}
-            />
+            /> */}
           </Box>
-          <Box color={theme => theme.palette.text.primary} className="grid grid-cols-2">
+          <Box
+            color={(theme) => theme.palette.text.primary}
+            className="grid grid-cols-2"
+          >
             <Box className="col-span-1">
               <Typography
                 color={(theme) => theme.palette.text.primary}
@@ -351,7 +384,10 @@ function Rgb({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
             <Box className="col-span-1">
               <Typography gutterBottom variant="subtitle1">
                 Chế độ -{" "}
-                {device.mode === ModeColor.SINGLE || modeOffline === ModeColor.SINGLE && isOffline ? "Đơn sắc" : "Đa sắc"}
+                {device.mode === ModeColor.SINGLE ||
+                (modeOffline === ModeColor.SINGLE && isOffline)
+                  ? "Đơn sắc"
+                  : "Đa sắc"}
               </Typography>
               {isOffline ? (
                 <Typography gutterBottom variant="subtitle1">

@@ -19,6 +19,8 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
+
+import GroupAddRoundedIcon from '@mui/icons-material/GroupAddRounded';
 import TuneIcon from "@mui/icons-material/Tune";
 import RouterIcon from "@mui/icons-material/Router";
 import SettingsEthernetIcon from "@mui/icons-material/SettingsEthernet";
@@ -42,37 +44,36 @@ const notShow = ["/sign", "/check-user"];
 
 const menu = [
   {
-    id: 1,
     field: "quản lí thiết bị",
     icon: <TuneIcon />,
     path: "/devices",
   },
   {
-    id: 2,
     field: "điều khiển offline",
     icon: <WifiOffIcon />,
     path: "/controll-offline",
   },
   {
-    id: 3,
     field: 'danh sách phòng',
     icon: <RoomPreferencesRoundedIcon />,
     path: '/rooms'
   },
   {
-    id: 4,
     field: "kết nối node",
     icon: <SettingsEthernetIcon />,
     path: "/connect",
   },
   {
-    id: 5,
+    field: "Lời mời kết bạn",
+    icon: <GroupAddRoundedIcon />,
+    path: "/friends-request",
+  },
+  {
     field: "Thông tin người dùng",
     icon: <AccountCircleIcon />,
     path: "/profile",
   },
   {
-    id: 6,
     field: "Cài đặt",
     icon: <SettingsIcon />,
     path: "/setting",
@@ -158,7 +159,7 @@ function Header() {
         </Typography>
         <List>
           {menu.map((item) => (
-            <ListItem key={item.id} disablePadding>
+            <ListItem key={item.field} disablePadding>
               <ListItemButton
                 onClick={() => selectDrawerItem(item.path, item.field)}
               >
@@ -185,14 +186,14 @@ function Header() {
             <Typography variant="h5" noWrap className="flex-1 capitalize">
               {currentTitle}
             </Typography>
-            <IconButton
+            {/* <IconButton
               size="large"
               aria-label="display more actions"
               edge="end"
               color="inherit"
             >
               <MoreIcon />
-            </IconButton>
+            </IconButton> */}
           </StyledToolbar>
         </AppBar>
       </Box>

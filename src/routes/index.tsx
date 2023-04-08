@@ -9,6 +9,7 @@ import Profile from "../pages/Profile";
 import Setting from "../pages/Setting";
 import Rooms from "../pages/Room";
 import ControllOffline from "../pages/ControllOffline";
+import FriendsRequest from "../pages/FriendsRequest";
 
 const publicRoutes: never[] = [];
 
@@ -20,6 +21,7 @@ const routes = [
   { path: "/rooms", element: Rooms },
   { path: "/re-connect", element: ReconnectWifi, state: {name: 'some'} },
   { path: "/check-user", element: CheckUser },
+  { path: "/friends-request", element: FriendsRequest },
   { path: "/profile", element: Profile },
   { path: "/setting", element: Setting },
 ];
