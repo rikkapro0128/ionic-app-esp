@@ -27,9 +27,11 @@ import DetachOS from 'detectos.js';
 import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 
 import { FirebaseAuthentication, GetCurrentUserResult } from '@capacitor-firebase/authentication';
-import { getAuth, signOut, onAuthStateChanged, User, Unsubscribe } from "firebase/auth";
+import { getAuth, signOut, User } from "firebase/auth";
 
 import { appAuthWeb } from '../../firebase';
+
+import { useAppSelector } from '../../store/hooks';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -62,34 +64,11 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 
 const TypeOS = new DetachOS();
 
-interface GeneralUser extends User, GetCurrentUserResult {}
-
 function Profile() {
+  const info = useAppSelector(state => state.commons.infoUser);
   const [activeSnack, closeSnack] = useSnackbar();
   const navigate = useNavigate();
-  const [info, setInfo] = useState<GeneralUser | null>(null);
   const [dialog, setDialog] = useState(false);
-
-  useEffect(() => {
-    let unAuthStateChange: Unsubscribe | undefined;
-    if(TypeOS.OS === 'Android') {
-      FirebaseAuthentication.getCurrentUser()
-      .then((result) => {
-        setInfo(result as GeneralUser);
-      })
-      .catch((error) => {
-        console.log('Something error =>', error);
-      });
-    }else if(TypeOS.OS === 'Windows') {
-      const auth = getAuth(appAuthWeb);
-      unAuthStateChange = onAuthStateChanged(auth, (user) => {
-        setInfo(user as GeneralUser);
-      })
-    }
-    return () => {
-      if(typeof unAuthStateChange === 'function') { unAuthStateChange() }
-    }
-  }, [])
 
   const logout = async () => {
     try {

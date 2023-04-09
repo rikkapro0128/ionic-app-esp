@@ -2,10 +2,16 @@ import { createSlice } from '@reduxjs/toolkit';
 
 import { ColorMode } from '../../ConfigGlobal';
 
+import { GetCurrentUserResult } from '@capacitor-firebase/authentication';
+import { User } from "firebase/auth";
+
+export interface GeneralUser extends User, GetCurrentUserResult {}
+
 interface CommonType {
   fbConnection: boolean,
   userId: string | undefined,
   colorMode: ColorMode,
+  infoUser: GeneralUser | null,
 }
 
 interface ActionSetUserId {
@@ -15,9 +21,17 @@ interface ActionSetUserId {
   type: string,
 }
 
+interface ActionSetUserInfo {
+  payload: {
+    info: GeneralUser | null,
+  },
+  type: string,
+}
+
 const initialState: CommonType = {
   fbConnection: true,
   userId: undefined,
+  infoUser: null,
   colorMode: localStorage.getItem('color-mode') as ColorMode ?? ColorMode.LIGHT,
 }
 
@@ -25,6 +39,13 @@ export const commonSlice = createSlice({
   name: 'commons',
   initialState,
   reducers: {
+    setInfoUser: (state: CommonType, action: ActionSetUserInfo) => {
+      const { info } = action.payload;
+      state.infoUser = info;
+    },
+    clearInfoUser: (state: CommonType, action) => {
+      state.infoUser = null;
+    },
     setUserID: (state: CommonType, action: ActionSetUserId) => {
       const { userId } = action.payload;
       state.userId = userId;
@@ -48,6 +69,6 @@ export const commonSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setFbConnection, setColorMode, toggleColorMode, setUserID } = commonSlice.actions
+export const { setFbConnection, setColorMode, toggleColorMode, setUserID, setInfoUser, clearInfoUser } = commonSlice.actions
 
 export default commonSlice.reducer;

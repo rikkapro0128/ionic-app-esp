@@ -43,9 +43,20 @@ import { useAppSelector, useAppDispatch } from "./store/hooks";
 import Header from "./components/Header";
 import Auth from "./components/Auth";
 
+import DetachOS from 'detectos.js';
+
 import { getUserIDByPlaform, ColorMode } from "./ConfigGlobal";
 
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { getAuth, onAuthStateChanged, Unsubscribe } from "firebase/auth";
+
+import { appAuthWeb } from './firebase';
+
+import { GeneralUser, setInfoUser } from './store/slices/commonSlice';
+
 setupIonicReact();
+
+const TypeOS = new DetachOS();
 
 const App: React.FC = () => {
   const colorMode = useAppSelector((state) => state.commons.colorMode);
@@ -74,6 +85,27 @@ const App: React.FC = () => {
   );
   const FBConnection = useAppSelector((state) => state.commons.fbConnection);
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    let unAuthStateChange: Unsubscribe | undefined;
+    if(TypeOS.OS === 'Android') {
+      FirebaseAuthentication.getCurrentUser()
+      .then((result) => {
+        dispatch(setInfoUser({ info: result as GeneralUser }))
+      })
+      .catch((error) => {
+        console.log('Something error =>', error);
+      });
+    }else if(TypeOS.OS === 'Windows') {
+      const auth = getAuth(appAuthWeb);
+      unAuthStateChange = onAuthStateChanged(auth, (user) => {
+        dispatch(setInfoUser({ info: user as GeneralUser }))
+      })
+    }
+    return () => {
+      if(typeof unAuthStateChange === 'function') { unAuthStateChange() }
+    }
+  }, [])
 
   useEffect(() => {
     getUserIDByPlaform().then((userId) => {

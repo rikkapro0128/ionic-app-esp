@@ -1,4 +1,4 @@
-import { useState, ChangeEvent, useEffect } from "react";
+import { useState, ChangeEvent, useEffect, useCallback } from "react";
 
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -7,6 +7,7 @@ import Backdrop from "@mui/material/Backdrop";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
+import CircularProgress from "@mui/material/CircularProgress";
 
 import Diversity3RoundedIcon from "@mui/icons-material/Diversity3Rounded";
 import PersonAddRoundedIcon from "@mui/icons-material/PersonAddRounded";
@@ -16,8 +17,22 @@ import FriendRequest from "../../components/FriendRequest";
 
 import { emailValidate } from "../../ConfigGlobal";
 
-import { ref, orderByChild, query, equalTo, onValue } from 'firebase/database';
+import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
+
+import {
+  ref,
+  orderByChild,
+  query,
+  equalTo,
+  onValue,
+  set,
+  push,
+  get,
+} from "firebase/database";
+import { UserInfo } from "firebase/auth";
 import { database } from "../../firebase/db";
+
+import { useAppSelector } from "../../store/hooks";
 
 const fakeDataFriends = [
   {
@@ -34,23 +49,85 @@ const fakeDataFriends = [
 const db = ref(database);
 
 const FriendsRequest = () => {
+  const infoUser = useAppSelector((store) => store.commons.infoUser);
+  const [activeSnack, closeSnack] = useSnackbar();
   const [stateAddFriendsModal, setStateAddFriendsModal] =
     useState<boolean>(false);
   const [loadingSendRequets, setLoadingSendRequets] = useState<boolean>(false);
   const [emailFriendToAdd, setEmailFriendToAdd] = useState<string>("");
 
-
   useEffect(() => {
-    const run = () => {
-      const keyQuery = query(db, orderByChild('info/email'), equalTo('vkcks@gmail.com'));
-      onValue(keyQuery, (val) => {
-        console.log(val.val());
-      })
-      
+    if(!stateAddFriendsModal) {
+      setEmailFriendToAdd('');
     }
+  }, [stateAddFriendsModal])
 
-    run();
-  }, [])
+  const handleSendRequestFriend = useCallback(async () => {
+    let unSub: any;
+
+    if (emailValidate(emailFriendToAdd)) {
+      setLoadingSendRequets(true);
+      const queryFriend = query(
+        db,
+        orderByChild("info/email"),
+        equalTo(emailFriendToAdd)
+      );
+      const resultFriend = await get(queryFriend);
+
+      const payload = resultFriend.val() as {
+        [key: string]: { info: UserInfo };
+      } | null;
+
+      console.log(payload);
+
+      if (payload === null) {
+        activeSnack({
+          title: "Hmm...",
+          message: "Email người dùng hiện không tìm thấy bạn nhé!",
+        } as PropsSnack & string);
+      } else {
+        const friend = Object.values(payload)[0] as { info: UserInfo | null };
+
+        if (friend.info?.uid && infoUser?.email && infoUser?.uid) {
+          try {
+            console.log(friend.info?.uid, infoUser);
+
+            const newSendRequestFriend = ref(
+              database,
+              `user-${friend.info?.uid}/queue-friends`
+            );
+            await push(newSendRequestFriend, {
+              email: infoUser?.email,
+              id: infoUser.uid,
+            });
+            activeSnack({
+              title: "Wao...",
+              message: "Bạn đã gửi lời mời kết bạn rồi đó!",
+            } as PropsSnack & string);
+          } catch (error) {
+            activeSnack({
+              title: "Hmm...",
+              message:
+                "Có vẻ như đã có lỗi gì đó xảy ra, hãy thử lại lần nữa xem nào!",
+            } as PropsSnack & string);
+          }
+        } else {
+          activeSnack({
+            title: "Hmm...",
+            message:
+              "Có vẻ như email của bạn, hoặc của đối phương không tồn tại trên hệ thống!",
+          } as PropsSnack & string);
+        }
+      }
+      setLoadingSendRequets(false);
+      handleCloseModalAddFriends();
+    }
+    return () => {
+      if (typeof unSub === "function") {
+        unSub();
+      }
+    };
+  }, [emailFriendToAdd]);
 
   const handleCloseModalAddFriends = () => {
     setStateAddFriendsModal(false);
@@ -64,9 +141,9 @@ const FriendsRequest = () => {
     setEmailFriendToAdd(event.currentTarget.value);
   };
 
-  const handleSendRequestFriend = () => {
-    handleCloseModalAddFriends();
-  };
+  // const handleSendRequestFriend = () => {
+  //   handleCloseModalAddFriends();
+  // };
 
   return (
     <>
@@ -102,7 +179,13 @@ const FriendsRequest = () => {
           <Box className="flex justify-end">
             <Button
               className=""
-              endIcon={<SendRoundedIcon />}
+              endIcon={
+                loadingSendRequets ? (
+                  <CircularProgress color="inherit" size={20} />
+                ) : (
+                  <SendRoundedIcon />
+                )
+              }
               variant="contained"
               onClick={handleSendRequestFriend}
               disabled={loadingSendRequets}
