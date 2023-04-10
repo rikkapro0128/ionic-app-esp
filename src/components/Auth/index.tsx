@@ -24,30 +24,27 @@ import { appAuthWeb } from "../../firebase";
 
 import { routes as configRouter } from "../../ConfigGlobal/index";
 
+import { useAppSelector } from "../../store/hooks";
+
 import detechOS from "detectos.js";
 
 const OSType = new detechOS();
 
 function Dashboard() {
+  const user = useAppSelector((store) => store.commons.infoUser);
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let unAuthOnWeb: Unsubscribe | undefined;
-    let clearTimeoutNotDone: NodeJS.Timeout;
-    const check = async (userProp: UserAndroid | UserWebsite | null) => {
+    let timeOutNavigate: NodeJS.Timer;
+    const run = async () => {
       setLoading(true);
       try {
-        let user: UserAndroid | UserWebsite | null = userProp;
-
-        if (OSType.OS === "Android") {
-          user = (await FirebaseAuthentication.getCurrentUser()).user;
-        }
-
+        console.log(user);
         if (user) {
           // check info user
-          const userPath = `user-${user?.uid}/`;
+          const userPath = `user-${user?.uid}/info`;
           const dbRef = ref(database);
           const snapshot = await (await get(child(dbRef, userPath))).exists();
 
@@ -60,7 +57,9 @@ function Dashboard() {
               : configRouter.afterAuthSuccess
           );
         } else {
-          navigate(configRouter.afterAuthFailure);
+          timeOutNavigate = setTimeout(() => {
+            navigate(configRouter.afterAuthFailure);
+          }, 5000);
         }
       } catch (error) {
         navigate(configRouter.afterAuthFailure);
@@ -68,37 +67,13 @@ function Dashboard() {
       }
       setLoading(false);
     };
-
-    if (OSType.OS === "Windows") {
-      let userCtx: UserAndroid | UserWebsite | null = null;
-      const auth = getAuth(appAuthWeb);
-      clearTimeoutNotDone = setTimeout(() => {
-        setLoading(false);
-      }, 4000);
-      unAuthOnWeb = onAuthStateChanged(auth, (user) => {
-        if (user) {
-          userCtx = {
-            displayName: user.displayName,
-            email: user.email,
-            phoneNumber: user.phoneNumber,
-            photoURL: user.photoURL,
-            providerId: user.providerId,
-            uid: user.uid,
-          } as UserWebsite;
-          check(userCtx);
-        }
-      });
-    } else if (OSType.OS === "Android") {
-      check(null);
-    }
-
+    run();
     return () => {
-      clearTimeout(clearTimeoutNotDone);
-      if (typeof unAuthOnWeb === "function") {
-        unAuthOnWeb();
+      if (timeOutNavigate) {
+        clearTimeout(timeOutNavigate);
       }
     };
-  }, []);
+  }, [user]);
 
   return loading ? (
     <Dialog

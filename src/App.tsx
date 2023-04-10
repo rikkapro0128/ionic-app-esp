@@ -99,7 +99,20 @@ const App: React.FC = () => {
     }else if(TypeOS.OS === 'Windows') {
       const auth = getAuth(appAuthWeb);
       unAuthStateChange = onAuthStateChanged(auth, (user) => {
-        dispatch(setInfoUser({ info: user as GeneralUser }))
+        dispatch(setInfoUser({ info: {
+          displayName: user?.displayName,
+          email: user?.email,
+          emailVerified: user?.emailVerified,
+          isAnonymous: user?.isAnonymous,
+          metadata: user?.metadata,
+          phoneNumber: user?.phoneNumber,
+          photoURL: user?.photoURL,
+          providerData: user?.providerData,
+          providerId: user?.providerId,
+          refreshToken: user?.refreshToken,
+          uid: user?.uid,
+          tenantId: user?.tenantId,
+        } as GeneralUser }))
       })
     }
     return () => {

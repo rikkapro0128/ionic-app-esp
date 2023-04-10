@@ -1,4 +1,4 @@
-import { useState, ChangeEvent, useEffect, useCallback } from "react";
+import { useState, ChangeEvent, useEffect, useCallback, ErrorInfo } from "react";
 
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -25,9 +25,12 @@ import {
   query,
   equalTo,
   onValue,
+  onChildAdded,
+  onChildRemoved,
   set,
   push,
   get,
+  
 } from "firebase/database";
 import { UserInfo } from "firebase/auth";
 import { database } from "../../firebase/db";
@@ -46,6 +49,13 @@ const fakeDataFriends = [
   },
 ];
 
+interface RequestFriend {
+  email: string,
+  uid: string,
+  name?: string,
+  photoURL?: string,
+}
+
 const db = ref(database);
 
 const FriendsRequest = () => {
@@ -55,6 +65,25 @@ const FriendsRequest = () => {
     useState<boolean>(false);
   const [loadingSendRequets, setLoadingSendRequets] = useState<boolean>(false);
   const [emailFriendToAdd, setEmailFriendToAdd] = useState<string>("");
+  const [listRequest, setListRequest] = useState<RequestFriend[] | []>([]);
+
+  useEffect(() => {
+    if(infoUser) {
+      const unSubAdd = onChildAdded(ref(database, `user-${infoUser.uid}/queue-friends`), (value) => {
+        console.log(value.val());
+        
+        setListRequest(state => [ ...state, value.val() as RequestFriend ]);
+      })
+      const unSubRemove = onChildRemoved(ref(database, `user-${infoUser.uid}/queue-friends`), (value) => {
+        
+        setListRequest(state => state.filter(friend => friend.uid !== (value.val() as RequestFriend).uid));
+      })
+      return () => {
+        unSubAdd();
+        unSubRemove();
+      };
+    }
+  }, [infoUser])
 
   useEffect(() => {
     if(!stateAddFriendsModal) {
@@ -88,28 +117,40 @@ const FriendsRequest = () => {
       } else {
         const friend = Object.values(payload)[0] as { info: UserInfo | null };
 
-        if (friend.info?.uid && infoUser?.email && infoUser?.uid) {
+        console.log(friend);
+
+        if (friend.info?.uid && infoUser) {
           try {
-            console.log(friend.info?.uid, infoUser);
 
             const newSendRequestFriend = ref(
               database,
-              `user-${friend.info?.uid}/queue-friends`
+              `user-${friend.info?.uid}/queue-friends/${infoUser.uid}`
             );
-            await push(newSendRequestFriend, {
-              email: infoUser?.email,
-              id: infoUser.uid,
+            await set(newSendRequestFriend, {
+              email: infoUser.email,
+              uid: infoUser.uid,
+              name: infoUser.displayName,
+              photoURL: infoUser.photoURL,
             });
             activeSnack({
               title: "Wao...",
               message: "Bạn đã gửi lời mời kết bạn rồi đó!",
             } as PropsSnack & string);
-          } catch (error) {
-            activeSnack({
-              title: "Hmm...",
-              message:
-                "Có vẻ như đã có lỗi gì đó xảy ra, hãy thử lại lần nữa xem nào!",
-            } as PropsSnack & string);
+          } catch (error: any) {
+            console.log(error?.message);
+            if(error?.message === 'PERMISSION_DENIED: Permission denied') {
+              activeSnack({
+                title: "Hmm...",
+                message:
+                  "Bạn hãy đợi đối phương chấp nhận kết bạn nhé!",
+              } as PropsSnack & string);
+            }else {
+              activeSnack({
+                title: "Hmm...",
+                message:
+                  "Có vẻ như đã có lỗi gì đó xảy ra, hãy thử lại lần nữa xem nào!",
+              } as PropsSnack & string);
+            }
           }
         } else {
           activeSnack({
@@ -140,10 +181,6 @@ const FriendsRequest = () => {
   const onChangeEmailToAddFriend = (event: ChangeEvent<HTMLInputElement>) => {
     setEmailFriendToAdd(event.currentTarget.value);
   };
-
-  // const handleSendRequestFriend = () => {
-  //   handleCloseModalAddFriends();
-  // };
 
   return (
     <>
@@ -203,7 +240,7 @@ const FriendsRequest = () => {
             component={"p"}
             color={(theme) => theme.palette.text.primary}
           >
-            {12} lời mời kết bạn
+            {listRequest.length} lời mời kết bạn
           </Typography>
           <Button
             className=""
@@ -215,13 +252,13 @@ const FriendsRequest = () => {
           </Button>
         </Box>
         <Box className="flex-1 overflow-y-scroll px-5 mb-5">
-          {fakeDataFriends.length > 0 ? (
-            fakeDataFriends.map((friend, index) => (
+          {listRequest.length > 0 ? (
+            listRequest.map((friend, index) => (
               <Box
-                key={friend.name + index}
+                key={`${friend.name}-index`}
                 className={index === 0 ? "" : "pt-4"}
               >
-                <FriendRequest name={friend.name} />
+                <FriendRequest uid={friend.uid} name={friend.name || '{chưa có tên}'} email={friend.email} srcAvatar={friend.photoURL} />
               </Box>
             ))
           ) : (
