@@ -27,6 +27,7 @@ import SettingsEthernetIcon from "@mui/icons-material/SettingsEthernet";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SettingsIcon from "@mui/icons-material/Settings";
 import WifiOffIcon from '@mui/icons-material/WifiOff';
+import Diversity2Icon from '@mui/icons-material/Diversity2';
 
 // Import Swiper styles
 import "swiper/css";
@@ -67,6 +68,11 @@ const menu = [
     field: "Lời mời kết bạn",
     icon: <GroupAddRoundedIcon />,
     path: "/friends-request",
+  },
+  {
+    field: "bạn bè của tôi",
+    icon: <Diversity2Icon />,
+    path: "/my-friends",
   },
   {
     field: "Thông tin người dùng",

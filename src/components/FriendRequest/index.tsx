@@ -28,17 +28,26 @@ const FriendRequest = ({ name, email, className, srcAvatar, uid }: FriendProps) 
     if(infoUser) {
       setDisabledResovleFriend(true);
       try {
-        await set(ref(database, `user-${infoUser.uid}/my-friends/${uid}`), { name, email, uid, photoURL: srcAvatar });
+        await set(ref(database, `user-${infoUser.uid}/my-friends/${uid}`), { name, email, uid, photoURL: srcAvatar ?? '' });
+        await set(ref(database, `user-${uid}/my-friends/${infoUser.uid}`), { name: infoUser.displayName, email: infoUser.email, uid: infoUser.uid, photoURL: infoUser.photoURL ?? '' });
         await remove(ref(database, `user-${infoUser.uid}/queue-friends/${uid}`));
       } catch (error) {
-        setDisabledResovleFriend(false);
         console.log(error);
       }
+      setDisabledResovleFriend(false);
     }
   }
 
   const handleRejectFriend = async () => {
-
+    if(infoUser) {
+      setDisabledRejectFriend(true);
+      try {
+        await remove(ref(database, `user-${infoUser.uid}/queue-friends/${uid}`));
+      } catch (error) {
+        console.log(error);
+      }
+      setDisabledRejectFriend(false);
+    }
   }
 
   return (
@@ -55,7 +64,7 @@ const FriendRequest = ({ name, email, className, srcAvatar, uid }: FriendProps) 
           <Button onClick={handleAcceptFriend} className="flex-1" sx={{
             marginRight: '.5rem'
           }} disabled={disabledResovleFriend} variant="contained">Xác nhận</Button>
-          <Button disabled={disabledRejectFriend} className="flex-1" variant="contained">Huỷ</Button>
+          <Button disabled={disabledRejectFriend} onClick={handleRejectFriend} className="flex-1" variant="contained">Huỷ</Button>
         </Box>
       </Box>
     </Box>
