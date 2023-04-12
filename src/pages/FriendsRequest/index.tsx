@@ -107,8 +107,6 @@ const FriendsRequest = () => {
         [key: string]: { info: UserInfo };
       } | null;
 
-      console.log(payload);
-
       if (payload === null) {
         activeSnack({
           title: "Hmm...",
@@ -117,9 +115,9 @@ const FriendsRequest = () => {
       } else {
         const friend = Object.values(payload)[0] as { info: UserInfo | null };
 
-        console.log(friend);
-
         if (friend.info?.uid && infoUser) {
+          console.log(infoUser);
+          
           try {
 
             const newSendRequestFriend = ref(

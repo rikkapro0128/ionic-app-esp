@@ -28,8 +28,10 @@ const FriendRequest = ({ name, email, className, srcAvatar, uid }: FriendProps) 
     if(infoUser) {
       setDisabledResovleFriend(true);
       try {
+        console.log(infoUser);
+        
         await set(ref(database, `user-${infoUser.uid}/my-friends/${uid}`), { name, email, uid, photoURL: srcAvatar ?? '' });
-        await set(ref(database, `user-${uid}/my-friends/${infoUser.uid}`), { name: infoUser.displayName, email: infoUser.email, uid: infoUser.uid, photoURL: infoUser.photoURL ?? '' });
+        await set(ref(database, `user-${uid}/my-friends/${infoUser.uid}`), { name: infoUser.displayName, email: infoUser.email, uid: infoUser.uid, photoURL: infoUser?.photoURL ?? '' });
         await remove(ref(database, `user-${infoUser.uid}/queue-friends/${uid}`));
       } catch (error) {
         console.log(error);

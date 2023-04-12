@@ -46,7 +46,7 @@ import LoginIcon from "@mui/icons-material/Login";
 
 import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 
-import { setUserID } from "../../store/slices/commonSlice";
+import { setUserID, setInfoUser, GeneralUser } from "../../store/slices/commonSlice";
 import { useAppDispatch } from "../../store/hooks";
 
 const theme = createTheme();
@@ -92,11 +92,31 @@ function Sign() {
     if (OSType.OS === "Windows") {
       const auth = getAuth(appAuthWeb);
       UnAuthState = onAuthStateChanged(auth, (result) => {
-        dispatch(setUserID({ userId: result?.uid }));
+        // dispatch(setUserID({ userId: result?.uid }));
+        dispatch(setInfoUser({ info: {
+          displayName: result?.displayName,
+          email: result?.email,
+          emailVerified: result?.emailVerified,
+          isAnonymous: result?.isAnonymous,
+          metadata: result?.metadata,
+          phoneNumber: result?.phoneNumber,
+          photoURL: result?.photoURL,
+          providerData: result?.providerData,
+          providerId: result?.providerId,
+          refreshToken: result?.refreshToken,
+          uid: result?.uid,
+          tenantId: result?.tenantId,
+        } as GeneralUser }));
       });
     } else if (OSType.OS === "Android") {
       FirebaseAuthentication.addListener("authStateChange", (result) => {
-        dispatch(setUserID({ userId: result.user?.uid }));
+        console.log(result.user);
+        
+        if(result.user) {
+          if(Object.keys(result.user).length > 0) {
+            dispatch(setInfoUser({ info: { ...result.user, photoURL: result.user?.photoUrl ?? '' } as unknown as GeneralUser }))
+          }
+        }
       });
     }
     return () => {

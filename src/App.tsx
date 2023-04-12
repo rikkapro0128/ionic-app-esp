@@ -91,7 +91,12 @@ const App: React.FC = () => {
     if(TypeOS.OS === 'Android') {
       FirebaseAuthentication.getCurrentUser()
       .then((result) => {
-        dispatch(setInfoUser({ info: result as GeneralUser }))
+        console.log(result.user);
+        if(result.user) {
+          if(Object.keys(result.user).length > 0) {
+            dispatch(setInfoUser({ info: { ...result.user, photoURL: result.user?.photoUrl ?? '' } as unknown as GeneralUser }))
+          }
+        }
       })
       .catch((error) => {
         console.log('Something error =>', error);

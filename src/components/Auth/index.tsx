@@ -40,16 +40,17 @@ function Dashboard() {
     let timeOutNavigate: NodeJS.Timer;
     const run = async () => {
       setLoading(true);
+      console.log(user);
+      
       try {
-        console.log(user);
-        if (user) {
+        if (user !== null && Object.keys(user).length > 0) {
           // check info user
           const userPath = `user-${user?.uid}/info`;
           const dbRef = ref(database);
           const snapshot = await (await get(child(dbRef, userPath))).exists();
 
           if (!snapshot) {
-            await set(ref(database, `${userPath}/info`), user);
+            await set(ref(database, userPath), user);
           }
           navigate(
             location.pathname !== "/" && location.pathname !== "/sign"
