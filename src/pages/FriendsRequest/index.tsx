@@ -202,15 +202,16 @@ const FriendsRequest = () => {
             placeholder="vd: abc123@gmail.com"
             label="Email bạn bè"
             variant="outlined"
-            color={emailValidate(emailFriendToAdd) ? "success" : "error"}
+            color={ emailFriendToAdd.length > 0 ? emailValidate(emailFriendToAdd) ? "success" : "error" : 'warning'}
             onChange={onChangeEmailToAddFriend}
             value={emailFriendToAdd}
             margin="normal"
-            error={!emailValidate(emailFriendToAdd)}
+            error={ emailFriendToAdd.length > 0 ?!emailValidate(emailFriendToAdd) : false }
             helperText={
-              !emailValidate(emailFriendToAdd)
+              emailFriendToAdd.length > 0 ? !emailValidate(emailFriendToAdd)
                 ? "Email không hợp lệ"
                 : "Email hợp lệ"
+                : 'Email bị trống'
             }
           />
           <Box className="flex justify-end">
@@ -262,7 +263,7 @@ const FriendsRequest = () => {
               </Box>
             ))
           ) : (
-            <Box className="h-full flex justify-center items-center flex-col text-5xl">
+            <Box color={theme => theme.palette.text.primary} className="h-full flex justify-center items-center flex-col text-5xl">
               <Diversity3RoundedIcon fontSize="inherit" />
               <Typography>chưa có lời mời nào.</Typography>
             </Box>

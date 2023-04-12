@@ -133,13 +133,13 @@ const MyFriends = () => {
                 </Box>
               ))
             ) : (
-              <Box className="h-full flex justify-center items-center flex-col text-5xl">
+              <Box color={theme => theme.palette.text.primary} className="h-full flex justify-center items-center flex-col text-5xl">
                 <Diversity3RoundedIcon fontSize="inherit" />
                 <Typography>bạn đang cô đơn rồi.</Typography>
               </Box>
             )
           ) : (
-            <Box className="h-full flex justify-center items-center flex-col text-5xl">
+            <Box color={theme => theme.palette.text.primary} className="h-full flex justify-center items-center flex-col text-5xl">
               <CircularProgress color="inherit" size={20} />
               <Typography className="pt-2">đang tải danh sách bạn bè.</Typography>
             </Box>
