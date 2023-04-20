@@ -36,6 +36,7 @@ export interface DeviceType {
   node_id: string;
   host?: string,
   mode?: ModeColor,
+  ['nums-Led']?: number,
   room?: {
     id: string,
     name: string,

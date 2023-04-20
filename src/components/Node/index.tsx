@@ -24,7 +24,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import MenuItem from "@mui/material/MenuItem";
 
-import LightModeIcon from '@mui/icons-material/LightMode';
+import LightModeIcon from "@mui/icons-material/LightMode";
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 import RoomPreferencesRoundedIcon from "@mui/icons-material/RoomPreferencesRounded";
 import UnfoldLessIcon from "@mui/icons-material/UnfoldLess";
@@ -38,6 +38,7 @@ import AlarmOnOutlinedIcon from "@mui/icons-material/AlarmOnOutlined";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import MeetingRoomRoundedIcon from "@mui/icons-material/MeetingRoomRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import NumbersIcon from "@mui/icons-material/Numbers";
 
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/vi"; // import locale
@@ -155,6 +156,7 @@ function Node({ devices, node }: PropsType) {
   const theme = useTheme();
   const [activeSnack, closeSnack] = useSnackbar();
   const dispatch = useAppDispatch();
+  const infoUser = useAppSelector((state) => state.commons.infoUser);
   const userIDCtx = useAppSelector((state) => state.commons.userId);
   const rooms = useAppSelector((state) => state.rooms.value);
   const [promtRemoveNode, setPromtRemoveNode] = useState<boolean>(false);
@@ -165,6 +167,8 @@ function Node({ devices, node }: PropsType) {
   const [openSettingTimer, setOpenSettingTimer] = useState<boolean>(false);
   const [openSettingbind, setOpenSettingbind] = useState<boolean>(false);
   const [openPickModeColor, setOpenPickModeColor] = useState<boolean>(false);
+  const [openPickNumberLed, setOpenPickNumberLed] = useState<boolean>(false);
+  const [pickNumberLed, setPickNumberLed] = useState({ old: 0, new: 0 });
   const [openListRoom, setOpenListRoom] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [loadingUpdate, setLoadingUpdate] = useState<boolean>(false);
@@ -191,7 +195,8 @@ function Node({ devices, node }: PropsType) {
     setAnchorElMenuSetting(event.currentTarget);
     setInfoSetting(device);
   };
-  
+
+  useEffect(() => {}, [infoSetting?.type]);
 
   useEffect(() => {
     if (infoSetting && userIDCtx) {
@@ -530,32 +535,86 @@ function Node({ devices, node }: PropsType) {
     setOpenPickModeColor(true);
   };
 
+  const openModalPickNumberLed = () => {
+    handleCloseMenu();
+    if (
+      infoSetting &&
+      infoSetting.type === WidgetType.COLOR &&
+      infoSetting?.["nums-Led"]
+    ) {
+      if (infoSetting["nums-Led"] > 0 && infoSetting["nums-Led"] < 1000) {
+        setPickNumberLed({ ...pickNumberLed, old: infoSetting.numsLed });
+      }
+    }
+    setOpenPickNumberLed(true);
+  };
+
   const closeModalPickModeColor = () => {
     setOpenPickModeColor(false);
     setInfoSetting(undefined);
   };
 
+  const closeModalPickNumberLed = () => {
+    setOpenPickNumberLed(false);
+    setInfoSetting(undefined);
+    setPickNumberLed({ ...pickNumberLed, new: 0 });
+  };
+
   const pickModeColor = async () => {
     if (infoSetting && userIDCtx) {
-      const mode = infoSetting.mode as ModeColor;
       const nodeId = infoSetting.node_id;
       const deviceId = infoSetting.id;
 
-      await set(
-        ref(
-          database,
-          `user-${userIDCtx}/nodes/node-${nodeId}/devices/device-${deviceId}/mode`
-        ),
-        selectModeColor
-      );
-      dispatch(
-        updateDevice({
-          nodeId: `node-${nodeId}`,
-          device: { ...infoSetting, mode: selectModeColor },
-        })
-      );
+      try {
+        await set(
+          ref(
+            database,
+            `user-${userIDCtx}/nodes/node-${nodeId}/devices/device-${deviceId}/mode`
+          ),
+          selectModeColor
+        );
+        dispatch(
+          updateDevice({
+            nodeId: `node-${nodeId}`,
+            device: { ...infoSetting, mode: selectModeColor },
+          })
+        );
+      } catch (error) {
+        activeSnack({
+          title: "Opps!",
+          message: "Có vẻ như việc cập nhật chế độ led xảy ra lỗi.",
+        } as PropsSnack & string);
+      }
     }
     closeModalPickModeColor();
+  };
+
+  const confirmUpdateNumberLed = async () => {
+    if (infoSetting && infoUser?.uid) {
+      const idUser = infoUser?.uid;
+      const nodeId = infoSetting.node_id;
+      const deviceId = infoSetting.id;
+      try {
+        setLoadingUpdate(true);
+        if (pickNumberLed.new !== pickNumberLed.old) {
+          await set(
+            ref(
+              database,
+              `user-${userIDCtx}/nodes/node-${nodeId}/devices/device-${deviceId}/nums-Led`
+            ),
+            pickNumberLed.new
+          );
+          setPickNumberLed({ ...pickNumberLed, old: pickNumberLed.new });
+        }
+      } catch (error) {
+        activeSnack({
+          title: "Opps!",
+          message: "Có vẻ như việc cập nhật số lượng led xảy ra lỗi.",
+        } as PropsSnack & string);
+      }
+      setLoadingUpdate(true);
+    }
+    closeModalPickNumberLed();
   };
 
   return (
@@ -637,6 +696,52 @@ function Node({ devices, node }: PropsType) {
             variant="contained"
             endIcon={loadingUpdate ? <CircularProgress size={20} /> : null}
             onClick={pickModeColor}
+          >
+            Cập nhật
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* dialog for pick num led */}
+      <Dialog
+        open={openPickNumberLed}
+        TransitionComponent={Transition}
+        keepMounted
+        onClose={closeModalPickNumberLed}
+        aria-describedby="alert-dialog-slide-description"
+        fullWidth
+      >
+        <DialogTitle>
+          chọn số led điều khiển {infoSetting?.id || infoSetting?.name}
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            overflow: "hidden",
+          }}
+        >
+          <Typography className="italic" variant="subtitle2" gutterBottom>
+            "sô lượng led phải lớn hơn 0 và nhỏ hơn 1000"
+          </Typography>
+          <TextField
+            sx={{ paddingY: "0.5rem" }}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+              setPickNumberLed({
+                ...pickNumberLed,
+                new: parseInt(event.target.value),
+              })
+            }
+            type="number"
+            value={pickNumberLed.new ? pickNumberLed.new : pickNumberLed.old}
+            fullWidth
+            id="standard-name"
+            variant="standard"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeModalPickNumberLed}>Huỷ</Button>
+          <Button
+            variant="contained"
+            endIcon={loadingUpdate ? <CircularProgress size={20} /> : null}
+            onClick={confirmUpdateNumberLed}
           >
             Cập nhật
           </Button>
@@ -949,10 +1054,16 @@ function Node({ devices, node }: PropsType) {
           chọn phòng
         </MenuItem>
         {infoSetting?.type === WidgetType.COLOR ? (
-          <MenuItem onClick={openModalPickModeColor} disableRipple>
-            <LightModeIcon />
-            chọn chế độ
-          </MenuItem>
+          <>
+            <MenuItem onClick={openModalPickModeColor} disableRipple>
+              <LightModeIcon />
+              chọn chế độ
+            </MenuItem>
+            <MenuItem onClick={openModalPickNumberLed} disableRipple>
+              <NumbersIcon />
+              số lượng led
+            </MenuItem>
+          </>
         ) : null}
       </StyledMenu>
 
