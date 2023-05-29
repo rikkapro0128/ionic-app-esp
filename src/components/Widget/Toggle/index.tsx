@@ -25,7 +25,7 @@ interface PayloadType {
 
 function Toggle({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
   const dispatch = useAppDispatch();
-  const userID = useAppSelector((state) => state.commons.userId);
+  const userID = useAppSelector((state) => state.commons.infoUser?.uid);
   const [toggle, setToggle] = useState(device.state ? true : false);
   const [block, setBlock] = useState<boolean>(false);
 
@@ -59,6 +59,8 @@ function Toggle({ device, idUser, isOffline = false, hostOffline }: PayloadType)
   }, [userID, isOffline]);
 
   const handleClick = useCallback(async () => {
+    console.log(userID, device.id);
+    
     if (userID && device.id && !block) {
       setBlock(() => true);
 

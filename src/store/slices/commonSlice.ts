@@ -32,7 +32,7 @@ const initialState: CommonType = {
   fbConnection: true,
   userId: undefined,
   infoUser: null,
-  colorMode: localStorage.getItem('color-mode') as ColorMode ?? ColorMode.LIGHT,
+  colorMode: localStorage.getItem('color-mode') as ColorMode ?? ColorMode.DARK,
 }
 
 export const commonSlice = createSlice({

@@ -72,12 +72,13 @@ function Devices() {
           })}
         </Box>
       ) : (
-        <Box className="h-full w-full flex justify-between items-center bg-slate-100">
+        <Box className="h-full w-full flex justify-between items-center">
           <Box className="m-auto">
             <IconNotFound className="w-48 h-48 m-auto" />
             <Typography
               sx={{ fontSize: "1.2rem", fontWeight: 600 }}
               className="pt-3 "
+              color={theme => theme.palette.text.primary}
             >
               Không tìm thấy thiết bị nào.
             </Typography>

@@ -1119,7 +1119,7 @@ function Node({ devices, node }: PropsType) {
                     device.type === WidgetType.LOGIC
                       ? `col-start-${index + 1} col-end-${index + 2}`
                       : ""
-                  } relative col-auto p-3 rounded-2xl shadow-sm shadow-gray-900 z-20`}
+                  } relative col-auto p-3 rounded-2xl border border-gray-300 z-20`}
                 >
                   <div
                     style={{
@@ -1187,7 +1187,7 @@ function Node({ devices, node }: PropsType) {
                   transition: "margin 200ms ease-in-out",
                 }}
                 bgcolor={(theme) => theme.palette.background.paper}
-                className={`flex flex-nowrap col-span-2 p-3 rounded-2xl shadow-sm relative shadow-gray-900 z-20`}
+                className={`flex flex-nowrap col-span-2 p-3 rounded-2xl border relative border-gray-300 z-20`}
               >
                 {getTypeWidget(device, userIDCtx)}
               </Box>

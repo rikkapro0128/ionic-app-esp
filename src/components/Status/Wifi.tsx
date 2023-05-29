@@ -17,6 +17,9 @@ import ManageHistoryIcon from "@mui/icons-material/ManageHistory";
 import SignalWifi2BarLockOutlinedIcon from "@mui/icons-material/SignalWifi2BarLockOutlined";
 import SettingsInputAntennaOutlinedIcon from "@mui/icons-material/SettingsInputAntennaOutlined";
 import AddLinkIcon from '@mui/icons-material/AddLink';
+// import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
+import WifiTetheringRoundedIcon from '@mui/icons-material/WifiTetheringRounded';
 interface PropsType {
   end: boolean;
   payload: WifiInfo;
@@ -164,12 +167,17 @@ const StatusWifi = ({
         }`}
       >
         <Box className="col-span-3 flex mr-4">
-          <IconNode className={`w-4 h-4 mr-4 fill-inherit`} style={{ fill: theme.palette.text.secondary }} />
-          <span className={`flex-1 max-w-[150px] overflow-x-scroll whitespace-nowrap text-ellipsis ${payload.SSID.includes('esp') ? 'text-indigo-600' : ''}`}>
+          {
+            payload.SSID.includes('esp') ?
+            <IconNode className={`w-4 h-4 mr-4 fill-inherit`} style={{ fill: theme.palette.text.secondary }} />
+            :
+            <WifiTetheringRoundedIcon className={`w-4 h-4 mr-4 fill-inherit`} style={{ fill: theme.palette.text.secondary }} />
+          }
+          <span onTouchStart={(event) => { event.currentTarget.style.textOverflow = 'clip'; }} onTouchEnd={(event) => { event.currentTarget.style.textOverflow = ''; event.currentTarget.scrollLeft = 0; }} className={`flex-1 max-w-[150px] overflow-x-scroll whitespace-nowrap text-ellipsis ${payload.SSID.includes('esp') ? 'text-indigo-600' : ''}`}>
             {payload.SSID || "NaN"}
           </span>
         </Box>
-        <div className="col-span-3 flex justify-between items-center">
+        <div className="col-span-3 flex justify-between items-center overflow-x-scroll" onTouchEnd={(event) => { event.currentTarget.scrollLeft = 0; }}>
           <span>
             {payload.frequency
               ? payload.frequency > 2000 && payload.frequency < 3000
@@ -179,9 +187,10 @@ const StatusWifi = ({
             Ghz
           </span>
           {present?.BSSID === payload.BSSID ? (
-            <span className="border-[1px] border-green-600 text-green-600 py-1 px-2 rounded-full text-xs">
-              connected
-            </span>
+            // <span className="border-[1px] border-green-600 text-green-600 p-1 px-2 rounded-full text-[10px]">
+            //   connected
+            // </span>
+            <CheckCircleOutlineRoundedIcon className="text-green-600" />
           ) : null}
           <span>
             {Math.min(Math.max(2 * (payload.level + 100), 0), 100) || 0}%

@@ -141,8 +141,8 @@ const ControllOffline = () => {
           </div>
         ) : (
           <div className="h-full flex flex-col justify-center items-center">
-            <RouterIcon className="mb-2" sx={{ fontSize: 70 }} />
-            <Typography variant="subtitle2">
+            <RouterIcon className="mb-2" sx={{ fontSize: 70, fill: 'inherit' }} />
+            <Typography variant="subtitle2" color={theme => theme.palette.text.secondary}>
               chưa có thiết bị nào được tìm thấy.
             </Typography>
           </div>

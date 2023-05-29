@@ -1,11 +1,9 @@
-import { memo, useState, useEffect, useCallback } from "react";
+import { memo, useState, useEffect, useCallback, ErrorInfo } from "react";
 import { CapacitorHttp, HttpResponse } from "@capacitor/core";
 
 import { WifiWizard2 } from "@awesome-cordova-plugins/wifi-wizard-2";
 import { v1 as genIDByTimeStamp } from "uuid";
-import {
-  FirebaseAuthentication,
-} from "@capacitor-firebase/authentication";
+import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 
 import { useSnackbar, PropsSnack } from "../../hooks/SnackBar";
 import { Box } from "@mui/material";
@@ -28,12 +26,12 @@ import CircularProgress from "@mui/material/CircularProgress";
 
 import LabelIcon from "@mui/material/Typography";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import WifiTetheringErrorIcon from '@mui/icons-material/WifiTetheringError';
+import WifiTetheringErrorIcon from "@mui/icons-material/WifiTetheringError";
 
 import { ref, get, set, child, remove } from "firebase/database";
 import { database } from "../../firebase/db";
 
-import DetachOS from 'detectos.js';
+import DetachOS from "detectos.js";
 
 const ipESPDefault = "192.168.4.1";
 
@@ -89,6 +87,8 @@ function Connect() {
     useState<boolean>(false);
   const [drawer, setDrawer] = useState<boolean>(false);
   const [openDia, setOpenDia] = useState<boolean>(false);
+  const [spamWifi, setSpamWifi] = useState<boolean>(false);
+  const [secondSpamcount, setSecondSpamcount] = useState<number>(0);
   const [openDiaNodeTarget, setOpenDiaNodeTarget] = useState<boolean>(false);
   const [pickWifi, setPickWifi] = useState<WifiStation>();
   const [wifiViewConfig, setWifiViewConfig] = useState<ConfigESP>();
@@ -140,25 +140,52 @@ function Connect() {
     }
   }, [pickWifiViewConfig]);
 
+  useEffect(() => {
+    setSecondSpamcount(30);
+    if(spamWifi) {
+      let countSecond: number = secondSpamcount;
+      let idCounter = setInterval(() => {
+        if(countSecond > 0) {
+          countSecond = --countSecond;
+          setSecondSpamcount(countSecond);
+        }else {
+          clearInterval(idCounter);
+          setSpamWifi(false);
+        }
+      }, 1000);
+      return () => {
+        clearInterval(idCounter);
+      }
+    }
+  }, [spamWifi]);
+
   const clickScan = useCallback(async () => {
     // excute scan wifi
-    if(TypeOS.OS === 'Android') {
+    if (TypeOS.OS === "Android") {
       setLoading(true);
       try {
-        const state: string = await WifiWizard2.startScan();
-        if (state === "OK") {
-          const listWifi: Array<WifiInfo> = await WifiWizard2.getScanResults({
-            numLevels: 0,
-          });
-          console.log(listWifi);
-  
-          setWifis(listWifi);
+        if(!spamWifi) {
+          const state: string = await WifiWizard2.startScan();
+          if (state === "OK") {
+            const listWifi: Array<WifiInfo> = await WifiWizard2.getScanResults({
+              numLevels: 0,
+            });
+            // console.log(listWifi);
+            setWifis(listWifi);
+            setSpamWifi(false);
+          }
         }
       } catch (error) {
-        console.log(error);
+        if (error instanceof Error) {
+          console.log(error.message);
+        }else if(typeof error === 'string') {
+          if(error === 'STARTSCAN_FAILED') {
+            setSpamWifi(true);
+          }
+        }
       }
       setLoading(false);
-    }else {
+    } else {
       activeSnack({
         message: `Hệ điều hành ${TypeOS.OS} hiện không hỗ trợ việc tìm kiếm wifi, vui lòng cài đặt ứng dụng lên thiết bị Android.`,
       } as PropsSnack & string);
@@ -253,7 +280,8 @@ function Connect() {
     } catch (error) {
       activeSnack({
         title: "Lỗi rồi",
-        message: "Có lỗi xảy ra khi cấu hình liên kết ứng dụng vui lòng thử lại!",
+        message:
+          "Có lỗi xảy ra khi cấu hình liên kết ứng dụng vui lòng thử lại!",
       } as PropsSnack & string);
       console.log(error);
     }
@@ -294,6 +322,9 @@ function Connect() {
   const onCloseDia = () => {
     setOpenDia(false);
     setPasswordWifi("");
+    if(pickWifi) {
+      setPickWifi(undefined);
+    }
   };
 
   const onCloseDiaConfigNode = () => {
@@ -336,7 +367,7 @@ function Connect() {
         <div className="px-5">
           <div className="flex justify-between items-center pt-5">
             <span className="text-lg">
-              Cấu hình {wifiPresent?.SSID || "ESP8266"}
+              Cấu hình {wifiPresent?.SSID || "ESP32"}
             </span>
             <IconButton
               size="large"
@@ -494,27 +525,35 @@ function Connect() {
           <Button onClick={hanldeConnectFromNodeToTarget}>lưu kết nối</Button>
         </DialogActions>
       </Dialog>
-      <div
-        className="h-full flex flex-col"
-      >
-        <Box className="overflow-hidden">
-          <BtnScan isScan={loading} onCLick={clickScan} />
+      <div className="h-full flex flex-col">
+        <Box className="overflow-hidden h-1/4">
+          <div className="h-full">
+            <BtnScan isScan={loading} onCLick={clickScan} />
+          </div>
         </Box>
-        <Box bgcolor={(theme) => theme.palette.background.paper} color={(theme) => theme.palette.text.primary} className=" w-full flex-1 rounded-t-3xl shadow-lg px-8 pt-8 shadow-slate-900">
-          <div className="mb-3 flex justify-between">
-            <h2 className=" text-lg uppercase font-bold">
-              wifi có sẵn
-            </h2>
-            <h2 className=" text-md uppercase font-bold">
-              thiết lập cho:
-              <span style={{ textTransform: "none" }} className="font-normal">
-                {" " + wifiTarget || "chưa thiết lập"}
-              </span>
+        <Box
+          bgcolor={(theme) => theme.palette.background.paper}
+          color={(theme) => theme.palette.text.primary}
+          className=" w-full flex-1 rounded-t-3xl shadow-lg px-8 pt-8 shadow-slate-900 h-3/4"
+        >
+          <div className="mb-3 flex whitespace-nowrap items-center">
+            <h2 className=" text-md flex-1 uppercase font-bold text-center">wifi có sẵn</h2>
+            <h2 className=" text-md flex-1 uppercase font-bold overflow-hidden ml-4 text-center">
+              thiết lập cho
             </h2>
           </div>
+          <div className="flex whitespace-nowrap items-center">
+            <span className="text-center flex-1">{wifis.length}</span>
+            <span
+              style={{ textTransform: "none" }}
+              className="font-normal whitespace-nowrap overflow-x-scroll flex-1 text-center"
+            >
+              {" " + wifiTarget || "chưa thiết lập"}
+            </span>
+          </div>
           <div
-            style={{ maxHeight: wifis.length ? 8 * 53.58 + "px" : "100%" }}
-            className=" h-full overflow-y-scroll"
+            // style={{ maxHeight: wifis.length ? 8 * 53.58 + "px" : "100%" }}
+            className="h-full overflow-y-scroll overflow-x-hidden"
           >
             {/* render list wifi */}
             {loading ? (
@@ -522,7 +561,7 @@ function Connect() {
                 <CircularProgress />
                 <h2 className="pt-2">Đang tìm kiếm wifi...</h2>
               </div>
-            ) : wifis.length > 0 ? (
+            ) : wifis.length > 0 && !spamWifi ? (
               wifis.map((wifi, index) => (
                 <StatusWifi
                   present={wifiPresent}
@@ -538,8 +577,13 @@ function Connect() {
               ))
             ) : (
               <div className="h-full flex flex-col justify-center items-center">
-                <WifiTetheringErrorIcon className="mb-2" sx={{ fontSize: 89 }} />
-                <h2>chưa có wifi nào được tìm thấy.</h2>
+                <div className="-translate-y-1/2 flex flex-col items-center">
+                  <WifiTetheringErrorIcon
+                    className="mb-2"
+                    sx={{ fontSize: 89 }}
+                  />
+                  <h2 className="text-center">{ spamWifi ? `bạn đang spam wifi hãy đợi ${secondSpamcount}s nữa hãy quét nhé.` : 'chưa có wifi nào được tìm thấy.' }</h2>
+                </div>
               </div>
             )}
           </div>

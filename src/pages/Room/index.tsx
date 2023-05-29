@@ -426,7 +426,8 @@ const Rooms = () => {
           <Box className="flex justify-between items-center mb-5">
             <Typography
               color={(theme) => theme.palette.text.primary}
-              className="capitalize "
+              fontSize={16}
+              className="capitalize"
               variant="h6"
             >
               Số phòng hiện có: {rooms.length}

@@ -15,9 +15,9 @@ const BtnScan = ({ onCLick, isScan, title, second, size, fontSizePrimary, fontSi
     <div style={{
       height: size + 'px',
       width: size + 'px',
-    }} className={`w-52 h-52 m-auto relative my-5`}>
+    }} className={`h-full aspect-square m-auto relative py-5`}>
       <div
-        className={`w-full h-full bg-slate-300 rounded-full ${
+        className={`h-full aspect-square mx-auto bg-slate-300 rounded-full ${
           isScan ? "animate-ping" : ""
         }`}
       ></div>
@@ -30,8 +30,8 @@ const BtnScan = ({ onCLick, isScan, title, second, size, fontSizePrimary, fontSi
         onClick={onCLick}
         className={`absolute w-3/4 h-3/4 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#494d5f] m-auto rounded-full shadow-md flex justify-center items-center flex-col`}
       >
-        <span style={{ fontSize: fontSizePrimary + 'px' ?? 'auto' }} className="uppercase text-2xl">{ title || 'quét wifi'}</span>
-        <span style={{ fontSize: fontSizeSecond + 'px' ?? 'auto' }} className="uppercase text-xs mt-1">{ second ? second : '(chạm là quét)' }</span>
+        <span style={{ fontSize: fontSizePrimary + 'px' ?? 'auto' }} className="uppercase text-2xl">{ title || 'quét'}</span>
+        <span style={{ fontSize: fontSizeSecond + 'px' ?? 'auto' }} className="uppercase text-xs mt-1">{ second ? second : '(chạm quét)' }</span>
       </div>
     </div>
   );
