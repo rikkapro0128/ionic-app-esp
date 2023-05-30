@@ -55,7 +55,7 @@ function Devices() {
           </Box>
         </Box>
       ) : Object.entries(nodes).length > 0 ? (
-        <Box className={`overflow-y-scroll max-h-full`}>
+        <Box className={`overflow-y-scroll overflow-x-hidden max-h-full`}>
           {Object.entries(nodes).map(([key, node]) => {
             return (
               <Box key={key} className="grid grid-cols-2 gap-3 p-3">

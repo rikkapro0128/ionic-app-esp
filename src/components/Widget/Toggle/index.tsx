@@ -98,7 +98,7 @@ function Toggle({ device, idUser, isOffline = false, hostOffline }: PayloadType)
       onClick={handleClick}
       className="flex flex-nowrap mx-auto max-w-full overflow-hidden"
     >
-      <Box className="mr-3 flex flex-col items-center justify-between">
+      <Box className="pr-3 flex flex-col items-center justify-between">
         <Box
           className={`flex justify-center p-2 rounded-full ${
             toggle ? "fill-slate-50" : "fill-indigo-400"
@@ -114,9 +114,9 @@ function Toggle({ device, idUser, isOffline = false, hostOffline }: PayloadType)
           inputProps={{ "aria-label": "ant design" }}
         />
       </Box>
-      <Box className="flex flex-col flex-1 max-w-[75%]">
+      <Box className="flex flex-1 flex-col overflow-hidden">
         <Typography
-          className=" capitalize whitespace-nowrap text-ellipsis overflow-hidden"
+          className=" capitalize whitespace-nowrap overflow-x-scroll"
           color={(theme) => theme.palette.text.primary}
           variant="subtitle2"
         >
@@ -124,7 +124,7 @@ function Toggle({ device, idUser, isOffline = false, hostOffline }: PayloadType)
         </Typography>
         <Typography
           color={(theme) => theme.palette.text.primary}
-          className=" whitespace-nowrap text-ellipsis overflow-hidden"
+          className=" whitespace-nowrap overflow-x-scroll"
           component={"p"}
           variant="caption"
         >

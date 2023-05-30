@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
 
-import { ReMapValue } from '../ConfigGlobal';
+import { CapacitorHttp } from "@capacitor/core";
+
+import { ReMapValue } from "../ConfigGlobal";
 
 interface OptionsType {
   start: number;
@@ -16,33 +18,35 @@ export const useScanDevice = (): [number, () => Promise<any[]>] => {
       end: 251,
     }
   ) => {
-    if(progress !== 0) { setProgress(0); }
-    return await Promise.all(
-      new Array(options.end - options.start)
-        .fill("http://192.168.1")
-        .map((arrHost, index) => `${arrHost}.${index + options.start}`)
-        .map(async (host, index, arrHost) => {
-          return new Promise(async (res) => {
-            try {
-              const response = await fetch(`${host}/ping`, { mode: "no-cors" });
-              if (!response.ok) {
-                res(null);
-              } else {
-                const payload = await response.json();
-                res({ ...payload, host });
-                console.log(host);
-              }
-            } catch (error) {
-              res(null);
+    setProgress(0);
+    const listScan = new Array(options.end - options.start)
+      .fill("http://192.168.1")
+      .map((arrHost, index) => `${arrHost}.${index + options.start}`);
+
+    const temps = await Promise.all(
+      listScan.map((host, index, arrHost) => {
+        return new Promise(async (resolve) => {
+          try {
+            const response = await CapacitorHttp.get({
+              url: `${host}/ping`,
+              connectTimeout: 2000,
+              webFetchExtra: { mode: "no-cors" },
+            });
+            if (response.status === 200) {
+              const payload = response.data;
+              resolve({ ...payload, host });
+            } else {
+              resolve(null);
             }
-            if(index === arrHost.length - 1) {
-              setProgress(100);
-            }else {
-              setProgress(ReMapValue(index + options.start, options.start, options.end, 0, 100));
-            }
-          });
-        })
+          } catch (error) {
+            resolve(null);
+          }
+          setProgress(ReMapValue(index + options.start, options.start, options.end, 0, 100));
+        });
+      })
     );
+    setProgress(100);
+    return temps;
   };
 
   return [progress, scanDevices];

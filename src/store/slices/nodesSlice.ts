@@ -43,6 +43,7 @@ export const counterSlice = createSlice({
       state.value = action.payload;
     },
     updateDevice: (state, { payload }) => {
+      // console.log(payload);
       const { nodeId, device } = payload;
       
       if (nodeId && device) {
@@ -59,6 +60,7 @@ export const counterSlice = createSlice({
       }
     },
     updateValueDevice: (state, { payload }) => {
+      
       const { nodeId, deviceId, value } = payload;
 
       if (nodeId && deviceId) {

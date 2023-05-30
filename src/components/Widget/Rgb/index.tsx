@@ -367,7 +367,8 @@ function Rgb({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
               <Typography
                 color={(theme) => theme.palette.text.primary}
                 variant="subtitle1"
-                className=" capitalize"
+                onTouchStart={(event) => { event.currentTarget.style.textOverflow = 'clip'; }} onTouchEnd={(event) => { event.currentTarget.style.textOverflow = ''; event.currentTarget.scrollLeft = 0; }}
+                className="capitalize whitespace-nowrap overflow-x-scroll text-ellipsis"
                 gutterBottom
               >
                 {device.name || device.id}
@@ -375,14 +376,15 @@ function Rgb({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
               <Typography
                 color={(theme) => theme.palette.text.secondary}
                 variant="subtitle1"
-                className=""
+                onScroll={(event) => { if(event.currentTarget.scrollLeft === 0) { event.currentTarget.style.textOverflow = ''; } else { event.currentTarget.style.textOverflow = 'clip'; } }}
+                className="whitespace-nowrap overflow-x-scroll text-ellipsis"
                 gutterBottom
               >
                 {device.sub || "chưa có mô tả"}
               </Typography>
             </Box>
-            <Box className="col-span-1">
-              <Typography gutterBottom variant="subtitle1">
+            <Box className="col-span-1 ml-2">
+              <Typography onTouchStart={(event) => { event.currentTarget.style.textOverflow = 'clip'; }} onTouchEnd={(event) => { event.currentTarget.style.textOverflow = ''; event.currentTarget.scrollLeft = 0; }} gutterBottom variant="subtitle1" className="whitespace-nowrap overflow-x-scroll text-ellipsis">
                 Chế độ -{" "}
                 {device.mode === ModeColor.SINGLE ||
                 (modeOffline === ModeColor.SINGLE && isOffline)
@@ -390,7 +392,7 @@ function Rgb({ device, idUser, isOffline = false, hostOffline }: PayloadType) {
                   : "Đa sắc"}
               </Typography>
               {isOffline ? (
-                <Typography gutterBottom variant="subtitle1">
+                <Typography className="whitespace-nowrap overflow-x-scroll text-ellipsis" onTouchStart={(event) => { event.currentTarget.style.textOverflow = 'clip'; }} onTouchEnd={(event) => { event.currentTarget.style.textOverflow = ''; event.currentTarget.scrollLeft = 0; }} gutterBottom variant="subtitle1">
                   IP: {hostOffline?.split("http://")[1] ?? "NaN"}
                 </Typography>
               ) : null}

@@ -65,6 +65,8 @@ const WrapOnNode = ({ children }: Props) => {
       const devices = getDevicesFromNodes(nodes);
       // console.log(devices);
       setDevices(devices);
+      // console.log(nodes);
+      
     }
     return () => {
       setDevices([]);

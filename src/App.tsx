@@ -6,6 +6,8 @@ import { useTheme, ThemeProvider, createTheme } from "@mui/material/styles";
 
 import { Toaster } from "react-hot-toast";
 
+import { WifiWizard2 } from "@awesome-cordova-plugins/wifi-wizard-2";
+
 /* Core CSS required for Ionic components to work properly */
 // import "@ionic/react/css/core.css";
 
@@ -30,6 +32,7 @@ import "./index.css";
 
 import Box from "@mui/material/Box";
 import Grow from "@mui/material/Grow";
+import Typography from "@mui/material/Typography";
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { routes } from "./routes";
@@ -43,16 +46,18 @@ import { useAppSelector, useAppDispatch } from "./store/hooks";
 import Header from "./components/Header";
 import Auth from "./components/Auth";
 
-import DetachOS from 'detectos.js';
+import DetachOS from "detectos.js";
 
 import { getUserIDByPlaform, ColorMode } from "./ConfigGlobal";
 
-import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { getAuth, onAuthStateChanged, Unsubscribe } from "firebase/auth";
 
-import { appAuthWeb } from './firebase';
+import { appAuthWeb } from "./firebase";
 
-import { GeneralUser, setInfoUser } from './store/slices/commonSlice';
+import { GeneralUser, setInfoUser } from "./store/slices/commonSlice";
+
+import { useSnackbar, PropsSnack } from "./hooks/SnackBar";
 
 setupIonicReact();
 
@@ -85,45 +90,59 @@ const App: React.FC = () => {
   );
   const FBConnection = useAppSelector((state) => state.commons.fbConnection);
   const dispatch = useAppDispatch();
+  const [activeSnack, closeSnack] = useSnackbar();
 
   useEffect(() => {
     let unAuthStateChange: Unsubscribe | undefined;
-    if(TypeOS.OS === 'Android') {
+    if (TypeOS.OS === "Android") {
       FirebaseAuthentication.getCurrentUser()
-      .then((result) => {
-        console.log(result.user);
-        if(result.user) {
-          if(Object.keys(result.user).length > 0) {
-            dispatch(setInfoUser({ info: { ...result.user, photoURL: result.user?.photoUrl ?? '' } as unknown as GeneralUser }))
+        .then((result) => {
+          console.log(result.user);
+          if (result.user) {
+            if (Object.keys(result.user).length > 0) {
+              dispatch(
+                setInfoUser({
+                  info: {
+                    ...result.user,
+                    photoURL: result.user?.photoUrl ?? "",
+                  } as unknown as GeneralUser,
+                })
+              );
+            }
           }
-        }
-      })
-      .catch((error) => {
-        console.log('Something error =>', error);
-      });
-    }else if(TypeOS.OS === 'Windows') {
+        })
+        .catch((error) => {
+          console.log("Something error =>", error);
+        });
+    } else if (TypeOS.OS === "Windows") {
       const auth = getAuth(appAuthWeb);
       unAuthStateChange = onAuthStateChanged(auth, (user) => {
-        dispatch(setInfoUser({ info: {
-          displayName: user?.displayName,
-          email: user?.email,
-          emailVerified: user?.emailVerified,
-          isAnonymous: user?.isAnonymous,
-          metadata: user?.metadata,
-          phoneNumber: user?.phoneNumber,
-          photoURL: user?.photoURL,
-          providerData: user?.providerData,
-          providerId: user?.providerId,
-          refreshToken: user?.refreshToken,
-          uid: user?.uid,
-          tenantId: user?.tenantId,
-        } as GeneralUser }))
-      })
+        dispatch(
+          setInfoUser({
+            info: {
+              displayName: user?.displayName,
+              email: user?.email,
+              emailVerified: user?.emailVerified,
+              isAnonymous: user?.isAnonymous,
+              metadata: user?.metadata,
+              phoneNumber: user?.phoneNumber,
+              photoURL: user?.photoURL,
+              providerData: user?.providerData,
+              providerId: user?.providerId,
+              refreshToken: user?.refreshToken,
+              uid: user?.uid,
+              tenantId: user?.tenantId,
+            } as GeneralUser,
+          })
+        );
+      });
     }
     return () => {
-      if(typeof unAuthStateChange === 'function') { unAuthStateChange() }
-    }
-  }, [])
+      if (typeof unAuthStateChange === "function") {
+        unAuthStateChange();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     getUserIDByPlaform().then((userId) => {
@@ -169,9 +188,13 @@ const App: React.FC = () => {
               <Box className="flex flex-col h-full overflow-hidden">
                 <Header />
                 {FBConnection ? null : (
-                  <p className="py-2 pl-2 text-center italic">
+                  <Typography
+                    className="py-2 pl-2 text-center italic"
+                    color={(theme) => theme.palette.text.primary}
+                    variant="subtitle2"
+                  >
                     Chú ý: ứng dụng của bạn đang ở chế độ offline
-                  </p>
+                  </Typography>
                 )}
                 <Routes>
                   <Route path="/" element={<Auth />}>

@@ -349,9 +349,10 @@ function Node({ devices, node }: PropsType) {
           ];
           await updateFieldByPath(pathRef, payload);
           // update info to redux store
-          dispatch(
+
+          await dispatch(
             updateDevice({
-              nodeId: infoEdit.payload.node_id,
+              nodeId: "node-" + infoEdit.payload.node_id,
               device: { ...infoEdit.payload, ...board },
             })
           );
@@ -535,15 +536,28 @@ function Node({ devices, node }: PropsType) {
     setOpenPickModeColor(true);
   };
 
-  const openModalPickNumberLed = () => {
+  const openModalPickNumberLed = async () => {
     handleCloseMenu();
-    if (
-      infoSetting &&
-      infoSetting.type === WidgetType.COLOR &&
-      infoSetting?.["nums-Led"]
-    ) {
-      if (infoSetting["nums-Led"] > 0 && infoSetting["nums-Led"] < 1000) {
-        setPickNumberLed({ ...pickNumberLed, old: infoSetting.numsLed });
+    if (infoSetting) {
+      const nodeId = infoSetting.node_id;
+      const deviceId = infoSetting.id;
+      if (typeof infoSetting?.["nums-Led"] === "undefined") {
+        await set(
+          ref(
+            database,
+            `user-${userIDCtx}/nodes/node-${nodeId}/devices/device-${deviceId}/nums-Led`
+          ),
+          0
+        );
+        setPickNumberLed({ new: 0, old: 0 });
+        await dispatch(
+          updateDevice({
+            nodeId: "node-" + nodeId,
+            device: { ...infoSetting, ['nums-Led']: pickNumberLed.new },
+          })
+        );
+      }else {
+        setPickNumberLed({ new: infoSetting?.["nums-Led"], old: infoSetting?.["nums-Led"] });
       }
     }
     setOpenPickNumberLed(true);
@@ -596,15 +610,27 @@ function Node({ devices, node }: PropsType) {
       const deviceId = infoSetting.id;
       try {
         setLoadingUpdate(true);
-        if (pickNumberLed.new !== pickNumberLed.old) {
-          await set(
-            ref(
-              database,
-              `user-${userIDCtx}/nodes/node-${nodeId}/devices/device-${deviceId}/nums-Led`
-            ),
-            pickNumberLed.new
-          );
-          setPickNumberLed({ ...pickNumberLed, old: pickNumberLed.new });
+        if(typeof pickNumberLed.new === 'number') {
+          if (
+            pickNumberLed.new !== pickNumberLed.old &&
+            pickNumberLed.new >= 0 &&
+            pickNumberLed.new < 1000
+          ) {
+            await set(
+              ref(
+                database,
+                `user-${userIDCtx}/nodes/node-${nodeId}/devices/device-${deviceId}/nums-Led`
+              ),
+              pickNumberLed.new
+            );
+            setPickNumberLed({ new: pickNumberLed.new, old: pickNumberLed.new });
+            await dispatch(
+              updateDevice({
+                nodeId: "node-" + nodeId,
+                device: { ...infoSetting, ['nums-Led']: pickNumberLed.new },
+              })
+            );
+          }
         }
       } catch (error) {
         activeSnack({
@@ -730,7 +756,7 @@ function Node({ devices, node }: PropsType) {
               })
             }
             type="number"
-            value={pickNumberLed.new ? pickNumberLed.new : pickNumberLed.old}
+            value={ pickNumberLed.new ? pickNumberLed.new : '' }
             fullWidth
             id="standard-name"
             variant="standard"
@@ -1042,7 +1068,8 @@ function Node({ devices, node }: PropsType) {
         </MenuItem>
         {/* <Divider sx={{ my: 0.5 }} /> */}
         <MenuItem
-          disabled={infoSetting?.type !== WidgetType.LOGIC}
+          // disabled={infoSetting?.type !== WidgetType.LOGIC}
+          disabled
           onClick={handleClickOpenSettingBind}
           disableRipple
         >
@@ -1054,7 +1081,7 @@ function Node({ devices, node }: PropsType) {
           chọn phòng
         </MenuItem>
         {infoSetting?.type === WidgetType.COLOR ? (
-          <>
+          <div>
             <MenuItem onClick={openModalPickModeColor} disableRipple>
               <LightModeIcon />
               chọn chế độ
@@ -1063,7 +1090,7 @@ function Node({ devices, node }: PropsType) {
               <NumbersIcon />
               số lượng led
             </MenuItem>
-          </>
+          </div>
         ) : null}
       </StyledMenu>
 
@@ -1086,10 +1113,10 @@ function Node({ devices, node }: PropsType) {
           >
             {nodeOnline ? "online" : "offline"}
           </span> */}
-          <IconButton aria-label="edit">
+          <IconButton disabled aria-label="edit">
             <EditIcon />
           </IconButton>
-          <IconButton aria-label="setting">
+          <IconButton disabled aria-label="setting">
             <SettingsIcon />
           </IconButton>
           <IconButton onClick={hanldeOpenPromtRemoveNode} aria-label="remove">
@@ -1110,7 +1137,11 @@ function Node({ devices, node }: PropsType) {
                     marginTop: `${expand ? 40 : 0}px`,
                     transition: "margin 200ms ease-in-out",
                   }}
-                  bgcolor={(theme) => theme.palette.background.paper}
+                  bgcolor={(theme) =>
+                    theme.palette.mode === "light"
+                      ? theme.palette.common.white
+                      : theme.palette.grey[800]
+                  }
                   className={`flex h-24 flex-nowrap ${
                     device.type in grids
                       ? grids[device.type as keyof typeof grids]
@@ -1136,7 +1167,8 @@ function Node({ devices, node }: PropsType) {
                       size={"small"}
                       aria-label="setting"
                     >
-                      Cài đặt <SettingsIcon className="ml-1" />
+                      <span className="text-xs">Cài đặt</span>
+                      <SettingsIcon className="ml-1" fontSize="small" />
                     </IconButton>
                     <IconButton
                       onClick={() => activeEditDevice(device)}
@@ -1144,7 +1176,8 @@ function Node({ devices, node }: PropsType) {
                       size={"small"}
                       aria-label="edit"
                     >
-                      Chỉnh sửa <EditIcon className="ml-1" />
+                      <span className="text-xs">Chỉnh sửa</span>{" "}
+                      <EditIcon className="ml-1" fontSize="small" />
                     </IconButton>
                   </div>
                   {getTypeWidget(device, userIDCtx)}
@@ -1186,7 +1219,11 @@ function Node({ devices, node }: PropsType) {
                   marginTop: expand ? 40 : 0,
                   transition: "margin 200ms ease-in-out",
                 }}
-                bgcolor={(theme) => theme.palette.background.paper}
+                bgcolor={(theme) =>
+                  theme.palette.mode === "light"
+                    ? theme.palette.common.white
+                    : theme.palette.grey[800]
+                }
                 className={`flex flex-nowrap col-span-2 p-3 rounded-2xl border relative border-gray-300 z-20`}
               >
                 {getTypeWidget(device, userIDCtx)}

@@ -98,6 +98,17 @@ function Connect() {
   const [passwordWifiConfig, setPasswordWifiConfig] = useState<string>("");
 
   useEffect(() => {
+    WifiWizard2.requestPermission()
+      .then(() => {})
+      .catch(() => {
+        activeSnack({
+          title: "Chú ý",
+          message: `Bạn đã không cấp quyền truy cập WiFi cho ứng dụng sẽ không thể cấu hình thiết bị, vui lòng vào cài đặt hệ thống để cấp lại quyền cho ứng dụng!`,
+        } as PropsSnack & string);
+      });
+  }, [])
+
+  useEffect(() => {
     let idTimeOut: NodeJS.Timeout;
     const checkWifiPresent = () => {
       idTimeOut = setInterval(async () => {
@@ -142,20 +153,20 @@ function Connect() {
 
   useEffect(() => {
     setSecondSpamcount(30);
-    if(spamWifi) {
+    if (spamWifi) {
       let countSecond: number = secondSpamcount;
       let idCounter = setInterval(() => {
-        if(countSecond > 0) {
+        if (countSecond > 0) {
           countSecond = --countSecond;
           setSecondSpamcount(countSecond);
-        }else {
+        } else {
           clearInterval(idCounter);
           setSpamWifi(false);
         }
       }, 1000);
       return () => {
         clearInterval(idCounter);
-      }
+      };
     }
   }, [spamWifi]);
 
@@ -164,7 +175,7 @@ function Connect() {
     if (TypeOS.OS === "Android") {
       setLoading(true);
       try {
-        if(!spamWifi) {
+        if (!spamWifi) {
           const state: string = await WifiWizard2.startScan();
           if (state === "OK") {
             const listWifi: Array<WifiInfo> = await WifiWizard2.getScanResults({
@@ -178,8 +189,8 @@ function Connect() {
       } catch (error) {
         if (error instanceof Error) {
           console.log(error.message);
-        }else if(typeof error === 'string') {
-          if(error === 'STARTSCAN_FAILED') {
+        } else if (typeof error === "string") {
+          if (error === "STARTSCAN_FAILED") {
             setSpamWifi(true);
           }
         }
@@ -322,7 +333,7 @@ function Connect() {
   const onCloseDia = () => {
     setOpenDia(false);
     setPasswordWifi("");
-    if(pickWifi) {
+    if (pickWifi) {
       setPickWifi(undefined);
     }
   };
@@ -534,26 +545,30 @@ function Connect() {
         <Box
           bgcolor={(theme) => theme.palette.background.paper}
           color={(theme) => theme.palette.text.primary}
-          className=" w-full flex-1 rounded-t-3xl shadow-lg px-8 pt-8 shadow-slate-900 h-3/4"
+          className="flex flex-col w-full flex-1 rounded-t-3xl shadow-lg px-8 pt-8 shadow-slate-900 h-3/4"
         >
-          <div className="mb-3 flex whitespace-nowrap items-center">
-            <h2 className=" text-md flex-1 uppercase font-bold text-center">wifi có sẵn</h2>
-            <h2 className=" text-md flex-1 uppercase font-bold overflow-hidden ml-4 text-center">
-              thiết lập cho
-            </h2>
-          </div>
-          <div className="flex whitespace-nowrap items-center">
-            <span className="text-center flex-1">{wifis.length}</span>
-            <span
-              style={{ textTransform: "none" }}
-              className="font-normal whitespace-nowrap overflow-x-scroll flex-1 text-center"
-            >
-              {" " + wifiTarget || "chưa thiết lập"}
-            </span>
+          <div>
+            <div className="mb-3 flex whitespace-nowrap items-center">
+              <h2 className=" text-md flex-1 uppercase font-bold text-center">
+                wifi có sẵn
+              </h2>
+              <h2 className=" text-md flex-1 uppercase font-bold overflow-hidden ml-4 text-center">
+                thiết lập cho
+              </h2>
+            </div>
+            <div className="flex whitespace-nowrap items-center">
+              <span className="text-center flex-1">{wifis.length}</span>
+              <span
+                style={{ textTransform: "none" }}
+                className="font-normal whitespace-nowrap overflow-x-scroll flex-1 text-center"
+              >
+                {" " + wifiTarget || "chưa thiết lập"}
+              </span>
+            </div>
           </div>
           <div
             // style={{ maxHeight: wifis.length ? 8 * 53.58 + "px" : "100%" }}
-            className="h-full overflow-y-scroll overflow-x-hidden"
+            className="flex-1 overflow-y-scroll overflow-x-hidden"
           >
             {/* render list wifi */}
             {loading ? (
@@ -582,7 +597,11 @@ function Connect() {
                     className="mb-2"
                     sx={{ fontSize: 89 }}
                   />
-                  <h2 className="text-center">{ spamWifi ? `bạn đang spam wifi hãy đợi ${secondSpamcount}s nữa hãy quét nhé.` : 'chưa có wifi nào được tìm thấy.' }</h2>
+                  <h2 className="text-center">
+                    {spamWifi
+                      ? `bạn đang spam wifi hãy đợi ${secondSpamcount}s nữa hãy quét nhé.`
+                      : "chưa có wifi nào được tìm thấy."}
+                  </h2>
                 </div>
               </div>
             )}
